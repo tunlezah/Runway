@@ -1,0 +1,940 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy"
+content="default-src 'none'; img-src data:; style-src 'unsafe-inline'; script-src 'unsafe-inline'; connect-src 'none'; form-action 'none';">
+<title>Runway</title>
+<style>
+
+/* ============ tokens ============ */
+:root{--font-sans:ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,"Helvetica Neue", Arial, sans-serif;--font-mono:ui-monospace, SFMono-Regular, "SF Mono", "Cascadia Mono","Segoe UI Mono", Consolas, "Liberation Mono", monospace;--font-title:var(--font-sans);--surface:#FFFFFF;--surface-raised:#F7F8FA;--border:#E3E6EB;--fg:#12141A;--fg-muted:#5B6472;--accent:#4F46E5;--accent-soft:color-mix(in srgb, var(--accent) 12%, var(--surface));--calm-text:#15803D;--calm-bar:#16A34A;--calm-tint:#F0FDF4;--soon-text:#854D0E;--soon-bar:#AD7A02;--soon-tint:#FEFCE8;--near-text:#9A3412;--near-bar:#EA580C;--near-tint:#FFF7ED;--due-text:#B91C1C;--due-bar:#DC2626;--due-tint:#FEF2F2;--seg-empty:#E3E6EB;--dirty:#B45309;--err:#B91C1C;--sp-1:4px;--sp-2:8px;--sp-3:12px;--sp-4:16px;--sp-6:24px;--row-h:44px;--radius:6px;--dur-add:180ms;--dur-done:220ms;--dur-gauge:120ms;--dur-toast:150ms;--shadow:0 8px 30px rgba(0,0,0,.14);--scrim:rgba(15,17,21,.4);--seg-radius:1px;--bevel:none;}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]):not([data-theme="geocities"]){--surface:#0F1115;--surface-raised:#171A21;--border:#252A34;--fg:#E6E8EC;--fg-muted:#9AA3B2;--calm-text:#4ADE80;--calm-bar:#22C55E;--calm-tint:rgba(34,197,94,.10);--soon-text:#FACC15;--soon-bar:#EAB308;--soon-tint:rgba(234,179,8,.10);--near-text:#FB923C;--near-bar:#F97316;--near-tint:rgba(249,115,22,.12);--due-text:#F87171;--due-bar:#EF4444;--due-tint:rgba(239,68,68,.12);--seg-empty:#252A34;--dirty:#FACC15;--err:#F87171;--shadow:0 8px 30px rgba(0,0,0,.5);--scrim:rgba(0,0,0,.5);}
+}
+:root[data-theme="dark"]{--surface:#0F1115;--surface-raised:#171A21;--border:#252A34;--fg:#E6E8EC;--fg-muted:#9AA3B2;--calm-text:#4ADE80;--calm-bar:#22C55E;--calm-tint:rgba(34,197,94,.10);--soon-text:#FACC15;--soon-bar:#EAB308;--soon-tint:rgba(234,179,8,.10);--near-text:#FB923C;--near-bar:#F97316;--near-tint:rgba(249,115,22,.12);--due-text:#F87171;--due-bar:#EF4444;--due-tint:rgba(239,68,68,.12);--seg-empty:#252A34;--dirty:#FACC15;--err:#F87171;--shadow:0 8px 30px rgba(0,0,0,.5);--scrim:rgba(0,0,0,.5);}
+:root[data-theme="geocities"]{--surface:#000080;--surface-raised:#000066;--border:#C0C0C0;--fg:#FFFFFF;--fg-muted:#C0C0C0;--accent:#00FFFF;--accent-soft:#000066;--calm-text:#00FF00;--calm-bar:#00FF00;--calm-tint:rgba(0,255,0,.12);--soon-text:#FFFF00;--soon-bar:#FFFF00;--soon-tint:rgba(255,255,0,.12);--near-text:#FFA500;--near-bar:#FFA500;--near-tint:rgba(255,165,0,.12);--due-text:#FF5555;--due-bar:#FF0000;--due-tint:rgba(255,0,0,.15);--seg-empty:#404090;--dirty:#FFFF00;--err:#FF5555;--radius:0;--seg-radius:0;--font-title:"Comic Sans MS","Comic Sans","Chalkboard SE",cursive;--font-sans:"Times New Roman",Times,serif;--scrim:rgba(0,0,32,.6);--shadow:0 0 0 2px #000;}
+/* ============ reset ============ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+[hidden]{display:none !important}
+html,body{height:100%}
+button,input,textarea,select{font:inherit;color:inherit}
+button{background:none;border:none;cursor:pointer}
+ul{list-style:none}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+input:focus-visible,textarea:focus-visible{outline-offset:0}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+/* ============ layout ============ */
+body{background:var(--surface);color:var(--fg);font:14px/1.45 var(--font-sans)}
+.app{max-width:880px;margin:0 auto;padding:0 var(--sp-4) 80px;container-type:inline-size;container-name:app;min-height:100%}
+/* header */
+.hdr{display:flex;align-items:center;gap:var(--sp-2);padding:var(--sp-3) 0;border-bottom:1px solid var(--border)}
+.app-title{font:600 15px/1 var(--font-title);letter-spacing:-0.01em;margin-right:auto}
+.hdr-btn{display:inline-flex;align-items:center;gap:6px;min-width:32px;min-height:32px;justify-content:center;padding:4px 8px;border-radius:var(--radius);color:var(--fg-muted);font:500 12px var(--font-mono)}
+.hdr-btn:hover{background:var(--surface-raised);color:var(--fg)}
+.hdr-btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.6}
+.hdr-btn[aria-pressed="true"]{color:var(--accent);background:var(--accent-soft)}
+.pill{display:inline-flex;align-items:center;gap:6px;min-height:32px;padding:4px 10px;border:1px solid var(--border);border-radius:999px;font:500 12px var(--font-mono);color:var(--fg)}
+.pill:hover{border-color:var(--accent);color:var(--accent)}
+.save-ind{display:inline-flex;align-items:center;gap:6px;min-height:32px;padding:4px 6px;font:400 12px var(--font-mono);color:var(--fg-muted)}
+.save-ind .dot{width:7px;height:7px;border-radius:50%;background:var(--fg-muted);opacity:.4}
+.save-ind.dirty .dot{background:var(--dirty);opacity:1}
+.save-ind.saving .dot{background:var(--dirty);opacity:1;animation:pulse 1s ease-in-out infinite}
+.save-ind.error .dot{background:var(--err);opacity:1}
+@keyframes pulse{50%{opacity:.3}
+}
+/* banners */
+#banners{display:flex;flex-direction:column;gap:var(--sp-2)}
+.banner{display:flex;flex-wrap:wrap;align-items:center;gap:var(--sp-2);margin-top:var(--sp-2);padding:var(--sp-2) var(--sp-3);background:var(--surface-raised);border:1px solid var(--border);border-radius:var(--radius);font-size:13px}
+.banner.warn{border-color:var(--dirty)}
+.banner.alert{border-color:var(--due-bar)}
+.banner .msg{flex:1;min-width:200px}
+.banner button{padding:4px 10px;min-height:28px;border:1px solid var(--border);border-radius:var(--radius);font:500 12px var(--font-mono)}
+.banner button:hover{border-color:var(--accent);color:var(--accent)}
+.banner .bx{border:none;color:var(--fg-muted);min-width:32px;min-height:32px}
+.banner pre{width:100%;max-height:260px;overflow:auto;font:12px/1.5 var(--font-mono);background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:var(--sp-2);margin-top:var(--sp-1)}
+.banner pre .da{color:var(--calm-text)}
+.banner pre .dr{color:var(--due-text);text-decoration:line-through}
+/* tag key */
+.tagkey{display:flex;align-items:center;gap:var(--sp-2);padding:var(--sp-2) 0;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.tagkey .counts{margin-left:auto;font:400 11px var(--font-mono);color:var(--fg-muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.tkchip{display:inline-flex;align-items:center;gap:6px;min-height:32px;padding:2px 10px;border:1px solid var(--border);border-radius:var(--radius);font:500 11px var(--font-mono);color:var(--fg)}
+.tkchip .k{color:var(--fg-muted)}
+.tkchip:hover{border-color:var(--accent)}
+.tkchip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+.tkchip[aria-pressed="true"] .k{color:#fff;opacity:.75}
+.tkchip:disabled{opacity:.4;cursor:default}
+.tkchip:disabled:hover{border-color:var(--border)}
+@container app (max-width:560px){.tkchip .lbl{display:none}
+.tkchip{gap:0}
+}
+/* entry row */
+.entry{display:flex;gap:var(--sp-2);margin-top:var(--sp-4)}
+.entry input{flex:1 1 72%;min-width:0;padding:10px var(--sp-3);background:var(--surface-raised);border:1px solid var(--border);border-radius:var(--radius);font-size:14px;color:var(--fg)}
+.entry input::placeholder{color:var(--fg-muted);opacity:.8}
+.entry #dateInput{flex:0 1 28%;min-width:110px;font-family:var(--font-mono);font-size:13px}
+.entry input.bad{border-color:var(--due-bar)}
+@container app (max-width:560px){.entry{flex-direction:column}
+.entry #dateInput{flex-basis:auto;width:100%}
+}
+.entry-chips{display:flex;gap:4px;margin-top:4px;min-height:0}
+.date-preview{padding:4px 2px 0;font:400 12px var(--font-mono);color:var(--fg-muted);min-height:22px;font-variant-numeric:tabular-nums;text-align:right}
+.date-preview.rolled{color:var(--accent)}
+.date-preview.past,.date-preview.invalid{color:var(--due-text)}
+@container app (max-width:560px){.date-preview{text-align:left}
+}
+/* search */
+.search{display:flex;align-items:center;gap:var(--sp-2);margin-top:var(--sp-2);padding:0 var(--sp-3);background:var(--surface-raised);border:1px solid var(--border);border-radius:var(--radius)}
+.search svg{width:14px;height:14px;stroke:var(--fg-muted);fill:none;stroke-width:2;flex:none}
+.search input{flex:1;min-width:0;border:none;background:none;padding:8px 0;font:400 13px var(--font-mono);color:var(--fg)}
+.search input:focus-visible{outline:none}
+.search:focus-within{outline:2px solid var(--accent);outline-offset:2px}
+.search .clr{color:var(--fg-muted);min-width:32px;min-height:32px;display:none}
+.search.hasq .clr{display:inline-flex;align-items:center;justify-content:center}
+.count-line{font:400 11px var(--font-mono);color:var(--fg-muted);padding:var(--sp-1) 2px;font-variant-numeric:tabular-nums}
+/* digest */
+.digest{display:flex;align-items:center;gap:var(--sp-2);margin-top:var(--sp-2);padding:var(--sp-2) var(--sp-3);border:1px solid var(--border);border-radius:var(--radius);font:400 12px var(--font-mono);color:var(--fg-muted)}
+.digest b{color:var(--due-text);font-weight:600}
+/* sections */
+.sect{margin-top:var(--sp-4)}
+.sect-h{display:flex;align-items:baseline;gap:var(--sp-2);font:600 11px var(--font-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--fg-muted);padding-bottom:var(--sp-1);border-bottom:1px solid var(--border)}
+.sect-h .n{font-weight:400;font-variant-numeric:tabular-nums}
+/* task rows */
+.task{display:grid;grid-template:"g c main meta" auto "g c sub sub" auto / 20px 24px minmax(0,1fr) auto;align-items:center;column-gap:var(--sp-2);min-height:var(--row-h);padding:var(--sp-1) var(--sp-2) var(--sp-1) 0;border-bottom:1px solid var(--border);position:relative}
+[data-density="compact"] .task{min-height:34px;padding-top:0;padding-bottom:0}
+.task.u-overdue{border-left:3px solid var(--due-bar);margin-left:-3px}
+.task.sel{outline:2px solid var(--accent);outline-offset:-2px;background:var(--accent-soft)}
+.task.adding{animation:rowin var(--dur-add) ease-out}
+@keyframes rowin{from{opacity:0;transform:translateY(-8px)}
+}
+.task.collapsing{transition:height var(--dur-done) ease-in,opacity var(--dur-done) ease-in;opacity:0;overflow:hidden;border-bottom-width:0;min-height:0}
+.gauge{grid-area:g;width:8px;height:26px;display:flex;flex-direction:column-reverse;gap:2px;justify-self:center}
+.gauge i{flex:1;background:var(--seg-empty);border-radius:var(--seg-radius);transition:background var(--dur-gauge)}
+.gauge i.f{background:var(--u-bar,var(--seg-empty))}
+.task{--u-bar:var(--seg-empty);--u-text:var(--fg-muted)}
+.task.u-calm{--u-bar:var(--calm-bar);--u-text:var(--calm-text)}
+.task.u-soon{--u-bar:var(--soon-bar);--u-text:var(--soon-text)}
+.task.u-near{--u-bar:var(--near-bar);--u-text:var(--near-text)}
+.task.u-due,.task.u-overdue{--u-bar:var(--due-bar);--u-text:var(--due-text)}
+.task .cb{grid-area:c;width:16px;height:16px;justify-self:center;accent-color:var(--accent);cursor:pointer}
+.tmain{grid-area:main;display:flex;align-items:center;gap:var(--sp-2);min-width:0}
+.title{font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:text}
+@container app (max-width:560px){.task{grid-template:"g c main" auto "g c meta" auto "g c sub" auto / 20px 24px minmax(0,1fr)}
+.title{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.tmeta{justify-self:start;font-size:12px;padding-bottom:2px}
+}
+.title-edit{width:100%;background:var(--surface-raised);border:1px solid var(--accent);border-radius:var(--radius);padding:4px 8px;font-size:14px}
+.note-toggle{color:var(--fg-muted);font:400 11px var(--font-mono);min-width:32px;min-height:24px;display:inline-flex;align-items:center;gap:2px;flex:none}
+.note-toggle:hover{color:var(--fg)}
+.tmeta{grid-area:meta;display:flex;align-items:center;gap:var(--sp-2);justify-self:end;font-variant-numeric:tabular-nums;white-space:nowrap}
+.tag{display:inline-block;padding:1px 6px;border:1px solid var(--border);border-radius:var(--radius);font:500 11px var(--font-mono);color:var(--fg-muted);background:var(--surface-raised)}
+.pri{font:600 12px var(--font-mono);color:var(--fg-muted);letter-spacing:1px}
+.pri.p3{color:var(--fg)}
+.datechip{font:500 12px var(--font-mono);color:var(--u-text);cursor:pointer;padding:2px 4px;border-radius:var(--radius)}
+.datechip:hover{background:var(--surface-raised)}
+.datechip.undated{color:var(--fg-muted);opacity:.6}
+.date-edit{width:150px;background:var(--surface-raised);border:1px solid var(--accent);border-radius:var(--radius);padding:2px 6px;font:400 12px var(--font-mono)}
+.rowactions{display:inline-flex;gap:2px;visibility:hidden}
+.task:hover .rowactions,.task.sel .rowactions,.task:focus-within .rowactions{visibility:visible}
+.rowactions button{min-width:28px;min-height:28px;display:inline-flex;align-items:center;justify-content:center;border-radius:var(--radius);color:var(--fg-muted)}
+.rowactions button:hover{background:var(--surface-raised);color:var(--fg)}
+.rowactions svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.6}
+.subwrap{grid-area:sub;padding:2px 0 4px}
+.notetext{font:400 13px var(--font-sans);color:var(--fg-muted);white-space:pre-wrap}
+.notetext.clip{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.subtasks{margin-top:2px}
+.subtasks li{display:flex;align-items:center;gap:6px;padding:2px 0;font-size:13px;color:var(--fg)}
+.subtasks input{width:13px;height:13px;accent-color:var(--accent)}
+.subtasks .sdone{color:var(--fg-muted);text-decoration:line-through}
+.task.done .title{color:var(--fg-muted);text-decoration:line-through}
+.donechip{font:400 12px var(--font-mono);color:var(--fg-muted)}
+/* empty states */
+.empty{padding:40px 0;text-align:center;color:var(--fg-muted);font-size:13px}
+.empty b{display:block;color:var(--fg);font-size:14px;margin-bottom:4px}
+/* snooze popover */
+.pop{position:absolute;z-index:40;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:var(--sp-2);min-width:230px}
+.pop h3{font:600 11px var(--font-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--fg-muted);padding:2px 6px 6px}
+.pop button{display:flex;width:100%;align-items:center;gap:var(--sp-2);padding:6px 8px;min-height:32px;border-radius:var(--radius);font-size:13px;text-align:left}
+.pop button:hover,.pop button.hot{background:var(--surface-raised)}
+.pop .kk{font:500 11px var(--font-mono);color:var(--fg-muted);width:14px}
+.pop .dd{margin-left:auto;font:400 12px var(--font-mono);color:var(--fg-muted)}
+/* toasts */
+#toasts{position:fixed;left:var(--sp-4);bottom:var(--sp-4);z-index:60;display:flex;flex-direction:column;gap:var(--sp-2);max-width:360px}
+.toast{position:relative;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:var(--sp-2) var(--sp-3);display:flex;align-items:center;gap:var(--sp-3);font-size:13px;overflow:hidden;animation:toastin var(--dur-toast) ease-out}
+@keyframes toastin{from{opacity:0;transform:translateY(6px)}
+}
+.toast .tmsg{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.toast .tundo{color:var(--accent);font:600 12px var(--font-mono);min-height:32px;padding:0 6px}
+.toast .tk{font:400 11px var(--font-mono);color:var(--fg-muted)}
+.toast .drain{position:absolute;left:0;bottom:0;height:2px;background:var(--accent);width:100%}
+/* overlays:settings + shortcuts */
+.scrim{position:fixed;inset:0;background:var(--scrim);z-index:80}
+.panel{position:fixed;top:0;right:0;bottom:0;width:360px;max-width:100%;z-index:81;background:var(--surface);border-left:1px solid var(--border);box-shadow:var(--shadow);display:flex;flex-direction:column}
+.panel.full{width:100%;border-left:none}
+.panel-h{display:flex;align-items:center;padding:var(--sp-3) var(--sp-4);border-bottom:1px solid var(--border)}
+.panel-h h2{font:600 13px var(--font-title)}
+.panel-h .px{margin-left:auto;min-width:32px;min-height:32px;display:inline-flex;align-items:center;justify-content:center;color:var(--fg-muted);border-radius:var(--radius)}
+.panel-h .px:hover{background:var(--surface-raised);color:var(--fg)}
+.panel-b{flex:1;overflow-y:auto;padding:var(--sp-2) var(--sp-4) var(--sp-6)}
+.set-sect{margin-top:var(--sp-4)}
+.set-sect>h3{font:600 11px var(--font-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--fg-muted);padding-bottom:var(--sp-1);border-bottom:1px solid var(--border)}
+.set-row{display:flex;align-items:center;gap:var(--sp-2);padding:var(--sp-2) 0;flex-wrap:wrap}
+.set-row>label:first-child,.set-row>.slbl{flex:1 0 120px;font-size:13px}
+.set-row .hint{flex-basis:100%;font-size:12px;color:var(--fg-muted)}
+.set-row select,.set-row input[type=text],.set-row input[type=number]{padding:5px 8px;background:var(--surface-raised);border:1px solid var(--border);border-radius:var(--radius);font:400 13px var(--font-mono);color:var(--fg);max-width:160px}
+.set-row input[type=number]{width:70px}
+.set-row input.bad{border-color:var(--due-bar)}
+.set-err{flex-basis:100%;color:var(--due-text);font-size:12px}
+.seg-btns{display:inline-flex;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.seg-btns button{padding:5px 10px;min-height:32px;font:500 12px var(--font-mono);color:var(--fg-muted)}
+.seg-btns button+button{border-left:1px solid var(--border)}
+.seg-btns button[aria-pressed="true"]{background:var(--accent);color:#fff}
+.accent-row{display:flex;gap:6px;flex-wrap:wrap}
+.accent-sw{width:28px;height:28px;border-radius:50%;border:2px solid transparent;padding:0}
+.accent-sw[aria-pressed="true"]{border-color:var(--fg);box-shadow:0 0 0 2px var(--surface) inset}
+.accent-row.disabled .accent-sw{opacity:.35;pointer-events:none}
+.ramp-preview{display:flex;gap:var(--sp-3);padding:var(--sp-2);border:1px solid var(--border);border-radius:var(--radius);margin-top:var(--sp-1);font:400 11px var(--font-mono);color:var(--fg-muted);flex-wrap:wrap}
+.ramp-preview .rp{display:flex;align-items:center;gap:6px}
+.ramp-preview .g{display:flex;flex-direction:column-reverse;gap:1px;width:6px;height:18px}
+.ramp-preview .g i{flex:1;background:var(--seg-empty);border-radius:var(--seg-radius)}
+.tagmap-table{width:100%;border-collapse:collapse;margin-top:var(--sp-1)}
+.tagmap-table td{padding:3px 4px}
+.tagmap-table input{width:100%;padding:4px 8px;background:var(--surface-raised);border:1px solid var(--border);border-radius:var(--radius);font:400 13px var(--font-mono);color:var(--fg)}
+.tagmap-table td:first-child{width:56px}
+.tagmap-table td:last-child{width:36px}
+.mini-btn{padding:5px 10px;min-height:32px;border:1px solid var(--border);border-radius:var(--radius);font:500 12px var(--font-mono);color:var(--fg)}
+.mini-btn:hover{border-color:var(--accent);color:var(--accent)}
+.mini-btn.danger:hover{border-color:var(--due-bar);color:var(--due-text)}
+.mono-sample{font:400 12px var(--font-mono);background:var(--surface-raised);border:1px solid var(--border);border-radius:var(--radius);padding:var(--sp-2);margin-top:var(--sp-1);overflow-x:auto;white-space:pre}
+.backup-list{max-height:200px;overflow-y:auto;width:100%}
+.backup-list button{display:flex;width:100%;gap:var(--sp-2);padding:6px 8px;min-height:32px;border-radius:var(--radius);font:400 12px var(--font-mono);text-align:left}
+.backup-list button:hover{background:var(--surface-raised)}
+.backup-list .bn{margin-left:auto;color:var(--fg-muted)}
+/* shortcut overlay */
+.shortcuts{position:fixed;z-index:81;top:50%;left:50%;transform:translate(-50%,-50%);width:min(640px,calc(100vw - 32px));max-height:80vh;overflow-y:auto;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:var(--sp-4)}
+.shortcuts h2{font:600 13px var(--font-title);margin-bottom:var(--sp-2)}
+.sc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:var(--sp-4)}
+.sc-grid h3{font:600 11px var(--font-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--fg-muted);margin-bottom:var(--sp-1)}
+.sc-grid dl{display:grid;grid-template-columns:auto 1fr;gap:3px var(--sp-3);font-size:13px}
+.sc-grid dt{font:500 12px var(--font-mono);color:var(--fg);background:var(--surface-raised);border:1px solid var(--border);border-radius:4px;padding:0 6px;text-align:center;min-width:28px;justify-self:start}
+.sc-grid dd{color:var(--fg-muted)}
+/* completed section */
+.comp-group h4{font:600 11px var(--font-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--fg-muted);margin-top:var(--sp-3)}
+/* test panel */
+#testpanel{position:fixed;right:var(--sp-4);bottom:var(--sp-4);z-index:90;width:min(480px,90vw);max-height:70vh;overflow:auto;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:var(--sp-3);font:12px/1.6 var(--font-mono)}
+#testpanel .pass{color:var(--calm-text)}
+#testpanel .fail{color:var(--due-text)}
+/* ============ GeoCities decoration layer ============ */
+[data-theme="geocities"] body,:root[data-theme="geocities"] body{background-color:#000080;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Crect width='16' height='16' fill='%23000080'/%3E%3Crect x='3' y='2' width='1' height='1' fill='%23fff'/%3E%3Crect x='12' y='6' width='1' height='1' fill='%23ccc'/%3E%3Crect x='7' y='11' width='1' height='1' fill='%23fff'/%3E%3Crect x='14' y='14' width='1' height='1' fill='%23888'/%3E%3C/svg%3E")}
+[data-theme="geocities"] .task,[data-theme="geocities"] .sect-h,[data-theme="geocities"] .hdr,[data-theme="geocities"] .tagkey{background:var(--surface)}
+[data-theme="geocities"] .hdr-btn,[data-theme="geocities"] .pill,[data-theme="geocities"] .tkchip,[data-theme="geocities"] .mini-btn,[data-theme="geocities"] .seg-btns button,[data-theme="geocities"] .banner button{border:2px outset #C0C0C0;background:#C0C0C0;color:#000;border-radius:0;font-family:var(--font-title)}
+[data-theme="geocities"] .hdr-btn:hover,[data-theme="geocities"] .pill:hover,[data-theme="geocities"] .mini-btn:hover{color:#000080;background:#C0C0C0}
+[data-theme="geocities"] .hdr-btn:active,[data-theme="geocities"] .pill:active,[data-theme="geocities"] .tkchip:active,[data-theme="geocities"] .mini-btn:active,[data-theme="geocities"] .tkchip[aria-pressed="true"],[data-theme="geocities"] .seg-btns button[aria-pressed="true"]{border-style:inset;background:#000066;color:#00FFFF}
+[data-theme="geocities"] .tkchip .k{color:#000080}
+[data-theme="geocities"] .tkchip[aria-pressed="true"] .k{color:#00FFFF}
+[data-theme="geocities"] .entry input,[data-theme="geocities"] .search,[data-theme="geocities"] .set-row select,[data-theme="geocities"] .set-row input,[data-theme="geocities"] .title-edit,[data-theme="geocities"] .date-edit,[data-theme="geocities"] .tagmap-table input{border:2px inset #C0C0C0;border-radius:0;background:#000066;color:#FFF}
+[data-theme="geocities"] .gauge{width:10px;gap:1px}
+[data-theme="geocities"] .gauge i{border:1px outset #C0C0C0;background:#111}
+[data-theme="geocities"] .gauge i.f{background:var(--u-bar);border-style:inset}
+[data-theme="geocities"] .sect-h{border-bottom:none;padding-bottom:0}
+[data-theme="geocities"] .sect-h::after{content:"";flex:1;height:4px;align-self:center;background:repeating-linear-gradient(90deg,#FF0000 0 12px,#FFA500 12px 24px,#FFFF00 24px 36px,#00FF00 36px 48px,#00FFFF 48px 60px,#FF00FF 60px 72px)}
+[data-theme="geocities"] #completedToggle{font-family:var(--font-mono);background:#000;color:#00FF00;border:2px inset #C0C0C0;letter-spacing:2px;text-shadow:0 0 3px #00FF00}
+[data-theme="geocities"] .save-ind.dirty,[data-theme="geocities"] .save-ind.saving{background:repeating-linear-gradient(45deg,#FFFF00 0 6px,#000 6px 12px);border:1px solid #000;padding:2px 8px}
+[data-theme="geocities"] .save-ind.dirty .txt,[data-theme="geocities"] .save-ind.saving .txt{color:#000;background:#FFFF00;padding:0 4px;font-weight:700}
+[data-theme="geocities"] .save-ind.saving .txt{animation:geoblink 1s steps(2,jump-none) 3}
+@keyframes geoblink{50%{opacity:0}
+}
+[data-theme="geocities"] .app-title{font-size:18px;color:#00FFFF;animation:geomarquee 6s linear 1}
+@keyframes geomarquee{from{transform:translateX(60cqw)}
+to{transform:none}
+}
+[data-theme="geocities"] .toast,[data-theme="geocities"] .pop,[data-theme="geocities"] .panel,[data-theme="geocities"] .shortcuts,[data-theme="geocities"] .banner{border:2px outset #C0C0C0;border-radius:0}
+/* reduced motion */
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms !important;transition-duration:.01ms !important;animation-iteration-count:1 !important}
+}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+<header class="hdr">
+<h1 class="app-title" id="appTitle">Runway</h1>
+<button id="choosePill" class="pill" hidden>Choose todo.md</button>
+<button id="reconnectPill" class="pill" hidden>&#8644; Reconnect todo.md</button>
+<span id="saveInd" class="save-ind" hidden><span class="dot"></span><span class="txt"></span></span>
+<button id="completedToggle" class="hdr-btn" aria-pressed="false" title="Show completed tasks"></button>
+<button id="settingsBtn" class="hdr-btn" aria-label="Settings" aria-expanded="false" title="Settings">
+<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.8v3M12 18.2v3M2.8 12h3M18.2 12h3M5.5 5.5l2.1 2.1M16.4 16.4l2.1 2.1M18.5 5.5l-2.1 2.1M7.6 16.4l-2.1 2.1"/></svg>
+</button>
+</header>
+<div id="banners"></div>
+<nav class="tagkey" id="tagKey" aria-label="Tag filters"></nav>
+<div class="entry">
+<label class="sr" for="titleInput">Task title</label>
+<input id="titleInput" type="text" placeholder="What needs doing?" autocomplete="off" spellcheck="false">
+<label class="sr" for="dateInput">Due date</label>
+<input id="dateInput" type="text" placeholder="When?" autocomplete="off" spellcheck="false">
+</div>
+<div class="date-preview" id="datePreview" aria-live="polite"></div>
+<div class="search" id="searchWrap">
+<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/></svg>
+<label class="sr" for="searchInput">Search or filter</label>
+<input id="searchInput" type="text" placeholder="Search or filter&#8230;" autocomplete="off" spellcheck="false">
+<button class="clr" id="searchClear" aria-label="Clear search">&#10005;</button>
+</div>
+<div class="count-line" id="countLine" hidden></div>
+<div id="digestWrap"></div>
+<main id="listRoot" aria-label="Task list"></main>
+<div id="completedRoot"></div>
+</div>
+<div id="toasts"></div>
+<div id="overlayRoot"></div>
+<div id="popRoot"></div>
+<script>
+/*JS-START*/
+(function(){"use strict";const APP_NAME="Runway";const on=(n,ev,fn,o)=>n.addEventListener(ev,fn,o);
+/* ================================================================ CAPS */const CAPS={
+fsa:typeof window!=="undefined"&&typeof window.showOpenFilePicker==="function",
+fsaDir:typeof window!=="undefined"&&typeof window.showDirectoryPicker==="function",idb:(()=>{try{return typeof indexedDB!=="undefined"&&!!indexedDB}catch(e){
+return false}})(),secure:typeof window!=="undefined"&&window.isSecureContext===true,fileProto:typeof location!=="undefined"&&location.protocol==="file:"};
+/* ================================================================ Util */const Util=(()=>{
+const MONTHS=["January","February","March","April","May","June","July","August","September","October","November","December"]
+;const MON3=MONTHS.map(m=>m.slice(0,3));const DAYS3=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];const pad2=n=>String(n).padStart(2,"0")
+;const isLeap=y=>y%4===0&&y%100!==0||y%400===0;const daysInMonth=(y,m)=>[31,isLeap(y)?29:28,31,30,31,30,31,31,30,31,30,31][m-1];const midnight=d=>{
+const x=new Date(d);x.setHours(0,0,0,0);return x};const daysBetween=(a,b)=>Math.round((midnight(b)-midnight(a))/864e5)
+;const isoOf=d=>d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate());const parseISO=s=>{const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(s)
+;return m?new Date(+m[1],+m[2]-1,+m[3]):null};const validISO=s=>{const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(s);if(!m)return false;const y=+m[1],mo=+m[2],d=+m[3]
+;return mo>=1&&mo<=12&&d>=1&&d<=daysInMonth(y,mo)};const fmtLong=iso=>{const d=parseISO(iso)
+;return DAYS3[d.getDay()]+" "+d.getDate()+" "+MON3[d.getMonth()]+" "+d.getFullYear()};const fmtShort=(iso,today)=>{const d=parseISO(iso)
+;let s=d.getDate()+" "+MON3[d.getMonth()];if(today&&d.getFullYear()!==today.getFullYear())s+=" "+d.getFullYear();return s};const debounce=(fn,ms)=>{let t=null
+;const out=(...a)=>{clearTimeout(t);t=setTimeout(()=>{t=null;fn(...a)},ms)};out.cancel=()=>{clearTimeout(t);t=null};return out};const hash=str=>{
+let h=2166136261;for(let i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,16777619)}return(h>>>0).toString(16)};const fuzzy=(q,text)=>{q=q.toLowerCase()
+;text=text.toLowerCase();let ti=0,first=-1;for(let qi=0;qi<q.length;qi++){ti=text.indexOf(q[qi],ti);if(ti===-1)return-1;if(first===-1)first=ti;ti++}return first
+};const el=(tag,attrs,...children)=>{const n=document.createElement(tag);if(attrs)for(const[k,v]of Object.entries(attrs)){
+if(v===null||v===undefined||v===false)continue
+;if(k==="class")n.className=v;else if(k==="text")n.textContent=v;else if(k.startsWith("on"))on(n,k.slice(2),v);else if(k==="dataset")Object.assign(n.dataset,v);else n.setAttribute(k,v===true?"":v)
+}for(const c of children)if(c!=null)n.append(c);return n};const svgIcon=paths=>{const NS="http://www.w3.org/2000/svg";const s=document.createElementNS(NS,"svg")
+;s.setAttribute("viewBox","0 0 24 24");s.setAttribute("aria-hidden","true");for(const d of paths){const p=document.createElementNS(NS,"path")
+;p.setAttribute("d",d);s.append(p)}return s};const snap=o=>JSON.parse(JSON.stringify(o));return{MONTHS:MONTHS,MON3:MON3,DAYS3:DAYS3,pad2:pad2,isLeap:isLeap,
+daysInMonth:daysInMonth,midnight:midnight,daysBetween:daysBetween,isoOf:isoOf,parseISO:parseISO,validISO:validISO,fmtLong:fmtLong,fmtShort:fmtShort,
+debounce:debounce,hash:hash,fuzzy:fuzzy,el:el,svgIcon:svgIcon,snap:snap}})();const E=Util.el;
+/* ================================================================ DB */const DB=(()=>{let db=null;let failed=false;const open=()=>new Promise(resolve=>{
+if(!CAPS.idb){failed=true;resolve(false);return}let req;try{req=indexedDB.open("runway",1)}catch(e){failed=true;resolve(false);return}req.onupgradeneeded=e=>{
+const d=e.target.result;if(!d.objectStoreNames.contains("tasks"))d.createObjectStore("tasks",{keyPath:"id"})
+;if(!d.objectStoreNames.contains("meta"))d.createObjectStore("meta",{keyPath:"k"});if(!d.objectStoreNames.contains("journal"))d.createObjectStore("journal",{
+autoIncrement:true})};req.onsuccess=()=>{db=req.result;resolve(true)};req.onerror=()=>{failed=true;resolve(false)};req.onblocked=()=>{failed=true;resolve(false)
+}});const tx=(store,mode,fn)=>new Promise((resolve,reject)=>{if(!db){resolve(undefined);return}let t;try{t=db.transaction(store,mode)}catch(e){reject(e);return}
+let result;t.oncomplete=()=>resolve(result);t.onerror=()=>reject(t.error);t.onabort=()=>reject(t.error||new Error("aborted"));result=fn(t.objectStore(store))})
+;const reqP=req=>new Promise((res,rej)=>{if(!req){res(undefined);return}req.onsuccess=()=>res(req.result);req.onerror=()=>rej(req.error)})
+;const get=async(store,key)=>{let r;await tx(store,"readonly",s=>{r=s.get(key)});return r&&r.result};const put=(store,val)=>tx(store,"readwrite",s=>s.put(val))
+;const del=(store,key)=>tx(store,"readwrite",s=>s.delete(key));const clear=store=>tx(store,"readwrite",s=>s.clear());const all=async store=>{let r
+;await tx(store,"readonly",s=>{r=s.getAll()});return r&&r.result||[]};const metaGet=async k=>{const rec=await get("meta",k);return rec?rec.v:undefined}
+;const metaPut=(k,v)=>put("meta",{k:k,v:v});const metaDel=k=>del("meta",k);const journalAppend=async rec=>{if(!db)return null;let key
+;await tx("journal","readwrite",s=>{const r=s.add(rec);r.onsuccess=()=>{key=r.result}});try{await tx("journal","readwrite",s=>{const cr=s.getAllKeys()
+;cr.onsuccess=()=>{const keys=cr.result;if(keys.length>500)for(const k of keys.slice(0,keys.length-500))s.delete(k)}})}catch(e){}return key}
+;const journalAll=async()=>{if(!db)return[];let recs,keys;await tx("journal","readonly",s=>{const r1=s.getAll(),r2=s.getAllKeys();r1.onsuccess=()=>{
+recs=r1.result};r2.onsuccess=()=>{keys=r2.result}});return(recs||[]).map((r,i)=>Object.assign({_key:keys[i]},r))}
+;const journalDeleteKeys=keys=>tx("journal","readwrite",s=>{for(const k of keys)s.delete(k)});const ok=()=>!!db;return{open:open,get:get,put:put,del:del,
+clear:clear,all:all,metaGet:metaGet,metaPut:metaPut,metaDel:metaDel,journalAppend:journalAppend,journalAll:journalAll,journalDeleteKeys:journalDeleteKeys,ok:ok,
+reqP:reqP}})();
+/* ================================================================ Model */const Model=(()=>{const tasks=[];const byId=new Map;const quarantine=[]
+;const newId=()=>{let id;do{id=Math.random().toString(36).slice(2,8).padEnd(6,"0")}while(byId.has(id));return id};const nowISO=()=>(new Date).toISOString()
+;const fresh=f=>Object.assign({id:newId(),title:"",tags:[],due:null,priority:0,done:false,doneAt:null,note:null,subtasks:[],createdAt:nowISO(),
+updatedAt:nowISO()},f||{});const validate=t=>{if(!t||typeof t!=="object")return null;if(typeof t.title!=="string"||!t.title.trim())return null
+;t.title=t.title.trim();if(typeof t.id!=="string"||!/^[0-9a-z]{6}$/.test(t.id))t.id=newId();if(t.due!=null&&!Util.validISO(t.due))t.due=null
+;if(t.due===undefined)t.due=null;t.priority=[0,1,2,3].includes(t.priority)?t.priority:0;t.done=!!t.done;if(t.done&&!t.doneAt)t.doneAt=Util.isoOf(new Date)
+;if(!t.done)t.doneAt=null;t.tags=Array.isArray(t.tags)?[...new Set(t.tags.filter(x=>typeof x==="string"&&x.trim()))]:[]
+;if(typeof t.note!=="string"||!t.note)t.note=null
+;t.subtasks=Array.isArray(t.subtasks)?t.subtasks.filter(s=>s&&typeof s.text==="string"&&s.text.trim()).map(s=>({text:s.text,done:!!s.done})):[]
+;if(!t.createdAt)t.createdAt=nowISO();if(!t.updatedAt||t.updatedAt<t.createdAt)t.updatedAt=t.createdAt;return t};const add=t=>{tasks.push(t);byId.set(t.id,t)}
+;const removeMem=id=>{const i=tasks.findIndex(t=>t.id===id);if(i>=0)tasks.splice(i,1);byId.delete(id)};const load=async()=>{const recs=await DB.all("tasks")
+;tasks.length=0;byId.clear();for(const r of recs){const t=validate(r);if(t)add(t);else quarantine.push(r)}};const commit=async t=>{t.updatedAt=nowISO()
+;if(validate(t)===null)throw new Error("invalid task");if(!byId.has(t.id))add(t);else Object.assign(byId.get(t.id),t);try{
+await DB.put("tasks",Util.snap(byId.get(t.id)))}catch(e){App.dbWriteError(e)}return byId.get(t.id)};const remove=async id=>{removeMem(id);try{
+await DB.del("tasks",id)}catch(e){App.dbWriteError(e)}};const replaceAll=async list=>{tasks.length=0;byId.clear();for(const t of list){const v=validate(t)
+;if(v)add(v)}try{await DB.clear("tasks");for(const t of tasks)await DB.put("tasks",Util.snap(t))}catch(e){App.dbWriteError(e)}}
+;const fingerprint=t=>JSON.stringify([t.title,t.tags,t.due,t.priority,t.done,t.doneAt,t.note,t.subtasks]);return{tasks:tasks,byId:byId,quarantine:quarantine,
+newId:newId,fresh:fresh,validate:validate,load:load,commit:commit,remove:remove,replaceAll:replaceAll,fingerprint:fingerprint,nowISO:nowISO}})();
+/* ================================================================ DateParse */const DateParse=(()=>{const MAX_EVER=[31,29,31,30,31,30,31,31,30,31,30,31]
+;const WD={mon:1,tue:2,wed:3,thu:4,fri:5,sat:6,sun:0};const WD_RE=/^(mon(day)?|tue(s(day)?)?|wed(nesday)?|thu(r(s(day)?)?)?|fri(day)?|sat(urday)?|sun(day)?)$/
+;const inv=reason=>({kind:"invalid",reason:reason});const mkDate=(y,m,d)=>new Date(y,m-1,d);const result=(dateObj,today,rolled)=>{const iso=Util.isoOf(dateObj)
+;return{kind:"date",iso:iso,rolled:!!rolled,past:iso<Util.isoOf(today)}};const parse=(input,opts)=>{opts=opts||{}
+;const today=Util.midnight(opts.today||new Date);const rollFwd=opts.rollForward!==false&&!opts.literal;const s=String(input==null?"":input).trim().toLowerCase()
+;if(!s)return{kind:"empty",iso:null};if(s==="tod"||s==="today")return result(today,today)
+;if(s==="tom"||s==="tmw"||s==="tomorrow")return result(new Date(today.getFullYear(),today.getMonth(),today.getDate()+1),today)
+;let m=/^\+(\d{1,3})(d|w|m)?$/.exec(s);if(m){const n=+m[1],unit=m[2]||"d";if(unit==="m"){let y=today.getFullYear(),mo=today.getMonth()+1+n
+;y+=Math.floor((mo-1)/12);mo=(mo-1)%12+1;const day=Math.min(today.getDate(),Util.daysInMonth(y,mo));return result(mkDate(y,mo,day),today)}
+const days=unit==="w"?n*7:n;return result(new Date(today.getFullYear(),today.getMonth(),today.getDate()+days),today)}if(WD_RE.test(s)){
+const target=WD[s.slice(0,3)];const delta=(target-today.getDay()+6)%7+1
+;return result(new Date(today.getFullYear(),today.getMonth(),today.getDate()+delta),today)}if(s==="eow"){const dowM=(today.getDay()+6)%7;let delta=4-dowM
+;if(delta<0)delta+=7;return result(new Date(today.getFullYear(),today.getMonth(),today.getDate()+delta),today)}
+if(s==="eom")return result(mkDate(today.getFullYear(),today.getMonth()+1,Util.daysInMonth(today.getFullYear(),today.getMonth()+1)),today)
+;m=/^(\d{1,4})(?:[\s\/\-.]+(\d{1,2})(?:[\s\/\-.]+(\d{1,4}))?)?$/.exec(s);if(!m||!m[2])return inv("can't read that as a date");const d=+m[1],mo=+m[2]
+;let yRaw=m[3];if(mo<1||mo>12)return inv("there's no month "+mo);const monthName=Util.MONTHS[mo-1]
+;if(d<1||d>MAX_EVER[mo-1])return inv(d+" "+monthName+" doesn't exist");const validIn=y=>d<=Util.daysInMonth(y,mo);if(yRaw!==undefined){
+if(yRaw.length===3)return inv("can't read that as a date");const y=yRaw.length<=2?2e3+ +yRaw:+yRaw;if(!validIn(y))return inv(y+" isn't a leap year")
+;return result(mkDate(y,mo,d),today,false)}const curYear=today.getFullYear();const todayISO=Util.isoOf(today);for(let y=curYear;y<=curYear+8;y++){
+if(!validIn(y))continue;const iso=Util.isoOf(mkDate(y,mo,d));if(rollFwd&&iso<todayISO)continue;return result(mkDate(y,mo,d),today,y>curYear)}
+return inv("can't read that as a date")};return{parse:parse}})();
+/* ================================================================ EntryParse */const EntryParse=(()=>{const parse=(text,tagMap)=>{tagMap=tagMap||{}
+;const tags=[];let pri=0;let s=" "+String(text)+" ";s=s.replace(/\[([^\[\]\s]+)\]/g,(all,k)=>{const label=tagMap[k.toLowerCase()];if(label!==undefined){
+tags.push(label);return" "}return all});s=s.replace(/(^|\s)#([^\s#]+)/g,(all,pre,t)=>{tags.push(t.replace(/_/g," "));return pre})
+;s=s.replace(/(^|\s)(!{1,3})(?=\s|$)/g,(all,pre,b)=>{pri=Math.max(pri,b.length);return pre});return{title:s.replace(/\s+/g," ").trim(),tags:[...new Set(tags)],
+priority:pri}};return{parse:parse}})();
+/* ================================================================ MD */const MD=(()=>{const MANAGED=new Set(["Open","No date","Completed"])
+;const CANON=["Open","No date","Completed"];const targetSection=t=>t.done?"Completed":t.due?"Open":"No date";const DATE_RE=/\b(\d{4})-(\d{1,2})-(\d{1,2})\b/
+;const normDate=raw=>{const m=DATE_RE.exec(raw);if(!m)return{iso:null,bad:true};const iso=m[1]+"-"+Util.pad2(+m[2])+"-"+Util.pad2(+m[3])
+;return Util.validISO(iso)?{iso:iso,bad:false}:{iso:null,bad:true}};const extractBody=(body,tagMap)=>{tagMap=tagMap||{}
+;let due=null,doneAt=null,priority=0,id=null,badDate=false;const tags=[];let s=" "+body+" ";s=s.replace(/\s\^([0-9a-zA-Z_-]+)(?=\s)/,(all,g)=>{
+id=g.toLowerCase();return" "});s=s.replace(/📅\s*([0-9]{4}-[0-9]{1,2}-[0-9]{1,2})/,(all,g)=>{const r=normDate(g);if(r.bad){badDate=true;return" "}due=r.iso
+;return" "});s=s.replace(/\[\s*due::\s*([^\]]*)\]/i,(all,g)=>{const r=normDate(g.trim());if(r.bad){badDate=true;return" "}due=r.iso;return" "})
+;s=s.replace(/✅\s*([0-9]{4}-[0-9]{1,2}-[0-9]{1,2})/,(all,g)=>{const r=normDate(g);if(!r.bad)doneAt=r.iso;return" "})
+;s=s.replace(/\[\s*(?:completion|done)::\s*([^\]]*)\]/i,(all,g)=>{const r=normDate(g.trim());if(!r.bad)doneAt=r.iso;return" "});s=s.replace(/⏫/g,()=>{priority=3
+;return" "});s=s.replace(/🔼/g,()=>{priority=Math.max(priority,2);return" "});s=s.replace(/🔽/g,()=>{priority=Math.max(priority,1);return" "})
+;s=s.replace(/\[\s*priority::\s*([^\]]*)\]/i,(all,g)=>{const v=g.trim().toLowerCase()
+;if(v==="high"||v==="highest")priority=3;else if(v==="medium"||v==="med")priority=Math.max(priority,2);else if(v==="low"||v==="lowest")priority=Math.max(priority,1)
+;return" "});s=s.replace(/(^|\s)#([^\s#]+)/g,(all,pre,t)=>{tags.push(t.replace(/_/g," "));return pre});s=s.replace(/\[([^\[\]\s:]+)\]/g,(all,k)=>{
+const label=tagMap[k.toLowerCase()];if(label!==undefined){tags.push(label);return" "}return all});const title=s.replace(/\s+/g," ").trim();if(!title)return null
+;return{title:title,tags:[...new Set(tags)],due:due,doneAt:doneAt,priority:priority,id:id,badDate:badDate}};const TASK_RE=/^([-*])\s*\[( |x|X)\]\s+(.*\S.*)$/
+;const CONT_RE=/^(?: {2,}|\t+)(.*)$/;const parse=(text,opts)=>{opts=opts||{};const tagMap=opts.tagMap||{};let hadBOM=false;if(text.charCodeAt(0)===65279){
+hadBOM=true;text=text.slice(1)}const crlf=(text.match(/\r\n/g)||[]).length;const total=(text.match(/\n/g)||[]).length;const eol=crlf>total-crlf?"\r\n":"\n"
+;const lines=text.split(/\r\n|\n|\r/);const blocks=[];const tasks=[];const problems=[];const seenIds=new Set;let section=null;const nowISO=Model.nowISO()
+;for(let i=0;i<lines.length;i++){const line=lines[i];const hm=/^##\s+(.+?)\s*$/.exec(line);if(hm){const name=hm[1];if(MANAGED.has(name)){section=name
+;blocks.push({kind:"heading",section:name,raw:line})}else{section=null;blocks.push({kind:"raw",raw:line,section:null})}continue}if(/^#{1,6}\s/.test(line)){
+section=null;blocks.push({kind:"raw",raw:line,section:null});continue}const tm=TASK_RE.exec(line);if(tm&&!/^\s/.test(line)){
+const parsed=extractBody(tm[3],tagMap);if(!parsed){problems.push({line:i+1,text:line,msg:"empty title"});blocks.push({kind:"raw",raw:line,section:section})
+;continue}const rawLines=[line];const noteLines=[];const subtasks=[];while(i+1<lines.length){const cm=CONT_RE.exec(lines[i+1]);if(!cm||!cm[1].trim())break;i++
+;rawLines.push(lines[i]);const sm=/^([-*])\s*\[( |x|X)\]\s+(.*\S.*)$/.exec(cm[1].trim());if(sm)subtasks.push({text:sm[3].trim(),done:sm[2]!==" "
+});else noteLines.push(cm[1].trimEnd())}if(parsed.badDate)problems.push({line:i+1-rawLines.length+1,text:line,msg:"unreadable date — treated as undated"})
+;let id=parsed.id,hadId=!!parsed.id;if(id&&(!/^[0-9a-z]{6}$/.test(id)||seenIds.has(id))){
+if(seenIds.has(id))console.warn(APP_NAME+": duplicate id ^"+id+" — assigning a fresh one");id=null;hadId=false}if(!id)id=Model.newId();seenIds.add(id)
+;const done=tm[2]!==" ";const task=Model.validate({id:id,title:parsed.title,tags:parsed.tags,due:parsed.due,priority:parsed.priority,done:done,
+doneAt:done?parsed.doneAt||parsed.due||Util.isoOf(new Date):null,note:noteLines.length?noteLines.join("\n"):null,subtasks:subtasks,createdAt:nowISO,
+updatedAt:nowISO});if(!task){blocks.push({kind:"raw",raw:line,section:section});continue}tasks.push(task);blocks.push({kind:"task",id:task.id,section:section,
+rawLines:rawLines,hadId:hadId,fp:Model.fingerprint(task)});continue}blocks.push({kind:"raw",raw:line,section:section})}return{blocks:blocks,tasks:tasks,
+problems:problems,eol:eol,hadBOM:hadBOM}};const PRI_EMOJI=["","🔽","🔼","⏫"];const PRI_WORD=["","low","medium","high"];const renderTask=(t,settings)=>{
+let l="- ["+(t.done?"x":" ")+"] "+t.title;for(const tag of t.tags)l+=" #"+tag.replace(/ /g,"_");if(settings.mdStyle==="bracket"){
+if(t.priority)l+=" [priority:: "+PRI_WORD[t.priority]+"]";if(t.due)l+=" [due:: "+t.due+"]";if(t.done&&t.doneAt)l+=" [completion:: "+t.doneAt+"]"}else{
+if(t.priority)l+=" "+PRI_EMOJI[t.priority];if(t.due)l+=" 📅 "+t.due;if(t.done&&t.doneAt)l+=" ✅ "+t.doneAt}if(settings.writeBlockIds!==false)l+=" ^"+t.id
+;const out=[l];if(t.note)for(const n of t.note.split("\n"))out.push("    "+n);for(const s of t.subtasks)out.push("    - ["+(s.done?"x":" ")+"] "+s.text)
+;return out};const serialise=(tasks,state,settings)=>{state=state||{};const eol=state.eol||"\n";const blocks=state.blocks||[]
+;const byId=new Map(tasks.map(t=>[t.id,t]));const entries=[];const placed=new Set;let cur=null;if(!blocks.length){entries.push({lines:["# To Do"],section:null})
+;entries.push({lines:["\x3c!-- "+APP_NAME+" v1 · edit freely; the app preserves anything it does not recognise --\x3e"],section:null})}for(const b of blocks){
+if(b.kind==="heading"){cur=b.section;entries.push({lines:[b.raw],section:cur,heading:true});continue}if(b.kind==="raw"){if(/^#{1,6}\s/.test(b.raw))cur=null
+;entries.push({lines:[b.raw],section:cur});continue}const t=byId.get(b.id);if(!t)continue
+;const unchanged=b.fp===Model.fingerprint(t)&&(b.hadId||settings.writeBlockIds===false);if(unchanged){placed.add(t.id);entries.push({lines:b.rawLines,
+section:b.section});continue}if(MANAGED.has(b.section)&&targetSection(t)!==b.section)continue;placed.add(t.id);entries.push({lines:renderTask(t,settings),
+section:b.section})}const pending={Open:[],"No date":[],Completed:[]};for(const t of tasks)if(!placed.has(t.id))pending[targetSection(t)].push(t)
+;for(const sect of CANON){const pend=pending[sect];if(!pend.length)continue;let last=-1;for(let i=0;i<entries.length;i++)if(entries[i].section===sect)last=i
+;const newEntries=pend.map(t=>({lines:renderTask(t,settings),section:sect}));if(last>=0)entries.splice(last+1,0,...newEntries);else{
+const lastEntry=entries[entries.length-1];if(lastEntry&&lastEntry.lines[lastEntry.lines.length-1]!=="")entries.push({lines:[""],section:null});entries.push({
+lines:["## "+sect],section:sect,heading:true});entries.push(...newEntries)}}const lines=[];for(const e of entries)lines.push(...e.lines)
+;let text=lines.join(eol);if(!blocks.length&&text&&!text.endsWith(eol))text+=eol;return text};return{parse:parse,serialise:serialise,renderTask:renderTask,
+targetSection:targetSection,MANAGED:MANAGED}})();
+/* ================================================================ settings data */const defaultSettings=()=>({schemaVersion:1,theme:"system",accent:"indigo",
+density:"comfortable",urgency:{calm:14,soon:14,near:5,due:0},rollForward:true,mdStyle:"emoji",writeBlockIds:true,showCompletedDays:7,autosaveDebounceMs:800,
+undoWindowSec:8,folderMode:false,backupRetain:20,tagMap:{d:"DPN",b:"BSM",t:"Highside"}});const SETTINGS=defaultSettings();const ACCENTS={neutral:"#475569",
+cyan:"#0891B2",sky:"#0284C7",blue:"#2563EB",indigo:"#4F46E5",violet:"#7C3AED"};
+/* ================================================================ Persist */const Persist=(()=>{let tier=3;let handle=null;let dirHandle=null
+;let fileMeta=null;let mdState={blocks:[],eol:"\n"};let dirty=false;let flushTimer=null;let flushing=false;let permission="none";let lastError=null
+;const state=()=>({tier:tier,handle:handle,dirHandle:dirHandle,fileMeta:fileMeta,dirty:dirty,permission:permission,lastError:lastError,
+fileName:fileMeta?fileMeta.name:handle?handle.name:null});const saveMeta=async()=>{try{await DB.metaPut("fileMeta",fileMeta?Util.snap(fileMeta):null)
+;await DB.metaPut("dirtyFlag",dirty)}catch(e){}};const init=async()=>{if(!DB.ok()){tier=3;return}tier=CAPS.fsa?1:2;try{
+handle=await DB.metaGet("fileHandle")||null;dirHandle=await DB.metaGet("dirHandle")||null;fileMeta=await DB.metaGet("fileMeta")||null
+;dirty=await DB.metaGet("dirtyFlag")===true}catch(e){handle=null;dirHandle=null;fileMeta=null}if(!CAPS.fsa){handle=null;dirHandle=null}}
+;const queryPerm=async h=>{try{return await h.queryPermission({mode:"readwrite"})}catch(e){return"denied"}};const connect=async()=>{if(tier===3||!CAPS.fsa){
+Render.updateFileUI();return}if(!handle){Render.updateFileUI();return}permission=await queryPerm(handle);Render.updateFileUI()
+;if(permission==="granted")await readAndReconcile()};const reconnect=async()=>{if(!handle)return;try{permission=await handle.requestPermission({mode:"readwrite"
+})}catch(e){permission="denied"}Render.updateFileUI();if(permission==="granted")await readAndReconcile()};const statAndParse=async()=>{
+const file=await handle.getFile();const text=await file.text();return{file:file,text:text,hash:Util.hash(text)}};const mergeParsed=(parsed,union)=>{
+const merged=[];for(const t of parsed.tasks){const cur=Model.byId.get(t.id);if(cur){t.createdAt=cur.createdAt
+;if(Model.fingerprint(cur)===Model.fingerprint(t))t.updatedAt=cur.updatedAt}merged.push(t)}if(union){const ids=new Set(merged.map(t=>t.id))
+;for(const t of Model.tasks)if(!ids.has(t.id))merged.push(Util.snap(t))}return merged};const adopt=async(parseRes,{union:union}={})=>{mdState={
+blocks:parseRes.blocks,eol:parseRes.eol};await Model.replaceAll(mergeParsed(parseRes,union))
+;if(parseRes.problems.length)Render.showParseProblems(parseRes.problems);Render.render()};const readAndReconcile=async()=>{let r;try{r=await statAndParse()
+}catch(e){if(e&&e.name==="NotFoundError"){Render.showFileGone();return}lastError=e;Render.updateFileUI();return}const parsed=MD.parse(r.text,{
+tagMap:SETTINGS.tagMap});if(fileMeta&&fileMeta.contentHash===r.hash){mdState={blocks:parsed.blocks,eol:parsed.eol};fileMeta.lastModified=r.file.lastModified
+;await saveMeta();if(dirty)scheduleFlush(0);Render.updateFileUI();return}if(!dirty||Model.tasks.length===0){await adopt(parsed,{
+union:Model.tasks.length>0&&!fileMeta});fileMeta={name:r.file.name,lastModified:r.file.lastModified,contentHash:r.hash,lastFlushAt:Date.now()}
+;dirty=Model.tasks.length>0&&Util.hash(MD.serialise(Model.tasks,mdState,SETTINGS))!==r.hash;await saveMeta();if(dirty)scheduleFlush(0);Render.updateFileUI()
+;return}Render.showConflict(r.text)};const markDirty=()=>{dirty=true;saveMeta();Render.updateFileUI();scheduleFlush()};const scheduleFlush=ms=>{
+clearTimeout(flushTimer);flushTimer=setTimeout(()=>flush(),ms===undefined?SETTINGS.autosaveDebounceMs:ms)};const flush=async immediate=>{
+clearTimeout(flushTimer);if(flushing){if(dirty)scheduleFlush();return}if(!handle||tier!==1){Render.updateFileUI();return}
+if(await queryPerm(handle)!=="granted"){Render.updateFileUI();return}flushing=true;Render.updateFileUI("saving");try{let file;try{file=await handle.getFile()
+}catch(e){if(e&&e.name==="NotFoundError"){Render.showFileGone();return}throw e}if(fileMeta&&file.lastModified!==fileMeta.lastModified){
+const text=await file.text();if(Util.hash(text)!==fileMeta.contentHash){Render.showConflict(text);return}fileMeta.lastModified=file.lastModified}
+const text=MD.serialise(Model.tasks,mdState,SETTINGS);if(fileMeta&&Util.hash(text)===fileMeta.contentHash){dirty=false;lastError=null;await saveMeta();return}
+const write=async()=>{const w=await handle.createWritable();await w.write(text);await w.close()};try{await write()}catch(e){if(immediate)throw e
+;await new Promise(res=>setTimeout(res,2e3));await write()}const f2=await handle.getFile();fileMeta={name:f2.name,lastModified:f2.lastModified,
+contentHash:Util.hash(text),lastFlushAt:Date.now()};const reparsed=MD.parse(text,{tagMap:SETTINGS.tagMap});mdState={blocks:reparsed.blocks,eol:reparsed.eol}
+;dirty=false;lastError=null;await saveMeta();if(SETTINGS.folderMode&&dirHandle)await writeBackup(text)}catch(e){lastError=e}finally{flushing=false
+;Render.updateFileUI()}};const writeBackup=async text=>{try{const bdir=await dirHandle.getDirectoryHandle("backups",{create:true});const d=new Date
+;const name="todo-"+d.getFullYear()+Util.pad2(d.getMonth()+1)+Util.pad2(d.getDate())+"-"+Util.pad2(d.getHours())+Util.pad2(d.getMinutes())+Util.pad2(d.getSeconds())+".md"
+;const fh=await bdir.getFileHandle(name,{create:true});const w=await fh.createWritable();await w.write(text);await w.close();const names=[]
+;for await(const[n,h]of bdir.entries())if(h.kind==="file"&&/^todo-\d{8}-\d{6}\.md$/.test(n))names.push(n);names.sort()
+;const retain=Math.min(100,Math.max(5,SETTINGS.backupRetain||20));for(const n of names.slice(0,Math.max(0,names.length-retain)))await bdir.removeEntry(n)
+}catch(e){console.warn(APP_NAME+": backup failed",e)}};const listBackups=async()=>{const out=[];if(!dirHandle)return out;try{
+const bdir=await dirHandle.getDirectoryHandle("backups");for await(const[n,h]of bdir.entries())if(h.kind==="file"&&/^todo-\d{8}-\d{6}\.md$/.test(n))out.push({
+name:n,handle:h})}catch(e){}out.sort((a,b)=>b.name.localeCompare(a.name));return out};const restoreBackup=async entry=>{const file=await entry.handle.getFile()
+;Render.showConflict(await file.text(),{source:entry.name})};const setHandle=async(h,dh)=>{handle=h||null;dirHandle=dh||null;fileMeta=null;permission="granted"
+;try{if(handle)await DB.metaPut("fileHandle",handle);else await DB.metaDel("fileHandle")
+;if(dirHandle)await DB.metaPut("dirHandle",dirHandle);else await DB.metaDel("dirHandle");await DB.metaDel("fileMeta")}catch(e){}};const pickerError=e=>{
+if(e&&e.name==="AbortError")return true;if(e&&e.name==="SecurityError"){tier=2;Render.showBanner("secerr",{cls:"warn",closable:true,
+msg:"This browser won't allow direct file access from a local page. Your tasks are saved in the browser — use Export to write todo.md."});Render.updateFileUI()
+;return true}return false};const chooseFile=async()=>{try{const[h]=await window.showOpenFilePicker({multiple:false,types:[{description:"Markdown",accept:{
+"text/markdown":[".md",".markdown",".txt"]}}]});await h.requestPermission({mode:"readwrite"});await setHandle(h,null);dirty=Model.tasks.length>0
+;await readAndReconcile();Render.updateFileUI()}catch(e){if(!pickerError(e)){lastError=e;Render.updateFileUI()}}};const createFile=async()=>{try{
+const h=await window.showSaveFilePicker({suggestedName:"todo.md",types:[{description:"Markdown",accept:{"text/markdown":[".md"]}}]});await setHandle(h,null)
+;mdState={blocks:[],eol:"\n"};dirty=true;await flush(true);Render.updateFileUI()}catch(e){if(!pickerError(e)){lastError=e;Render.updateFileUI()}}}
+;const chooseFolder=async()=>{try{const dh=await window.showDirectoryPicker({mode:"readwrite"});const h=await dh.getFileHandle("todo.md",{create:true})
+;await setHandle(h,dh);dirty=Model.tasks.length>0;await readAndReconcile();Render.updateFileUI()}catch(e){if(!pickerError(e)){lastError=e;Render.updateFileUI()}
+}};const disconnect=async()=>{handle=null;dirHandle=null;fileMeta=null;permission="none";try{await DB.metaDel("fileHandle");await DB.metaDel("dirHandle")
+;await DB.metaDel("fileMeta")}catch(e){}Render.updateFileUI()};const resolveReload=async fileText=>{const parsed=MD.parse(fileText,{tagMap:SETTINGS.tagMap})
+;await adopt(parsed);try{const f=await handle.getFile();fileMeta={name:f.name,lastModified:f.lastModified,contentHash:Util.hash(fileText),lastFlushAt:Date.now()
+}}catch(e){}dirty=false;await saveMeta();Render.updateFileUI()};const resolveKeepMine=async()=>{try{const f=await handle.getFile()
+;if(fileMeta)fileMeta.lastModified=f.lastModified;else fileMeta={name:f.name,lastModified:f.lastModified,contentHash:"",lastFlushAt:0}}catch(e){}dirty=true
+;await flush(true)};const currentText=()=>MD.serialise(Model.tasks,mdState,SETTINGS);const exportMd=()=>{const text=currentText();const blob=new Blob([text],{
+type:"text/markdown"});const url=URL.createObjectURL(blob);const a=E("a",{href:url,download:fileMeta&&fileMeta.name||"todo.md"});document.body.append(a)
+;a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),5e3)};const importMd=async file=>{const text=await file.text();const parsed=MD.parse(text,{
+tagMap:SETTINGS.tagMap});await adopt(parsed,{union:true});dirty=true;await saveMeta();if(handle)scheduleFlush(0);Render.updateFileUI()}
+;const checkExternal=async()=>{if(!handle||permission!=="granted"||flushing||!fileMeta)return;try{const file=await handle.getFile()
+;if(file.lastModified!==fileMeta.lastModified){const text=await file.text();if(Util.hash(text)!==fileMeta.contentHash)Render.showConflict(text);else{
+fileMeta.lastModified=file.lastModified;await saveMeta()}}}catch(e){}};const setTier=t=>{tier=t};return{init:init,connect:connect,reconnect:reconnect,
+markDirty:markDirty,scheduleFlush:scheduleFlush,flush:flush,state:state,setTier:setTier,chooseFile:chooseFile,createFile:createFile,chooseFolder:chooseFolder,
+disconnect:disconnect,exportMd:exportMd,importMd:importMd,listBackups:listBackups,restoreBackup:restoreBackup,resolveReload:resolveReload,
+resolveKeepMine:resolveKeepMine,currentText:currentText,checkExternal:checkExternal}})();
+/* ================================================================ Filter */const Filter=(()=>{const parseQuery=q=>{const clauses=[];const free=[]
+;let wantDone=false;for(let tok of String(q||"").trim().split(/\s+/)){if(!tok)continue;let neg=false;if(tok.length>1&&tok[0]==="-"){neg=true;tok=tok.slice(1)}
+const low=tok.toLowerCase();let test=null;let m;if(low[0]==="#"&&low.length>1){const pre=low.slice(1);test=t=>t.tags.some(x=>x.toLowerCase().startsWith(pre))
+}else if(/^!{1,3}$/.test(tok)){const lv=tok.length;test=t=>t.priority>=lv}else if(low==="overdue"){test=(t,ctx)=>t.due!==null&&ctx.days.get(t.id)<0
+}else if(low==="today"){test=(t,ctx)=>t.due!==null&&ctx.days.get(t.id)===0}else if(low==="week"){
+test=(t,ctx)=>t.due!==null&&ctx.days.get(t.id)>=0&&ctx.days.get(t.id)<=7}else if(m=/^due:([<>])(\d+)d$/.exec(low)){const n=+m[2],lt=m[1]==="<";test=(t,ctx)=>{
+if(t.due===null)return false;const d=ctx.days.get(t.id);return lt?d>=0&&d<n:d>n}}else if(m=/^due:([<>])(\d{4}-\d{2}-\d{2})$/.exec(low)){
+const iso=m[2],lt=m[1]==="<";test=t=>t.due!==null&&(lt?t.due<iso:t.due>iso)}else if(low==="is:done"){if(!neg)wantDone=true;test=t=>t.done
+}else if(low==="is:undated"){test=t=>t.due===null}else if(low==="has:note"){test=t=>!!t.note||t.subtasks.length>0}else{free.push({neg:neg,term:tok});continue}
+clauses.push({neg:neg,test:test})}return{clauses:clauses,free:free,wantDone:wantDone,empty:clauses.length===0&&free.length===0}}
+;const haystack=t=>t.title+" "+t.tags.join(" ")+" "+(t.note||"");const match=(t,parsed,ctx)=>{for(const c of parsed.clauses){const hit=c.test(t,ctx)
+;if(c.neg?hit:!hit)return-1}let rank=0;const hay=haystack(t);for(const f of parsed.free){const r=Util.fuzzy(f.term,hay);if(f.neg?r!==-1:r===-1)return-1
+;if(!f.neg)rank+=r}return rank};return{parseQuery:parseQuery,match:match}})();
+/* ================================================================ Undo */const Undo=(()=>{let mem=[];let pos=0;const load=async()=>{try{
+mem=await DB.journalAll()}catch(e){mem=[]}pos=mem.length};const record=async(op,taskId,before,after)=>{if(pos<mem.length){const tail=mem.slice(pos)
+;mem=mem.slice(0,pos);try{await DB.journalDeleteKeys(tail.map(e=>e._key).filter(k=>k!=null))}catch(e){}}const rec={op:op,taskId:taskId,
+before:before&&Util.snap(before),after:after&&Util.snap(after),at:(new Date).toISOString()};mem.push(rec);pos=mem.length;try{rec._key=await DB.journalAppend({
+op:rec.op,taskId:rec.taskId,before:rec.before,after:rec.after,at:rec.at})}catch(e){}};const applyState=async(e,dir)=>{
+const snapshot=dir==="undo"?e.before:e.after;if(e.op==="bulk-add"){const list=(dir==="undo"?e.before:e.after)||[];if(dir==="undo"){
+for(const t of e.after||[])await Model.remove(t.id)}else{for(const t of list)await Model.commit(Util.snap(t))}return}
+if(snapshot===null||snapshot===undefined)await Model.remove(e.taskId);else await Model.commit(Util.snap(snapshot))};const undo=async()=>{if(pos===0)return false
+;const e=mem[--pos];await applyState(e,"undo");return true};const redo=async()=>{if(pos>=mem.length)return false;const e=mem[pos++];await applyState(e,"redo")
+;return true};const canUndo=()=>pos>0;const canRedo=()=>pos<mem.length;const last=()=>pos>0?mem[pos-1]:null;return{load:load,record:record,undo:undo,redo:redo,
+canUndo:canUndo,canRedo:canRedo,last:last}})();
+/* ================================================================ Actions (mutation entry points) */const Actions=(()=>{const afterMutate=()=>{Render.render()
+;Persist.markDirty()};const add=async fields=>{const t=Model.fresh(fields);await Model.commit(t);await Undo.record("add",t.id,null,Util.snap(t))
+;Render.animateAdd(t.id);afterMutate();return t};const bulkAdd=async list=>{const made=[];for(const f of list){const t=Model.fresh(f);await Model.commit(t)
+;made.push(Util.snap(t))}if(made.length)await Undo.record("bulk-add",null,null,made);afterMutate();return made};const patch=async(id,fields,op)=>{
+const t=Model.byId.get(id);if(!t)return;const before=Util.snap(t);Object.assign(t,fields);await Model.commit(t)
+;await Undo.record(op||"edit",id,before,Util.snap(t));afterMutate()};const complete=async id=>{const t=Model.byId.get(id);if(!t||t.done)return
+;const before=Util.snap(t);t.done=true;t.doneAt=Util.isoOf(new Date);await Model.commit(t);await Undo.record("complete",id,before,Util.snap(t));afterMutate()
+;Render.toastCompleted(t)};const uncomplete=async id=>{const t=Model.byId.get(id);if(!t||!t.done)return;const before=Util.snap(t);t.done=false;t.doneAt=null
+;await Model.commit(t);await Undo.record("uncomplete",id,before,Util.snap(t));afterMutate()};const del=async id=>{const t=Model.byId.get(id);if(!t)return
+;const before=Util.snap(t);await Model.remove(id);await Undo.record("delete",id,before,null);afterMutate();Render.toastDeleted(before)}
+;const snooze=(id,due)=>patch(id,{due:due},"snooze");const setPriority=(id,p)=>patch(id,{priority:p},"priority");const toggleSubtask=async(id,idx)=>{
+const t=Model.byId.get(id);if(!t||!t.subtasks[idx])return;const before=Util.snap(t);t.subtasks[idx].done=!t.subtasks[idx].done;await Model.commit(t)
+;await Undo.record("edit",id,before,Util.snap(t));afterMutate()};const undo=async()=>{if(await Undo.undo())afterMutate()};const redo=async()=>{
+if(await Undo.redo())afterMutate()};return{add:add,bulkAdd:bulkAdd,patch:patch,complete:complete,uncomplete:uncomplete,del:del,snooze:snooze,
+setPriority:setPriority,toggleSubtask:toggleSubtask,undo:undo,redo:redo}})();
+/* ================================================================ Render */const Render=(()=>{const $=id=>document.getElementById(id);const els={}
+;const state={sel:null,filters:new Set,query:"",showCompleted:false,expanded:new Set,editingId:null,dateEditId:null,lastAdded:null,visible:[],
+digestDismissed:false};const NONE="·none";const init=()=>{
+["app","appTitle","banners","tagKey","titleInput","dateInput","datePreview","searchWrap","searchInput","searchClear","countLine","digestWrap","listRoot","completedRoot","toasts","overlayRoot","popRoot","choosePill","reconnectPill","saveInd","completedToggle","settingsBtn"].forEach(id=>{
+els[id]=$(id)});els.appTitle.textContent=APP_NAME};const daysMap=()=>{const today=new Date;const m=new Map
+;for(const t of Model.tasks)m.set(t.id,t.due?Util.daysBetween(today,Util.parseISO(t.due)):null);return m};const urgencyOf=d=>{if(d===null)return"none"
+;if(d<0)return"overdue";if(d<=(SETTINGS.urgency.due??0))return"due";if(d<=SETTINGS.urgency.near)return"near";if(d<=SETTINGS.urgency.soon)return"soon"
+;return"calm"};const SEGS={none:0,calm:1,soon:2,near:3,due:4,overdue:4};const cmpOpen=(a,b)=>{if(a.due!==b.due){if(a.due===null)return 1
+;if(b.due===null)return-1;return a.due<b.due?-1:1}if(a.priority!==b.priority)return b.priority-a.priority
+;if(a.createdAt!==b.createdAt)return a.createdAt<b.createdAt?-1:1;return a.id<b.id?-1:a.id>b.id?1:0};const render=()=>{const days=daysMap();const ctx={days:days
+};const parsedQ=Filter.parseQuery(state.query);const searching=!parsedQ.empty;const open=Model.tasks.filter(t=>!t.done)
+;let domain=parsedQ.wantDone?Model.tasks.filter(t=>t.done):open;if(state.filters.size){
+domain=domain.filter(t=>state.filters.has(NONE)&&t.tags.length===0||t.tags.some(x=>state.filters.has(x)))}const ranks=new Map;if(searching){
+domain=domain.filter(t=>{const r=Filter.match(t,parsedQ,ctx);if(r<0)return false;ranks.set(t.id,r);return true})}const buckets={overdue:[],today:[],tomorrow:[],
+week:[],later:[],undated:[]};for(const t of domain){const d=days.get(t.id)
+;if(d===null)buckets.undated.push(t);else if(d<0)buckets.overdue.push(t);else if(d===0)buckets.today.push(t);else if(d===1)buckets.tomorrow.push(t);else if(d<=7)buckets.week.push(t);else buckets.later.push(t)
+}const rankCmp=base=>(a,b)=>{if(searching){const ra=ranks.get(a.id)||0,rb=ranks.get(b.id)||0;if(ra!==rb)return ra-rb}return base(a,b)}
+;for(const k of["overdue","today","tomorrow","week","later"])buckets[k].sort(rankCmp(cmpOpen))
+;buckets.undated.sort(rankCmp((a,b)=>a.createdAt>b.createdAt?-1:a.createdAt<b.createdAt?1:0))
+;const SECTIONS=[["overdue","Overdue"],["today","Today"],["tomorrow","Tomorrow"],["week","This week"],["later","Later"],["undated","No date"]]
+;const root=els.listRoot;root.textContent="";state.visible=[];const totalOpen=open.length;const dueTodayCount=open.filter(t=>days.get(t.id)===0).length
+;const overdueCount=open.filter(t=>t.due&&days.get(t.id)<0).length;if(parsedQ.wantDone){
+renderDoneList(root,domain.slice().sort(rankCmp((a,b)=>(a.doneAt||"")<(b.doneAt||"")?1:(a.doneAt||"")>(b.doneAt||"")?-1:0)))}else{let any=false
+;for(const[key,label]of SECTIONS){const list=buckets[key];if(!list.length)continue;any=true;const sect=E("section",{class:"sect"});const h=E("h2",{
+class:"sect-h"},label,E("span",{class:"n",text:"· "+list.length}));sect.append(h);const ul=E("ul",{role:"list"});for(const t of list){
+ul.append(buildRow(t,days.get(t.id)));state.visible.push(t.id)}sect.append(ul);root.append(sect)}
+if(!any)root.append(emptyState(searching,totalOpen));else if(buckets.undated.length&&buckets.undated.length===state.visible.length&&!searching&&!state.filters.size)root.prepend(E("div",{
+class:"empty",style:"padding:16px 0"},E("b",{text:"Nothing scheduled."}),"Tasks without a date are listed below."))}
+if(state.sel&&!state.visible.includes(state.sel))state.sel=null;if(state.sel){const li=root.querySelector('li[data-id="'+state.sel+'"]')
+;if(li)li.classList.add("sel")}renderTagKey(open,days);renderCompletedToggle();renderCompletedSection(days);renderCountLine(domain.length,totalOpen,searching)
+;renderDigest(overdueCount,dueTodayCount);document.title=(dueTodayCount+overdueCount>0?"("+(dueTodayCount+overdueCount)+") ":"")+APP_NAME;state.lastAdded=null}
+;const emptyState=(searching,totalOpen)=>{const wrap=E("div",{class:"empty"});if(searching||state.filters.size){wrap.append(E("b",{
+text:"No matches for “"+(state.query.trim()||"this filter")+"”."}),"Press Esc to clear.")}else if(Model.tasks.length===0){
+if(document.documentElement.getAttribute("data-theme")==="geocities")wrap.append(E("b",{text:"~ Welcome to my To-Do Page ~"
+}),"This page is best viewed at 800×600.");else wrap.append(E("b",{text:"Nothing here yet."}),"Type a task above and press Enter.")}else if(totalOpen===0){
+wrap.append(E("b",{text:"All clear."}),"Nothing due.")}else{wrap.append(E("b",{text:"No matches."}),"Press Esc to clear.")}return wrap}
+;const dateChipText=(t,d)=>{const today=new Date;if(!t.due)return"";const short=Util.fmtShort(t.due,today);if(d<0)return short+" · "+-d+"d late"
+;if(d===0)return short+" · today";if(d===1)return short+" · tomorrow";return short+" · in "+d+"d"};const buildRow=(t,d)=>{const urg=t.done?"none":urgencyOf(d)
+;const li=E("li",{class:"task u-"+urg+(t.done?" done":""),dataset:{id:t.id}});if(t.id===state.lastAdded)li.classList.add("adding");const gauge=E("div",{
+class:"gauge","aria-hidden":"true"});for(let i=0;i<4;i++)gauge.append(E("i",{class:i<SEGS[urg]?"f":null}));li.append(gauge);const cb=E("input",{class:"cb",
+type:"checkbox","aria-label":"Complete: "+t.title});cb.checked=t.done;on(cb,"change",()=>{
+if(cb.checked)collapseThen(li,()=>Actions.complete(t.id));else Actions.uncomplete(t.id)});li.append(cb);const tmain=E("div",{class:"tmain"})
+;if(state.editingId===t.id){tmain.append(buildTitleEditor(t))}else{const title=E("span",{class:"title",text:t.title,tabindex:"-1"})
+;on(title,"click",()=>startEdit(t.id));tmain.append(title)}if(t.note||t.subtasks.length){const done=t.subtasks.filter(s=>s.done).length
+;const label=(t.subtasks.length?done+"/"+t.subtasks.length:"note")+(state.expanded.has(t.id)?" ⌃":" ⌄");const tg=E("button",{class:"note-toggle",text:label,
+"aria-expanded":state.expanded.has(t.id)?"true":"false"});on(tg,"click",()=>{
+if(state.expanded.has(t.id))state.expanded.delete(t.id);else state.expanded.add(t.id);render()});tmain.append(tg)}li.append(tmain);const meta=E("div",{
+class:"tmeta"});const actions=E("span",{class:"rowactions"});const snz=E("button",{title:"Snooze","aria-label":"Snooze: "+t.title})
+;snz.append(Util.svgIcon(["M12 7v5l3 2","M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z"]));on(snz,"click",e=>{e.stopPropagation();openSnooze(t.id,snz)})
+;const delb=E("button",{title:"Delete","aria-label":"Delete: "+t.title})
+;delb.append(Util.svgIcon(["M4 7h16","M9 7V5h6v2","M6 7l1 13h10l1-13","M10 11v6M14 11v6"]));on(delb,"click",e=>{e.stopPropagation();Actions.del(t.id)})
+;actions.append(snz,delb);meta.append(actions);for(const tag of t.tags){const known=Object.values(SETTINGS.tagMap).includes(tag);meta.append(E("span",{
+class:"tag"+(known?"":" unknown"),text:tag}))}if(t.priority)meta.append(E("span",{class:"pri p"+t.priority,text:"!".repeat(t.priority),
+title:["","low priority","medium priority","high priority"][t.priority]}));if(t.done){meta.append(E("span",{class:"donechip",
+text:"done "+Util.fmtShort(t.doneAt,new Date)}))}else if(state.dateEditId===t.id){meta.append(buildDateEditor(t))}else{
+const chipTxt=t.due?dateChipText(t,d):"no date";const chip=E("button",{class:"datechip"+(t.due?"":" undated"),text:chipTxt,
+"aria-label":"Due date: "+(t.due?Util.fmtLong(t.due)+(d<0?", "+-d+" days late":""):"none")});on(chip,"click",()=>startDateEdit(t.id));meta.append(chip)}
+li.append(meta);if(state.expanded.has(t.id)&&(t.note||t.subtasks.length)){const sub=E("div",{class:"subwrap"});if(t.note)sub.append(E("div",{class:"notetext",
+text:t.note}));if(t.subtasks.length){const ul=E("ul",{class:"subtasks",role:"list"});t.subtasks.forEach((s,i)=>{const scb=E("input",{type:"checkbox",
+id:"st-"+t.id+"-"+i});scb.checked=s.done;on(scb,"change",()=>Actions.toggleSubtask(t.id,i));ul.append(E("li",null,scb,E("label",{class:s.done?"sdone":null,
+for:"st-"+t.id+"-"+i,text:s.text})))});sub.append(ul)}li.append(sub)}else if(t.note&&!state.expanded.has(t.id)){}on(li,"mousedown",()=>select(t.id,false))
+;return li};const collapseThen=(li,fn)=>{const h=li.getBoundingClientRect().height;li.style.height=h+"px";li.getBoundingClientRect()
+;li.classList.add("collapsing");li.style.height="0px";let doneCalled=false;const go=()=>{if(!doneCalled){doneCalled=true;fn()}};on(li,"transitionend",go,{
+once:true});setTimeout(go,300)};const startEdit=id=>{state.editingId=id;state.dateEditId=null;render();focusEditor()};const startDateEdit=id=>{
+state.dateEditId=id;state.editingId=null;render();focusEditor()};const focusEditor=()=>{const inp=els.listRoot.querySelector(".title-edit, .date-edit");if(inp){
+inp.focus();inp.select()}};const buildTitleEditor=t=>{const inp=E("input",{class:"title-edit",type:"text",value:t.title,"aria-label":"Edit task title"})
+;inp.value=t.title;const commit=async()=>{state.editingId=null;const parsed=EntryParse.parse(inp.value,SETTINGS.tagMap);if(!parsed.title){render();return}
+const tags=[...new Set([...t.tags,...parsed.tags])];await Actions.patch(t.id,{title:parsed.title,tags:tags,priority:parsed.priority||t.priority},"edit")}
+;on(inp,"keydown",e=>{if(e.key==="Enter"){e.preventDefault();commit()}else if(e.key==="Escape"){e.stopPropagation();state.editingId=null;render()}})
+;on(inp,"blur",()=>{if(state.editingId===t.id){state.editingId=null;render()}});return inp};const buildDateEditor=t=>{const wrap=E("span",null)
+;const inp=E("input",{class:"date-edit",type:"text","aria-label":"Edit due date",placeholder:"12 5 · tom · +2w · empty"});inp.value=t.due?t.due:""
+;const pv=E("span",{class:"donechip",style:"margin-left:6px"});const preview=()=>{const r=DateParse.parse(inp.value,{rollForward:SETTINGS.rollForward})
+;pv.textContent=r.kind==="invalid"?r.reason:r.kind==="empty"?"no date":Util.fmtLong(r.iso)};on(inp,"input",Util.debounce(preview,120))
+;const commit=async literal=>{const r=DateParse.parse(inp.value,{literal:literal,rollForward:SETTINGS.rollForward});if(r.kind==="invalid"){
+inp.classList.add("bad");pv.textContent=r.reason;return}state.dateEditId=null;await Actions.patch(t.id,{due:r.iso},"edit")};on(inp,"keydown",e=>{
+if(e.key==="Enter"){e.preventDefault();commit(e.shiftKey)}else if(e.key==="Escape"){e.stopPropagation();state.dateEditId=null;render()}});on(inp,"blur",()=>{
+if(state.dateEditId===t.id){state.dateEditId=null;render()}});wrap.append(inp,pv);return wrap};const renderTagKey=(open,days)=>{const tk=els.tagKey
+;tk.textContent="";const entries=Object.entries(SETTINGS.tagMap);entries.forEach(([key,label],i)=>{const count=open.filter(t=>t.tags.includes(label)).length
+;const chip=E("button",{class:"tkchip","aria-pressed":state.filters.has(label)?"true":"false",disabled:count===0&&!state.filters.has(label),
+title:label+" — press "+(i+1)+" to filter"});chip.append(E("span",{class:"k",text:key}),E("span",{class:"lbl",text:label}))
+;on(chip,"click",()=>toggleFilter(label));tk.append(chip)});const noneCount=open.filter(t=>t.tags.length===0).length;const noneChip=E("button",{class:"tkchip",
+"aria-pressed":state.filters.has(NONE)?"true":"false",disabled:noneCount===0&&!state.filters.has(NONE),title:"Untagged tasks — 0 clears filters"})
+;noneChip.append(E("span",{class:"k",text:"·"}),E("span",{class:"lbl",text:"none"}));on(noneChip,"click",()=>toggleFilter(NONE));tk.append(noneChip)
+;const dueToday=open.filter(t=>days.get(t.id)===0).length;tk.append(E("span",{class:"counts",text:open.length+" open · "+dueToday+" today"}))}
+;const toggleFilter=label=>{if(state.filters.has(label))state.filters.delete(label);else state.filters.add(label);render()};const clearFilters=()=>{
+state.filters.clear();render()};const renderCountLine=(shown,totalOpen,searching)=>{if(searching){els.countLine.hidden=false
+;els.countLine.textContent="showing "+shown+" of "+totalOpen}else els.countLine.hidden=true};const renderDigest=(overdue,today)=>{const w=els.digestWrap
+;w.textContent="";if(state.digestDismissed||!overdue&&!today)return;const div=E("div",{class:"digest",role:"status"});const parts=[]
+;if(today)parts.push(today+" due today");if(overdue)parts.push(overdue+" overdue");const b=E("b",{text:parts.join(" · ")});const x=E("button",{class:"bx",
+"aria-label":"Dismiss",text:"✕",style:"margin-left:auto;color:var(--fg-muted);min-width:32px;min-height:24px"});on(x,"click",()=>{state.digestDismissed=true
+;render()});div.append(b,x);w.append(div)};const completedInWindow=()=>{const cutoff=Util.isoOf(new Date(Date.now()-SETTINGS.showCompletedDays*864e5))
+;return Model.tasks.filter(t=>t.done&&t.doneAt&&t.doneAt>=cutoff)};const renderCompletedToggle=()=>{const n=completedInWindow().length
+;const geo=document.documentElement.getAttribute("data-theme")==="geocities"
+;els.completedToggle.textContent=geo?"Done: "+String(n).padStart(4,"0"):"✓ "+n+" this week"
+;els.completedToggle.setAttribute("aria-pressed",state.showCompleted?"true":"false")};const renderCompletedSection=()=>{const root=els.completedRoot
+;root.textContent="";if(!state.showCompleted)return
+;const done=Model.tasks.filter(t=>t.done&&t.doneAt).sort((a,b)=>a.doneAt<b.doneAt?1:a.doneAt>b.doneAt?-1:0).slice(0,200);const sect=E("section",{class:"sect"})
+;sect.append(E("h2",{class:"sect-h"},"Completed",E("span",{class:"n",text:"· "+done.length})));if(!done.length)sect.append(E("div",{class:"empty",
+text:"Nothing completed yet."}));let curDate=null,ul=null;for(const t of done){if(t.doneAt!==curDate){curDate=t.doneAt;sect.append(E("h4",{
+class:"sect-h comp-group",text:Util.fmtLong(curDate)}));ul=E("ul",{role:"list"});sect.append(ul)}ul.append(buildRow(t,null))}root.append(sect)}
+;const renderDoneList=list=>{const root=els.listRoot;const sect=E("section",{class:"sect"});sect.append(E("h2",{class:"sect-h"},"Completed",E("span",{class:"n",
+text:"· "+list.length})));const ul=E("ul",{role:"list"});for(const t of list){ul.append(buildRow(t,null));state.visible.push(t.id)}sect.append(ul)
+;if(!list.length)sect.append(emptyState(true,0));root.append(sect)};const select=(id,scroll)=>{state.sel=id
+;for(const li of els.listRoot.querySelectorAll("li.task.sel"))li.classList.remove("sel");if(!id)return
+;const li=els.listRoot.querySelector('li[data-id="'+id+'"]');if(li){li.classList.add("sel");if(scroll)li.scrollIntoView({block:"nearest"})}}
+;const selectMove=delta=>{if(!state.visible.length)return;let i=state.visible.indexOf(state.sel)
+;i=i===-1?delta>0?0:state.visible.length-1:Math.min(state.visible.length-1,Math.max(0,i+delta));select(state.visible[i],true)}
+;const selected=()=>state.sel&&Model.byId.get(state.sel)?state.sel:null;const showBanner=(id,opts)=>{hideBanner(id);const b=E("div",{
+class:"banner "+(opts.cls||""),dataset:{bid:id},role:opts.cls==="alert"?"alert":"status"});b.append(E("span",{class:"msg",text:opts.msg}))
+;for(const a of opts.actions||[]){const btn=E("button",{text:a.label});on(btn,"click",()=>a.fn(b));b.append(btn)}if(opts.closable){const x=E("button",{
+class:"bx","aria-label":"Dismiss",text:"✕"});on(x,"click",()=>b.remove());b.append(x)}els.banners.append(b);return b};const hideBanner=id=>{
+const cur=els.banners.querySelector('[data-bid="'+id+'"]');if(cur)cur.remove()};const showParseProblems=problems=>{const b=showBanner("parse",{cls:"warn",
+closable:true,msg:problems.length+(problems.length===1?" line":" lines")+" in the file couldn't be read as tasks. They've been left untouched."})
+;const btn=E("button",{text:"Show lines"});const pre=E("pre",{hidden:true});pre.textContent=problems.map(p=>"line "+p.line+" · "+p.msg+"\n  "+p.text).join("\n")
+;on(btn,"click",()=>{pre.hidden=!pre.hidden});b.insertBefore(btn,b.querySelector(".bx"));b.append(pre)};const showFileGone=()=>{showBanner("filegone",{
+cls:"alert",closable:true,msg:"todo.md is no longer at that location.",actions:[{label:"Choose file",fn:b=>{b.remove();Persist.chooseFile()}},{
+label:"Save as new file",fn:b=>{b.remove();Persist.createFile()}}]})};const diffLines=(aText,bText)=>{
+const a=aText.split(/\r\n|\n|\r/),b=bText.split(/\r\n|\n|\r/);if(a.length*b.length>4e6){return[{t:"-",
+l:"(files too large to diff — "+a.length+" vs "+b.length+" lines)"}]}const n=a.length,m=b.length;const dp=Array.from({length:n+1},()=>new Uint16Array(m+1))
+;for(let i=n-1;i>=0;i--)for(let j=m-1;j>=0;j--)dp[i][j]=a[i]===b[j]?dp[i+1][j+1]+1:Math.max(dp[i+1][j],dp[i][j+1]);const out=[];let i=0,j=0;while(i<n&&j<m){
+if(a[i]===b[j]){out.push({t:" ",l:a[i]});i++;j++}else if(dp[i+1][j]>=dp[i][j+1]){out.push({t:"-",l:a[i]});i++}else{out.push({t:"+",l:b[j]});j++}}
+while(i<n)out.push({t:"-",l:a[i++]});while(j<m)out.push({t:"+",l:b[j++]});return out};const showConflict=(fileText,opts)=>{hideBanner("conflict")
+;const src=opts&&opts.source?"Backup "+opts.source:"todo.md";const b=showBanner("conflict",{cls:"alert",
+msg:src+" changed outside this app. Choose which version to keep — nothing is merged automatically.",actions:[{label:"Reload from disk",fn:async bn=>{
+if(Persist.state().dirty&&!window.confirm("Discard unsaved changes in the app and load the file version?"))return;bn.remove()
+;await Persist.resolveReload(fileText)}},{label:"Keep my version",fn:async bn=>{if(!window.confirm("Overwrite the file with the app's current tasks?"))return
+;bn.remove();await Persist.resolveKeepMine()}},{label:"Show what changed",fn:bn=>{let pre=bn.querySelector("pre");if(pre){pre.hidden=!pre.hidden;return}
+pre=E("pre",null);for(const d of diffLines(Persist.currentText(),fileText)){const line=E("span",{class:d.t==="+"?"da":d.t==="-"?"dr":null,text:d.t+" "+d.l})
+;pre.append(line,"\n")}bn.append(pre)}}]});return b};const updateFileUI=mode=>{const p=Persist.state();els.choosePill.hidden=!(p.tier===1&&!p.handle)
+;els.reconnectPill.hidden=!(p.handle&&p.permission==="prompt");if(p.handle&&(p.permission==="granted"||p.permission==="prompt")){
+els.saveInd.hidden=p.permission!=="granted";els.saveInd.className="save-ind "+(mode==="saving"?"saving":p.lastError?"error":p.dirty?"dirty":"")
+;const txt=els.saveInd.querySelector(".txt");txt.textContent=mode==="saving"?"SAVING…":"· "+(p.fileName||"todo.md")
+;els.saveInd.title=p.lastError?"Couldn't write the file: "+(p.lastError.message||p.lastError.name)+". Your tasks are safe in this browser; the file copy is stale.":p.dirty?"Unsaved changes will be written shortly":"Saved to "+(p.fileName||"todo.md")
+}else{els.saveInd.hidden=true}};const toasts=[];const dropToast=t=>{const i=toasts.indexOf(t);if(i>=0)toasts.splice(i,1);t.el.remove();clearInterval(t.timer)}
+;const makeToast=(msg,undoCount)=>{const t={remaining:SETTINGS.undoWindowSec*1e3,undoCount:undoCount,paused:false,kind:"undo"};const el=E("div",{class:"toast",
+role:"status","aria-live":"polite"});el.append(E("span",{class:"tmsg",text:msg}));const ub=E("button",{class:"tundo",text:undoCount>1?"Undo all":"Undo"})
+;on(ub,"click",async()=>{dropToast(t);for(let i=0;i<undoCount;i++)await Undo.undo();Render.render();Persist.markDirty()});el.append(ub,E("span",{class:"tk",
+text:"⌘Z"}));const drain=E("div",{class:"drain"});el.append(drain);on(el,"mouseenter",()=>{t.paused=true});on(el,"mouseleave",()=>{t.paused=false});t.el=el
+;const total=t.remaining;t.timer=setInterval(()=>{if(t.paused)return;t.remaining-=100;drain.style.width=Math.max(0,t.remaining/total*100)+"%"
+;if(t.remaining<=0)dropToast(t)},100);els.toasts.append(el);toasts.push(t);return t};const toastCompleted=task=>{
+const undoToasts=toasts.filter(x=>x.kind==="undo");if(undoToasts.length>=3){const total=undoToasts.reduce((s,x)=>s+x.undoCount,0)+1
+;for(const x of[...undoToasts])dropToast(x);makeToast(total+" tasks completed",total);return}makeToast("Completed “"+task.title+"”",1)}
+;const toastDeleted=task=>makeToast("Deleted “"+task.title+"”",1);let popCleanup=null;const closePop=()=>{if(popCleanup){popCleanup();popCleanup=null}}
+;const openSnooze=(id,anchor)=>{closePop();const t=Model.byId.get(id);if(!t)return;const today=new Date;const opt=(n,label,iso)=>({n:n,label:label,iso:iso})
+;const plus=days=>Util.isoOf(new Date(today.getFullYear(),today.getMonth(),today.getDate()+days));const pm=DateParse.parse("+1m",{today:today})
+;const options=[opt(1,"Tomorrow",plus(1)),opt(2,"In 3 days",plus(3)),opt(3,"Next week",plus(7)),opt(4,"Next month",pm.iso),opt(5,"Remove date",null)]
+;const pop=E("div",{class:"pop",role:"menu","aria-label":"Snooze"});pop.append(E("h3",{text:"Snooze to…"}));const btns=options.map(o=>{const b=E("button",{
+role:"menuitem"},E("span",{class:"kk",text:String(o.n)}),E("span",{text:o.label}),E("span",{class:"dd",text:o.iso?Util.fmtShort(o.iso,today):"(undated)"}))
+;on(b,"click",()=>{closePop();Actions.snooze(id,o.iso)});pop.append(b);return b});els.popRoot.append(pop)
+;const r=(anchor||els.listRoot.querySelector('li[data-id="'+id+'"]')||els.listRoot).getBoundingClientRect()
+;pop.style.left=Math.max(8,Math.min(window.innerWidth-pop.offsetWidth-8,r.left))+"px"
+;pop.style.top=Math.min(window.innerHeight-pop.offsetHeight-8,r.bottom+4+window.scrollY)+"px";pop.style.position="absolute";const key=e=>{if(e.key==="Escape"){
+e.stopPropagation();closePop()}const n=parseInt(e.key,10);if(n>=1&&n<=5){e.preventDefault();e.stopPropagation();closePop();Actions.snooze(id,options[n-1].iso)}}
+;const away=e=>{if(!pop.contains(e.target))closePop()};on(window,"keydown",key,true);setTimeout(()=>on(window,"mousedown",away),0);popCleanup=()=>{pop.remove()
+;window.removeEventListener("keydown",key,true);window.removeEventListener("mousedown",away)};btns[0].focus()};const popOpen=()=>!!popCleanup
+;const animateAdd=id=>{state.lastAdded=id};const setQuery=q=>{state.query=q;els.searchWrap.classList.toggle("hasq",!!q.trim());render()}
+;const toggleCompleted=()=>{state.showCompleted=!state.showCompleted;render()};return{init:init,render:render,state:state,select:select,selectMove:selectMove,
+selected:selected,showBanner:showBanner,hideBanner:hideBanner,showConflict:showConflict,showParseProblems:showParseProblems,showFileGone:showFileGone,
+updateFileUI:updateFileUI,toastCompleted:toastCompleted,toastDeleted:toastDeleted,openSnooze:openSnooze,closePop:closePop,popOpen:popOpen,animateAdd:animateAdd,
+setQuery:setQuery,toggleFilter:toggleFilter,clearFilters:clearFilters,toggleCompleted:toggleCompleted,startEdit:startEdit,startDateEdit:startDateEdit,
+collapseThen:collapseThen,urgencyOf:urgencyOf,NONE:NONE}})();
+/* ================================================================ Keys */const Keys=(()=>{let overlayOpen=()=>false;const isTextTarget=e=>{const t=e.target
+;if(!t)return false;const tag=t.tagName;return tag==="INPUT"&&t.type!=="checkbox"||tag==="TEXTAREA"||tag==="SELECT"||t.isContentEditable}
+;const handler=async e=>{if(overlayOpen())return;if(Render.popOpen())return;const mod=e.ctrlKey||e.metaKey;if(mod&&(e.key==="z"||e.key==="Z")){
+if(isTextTarget(e))return;e.preventDefault();if(e.shiftKey)await Actions.redo();else await Actions.undo();return}if(mod&&(e.key==="s"||e.key==="S")){
+e.preventDefault();if(Persist.state().tier===1&&Persist.state().handle)Persist.flush(true);else Persist.exportMd();return}if(isTextTarget(e))return
+;if(e.target&&e.target.type==="checkbox"&&(e.key===" "||e.key==="Spacebar"))return;const sel=Render.selected();switch(e.key){case"n":e.preventDefault()
+;document.getElementById("titleInput").focus();break;case"/":e.preventDefault();document.getElementById("searchInput").focus();break;case"j":case"ArrowDown":
+e.preventDefault();Render.selectMove(1);break;case"k":case"ArrowUp":e.preventDefault();Render.selectMove(-1);break;case"x":case" ":e.preventDefault();if(sel){
+const t=Model.byId.get(sel);if(t.done)Actions.uncomplete(sel);else{const li=document.querySelector('li[data-id="'+sel+'"]')
+;if(li)Render.collapseThen(li,()=>Actions.complete(sel));else Actions.complete(sel)}}break;case"e":if(sel){e.preventDefault();Render.startEdit(sel)}break
+;case"d":if(sel){e.preventDefault();Render.startDateEdit(sel)}break;case".":if(sel){e.preventDefault();Render.openSnooze(sel,null)}break;case"!":if(sel){
+e.preventDefault();const t=Model.byId.get(sel);Actions.setPriority(sel,(t.priority+1)%4)}break;case"1":case"2":case"3":{e.preventDefault()
+;const labels=Object.values(SETTINGS.tagMap);const label=labels[+e.key-1];if(label)Render.toggleFilter(label);break}case"0":e.preventDefault()
+;Render.clearFilters();break;case"?":e.preventDefault();Shortcuts.toggle();break;case"Escape":{const si=document.getElementById("searchInput");if(si.value){
+Render.setQuery("");si.value=""}else Render.select(null,false);break}}};const init=fnOverlayOpen=>{overlayOpen=fnOverlayOpen;on(window,"keydown",handler)}
+;return{init:init}})();
+/* ================================================================ Shortcuts overlay */const Shortcuts=(()=>{let open=false,elRef=null,prevFocus=null
+;const GROUPS=[["Navigate",[["j / ↓","Select next task"],["k / ↑","Select previous task"],["Esc","Close overlay · clear search · deselect"]]],["Act",[["x / Space","Toggle complete"],["e","Edit title"],["d","Edit date"],[".","Snooze menu"],["!","Cycle priority"],["n","New task (focus entry)"]]],["Filter",[["/","Focus search"],["1 2 3","Toggle tag filter"],["0","Clear all filters"]]],["Entry",[["Enter","Add task"],["Shift+Enter","Add with literal date (no roll-forward)"],["Tab","Title → date field"]]],["System",[["Ctrl/⌘ Z","Undo"],["Ctrl/⌘ ⇧ Z","Redo"],["Ctrl/⌘ S","Save to disk"],["?","This overlay"]]]]
+;const close=()=>{if(!open)return;open=false;document.getElementById("overlayRoot").textContent="";if(prevFocus&&prevFocus.focus)prevFocus.focus()}
+;const show=()=>{if(open)return;prevFocus=document.activeElement;open=true;const root=document.getElementById("overlayRoot");const scrim=E("div",{class:"scrim"
+});on(scrim,"mousedown",close);const box=E("div",{class:"shortcuts",role:"dialog","aria-modal":"true","aria-label":"Keyboard shortcuts",tabindex:"-1"})
+;box.append(E("h2",{text:"Keyboard shortcuts"}));const grid=E("div",{class:"sc-grid"});for(const[name,rows]of GROUPS){const g=E("div",null,E("h3",{text:name}))
+;const dl=E("dl",null);for(const[k,v]of rows)dl.append(E("dt",{text:k}),E("dd",{text:v}));g.append(dl);grid.append(g)}box.append(grid)
+;const keys=Object.entries(SETTINGS.tagMap).map(([k,v])=>"["+k+"] → "+v).join("   ");box.append(E("p",{class:"count-line",
+text:"Tag keys: "+keys+" — type them in the title field."}));on(box,"keydown",e=>{if(e.key==="Escape"){e.stopPropagation();close()}});root.append(scrim,box)
+;elRef=box;box.focus()};const toggle=()=>{if(open)close();else show()};return{toggle:toggle,isOpen:()=>open,close:close}})();
+/* ================================================================ Settings */const Settings=(()=>{let panelOpen=false,prevFocus=null
+;const $=id=>document.getElementById(id);const persist=async()=>{try{await DB.metaPut("settings",Util.snap(SETTINGS))}catch(e){}};const applyTheme=()=>{
+const root=document.documentElement;if(SETTINGS.theme==="system")root.removeAttribute("data-theme");else root.setAttribute("data-theme",SETTINGS.theme)
+;applyAccent()};const applyAccent=()=>{const root=document.documentElement
+;if(SETTINGS.theme==="geocities")root.style.removeProperty("--accent");else root.style.setProperty("--accent",ACCENTS[SETTINGS.accent]||ACCENTS.indigo)}
+;const applyDensity=()=>{document.documentElement.setAttribute("data-density",SETTINGS.density)};const sanitize=raw=>{const d=defaultSettings()
+;if(!raw||typeof raw!=="object")return{s:d,corrupt:raw!==undefined&&raw!==null};let corrupt=false;const s=defaultSettings();const take=(k,ok)=>{
+if(raw[k]!==undefined&&ok(raw[k]))s[k]=raw[k];else if(raw[k]!==undefined)corrupt=true};take("theme",v=>["system","light","dark","geocities"].includes(v))
+;take("accent",v=>v in ACCENTS);take("density",v=>["comfortable","compact"].includes(v));take("rollForward",v=>typeof v==="boolean")
+;take("mdStyle",v=>["emoji","bracket"].includes(v));take("writeBlockIds",v=>typeof v==="boolean");take("showCompletedDays",v=>Number.isInteger(v)&&v>=1&&v<=365)
+;take("autosaveDebounceMs",v=>Number.isInteger(v)&&v>=100&&v<=6e4);take("undoWindowSec",v=>Number.isInteger(v)&&v>=2&&v<=120)
+;take("folderMode",v=>typeof v==="boolean");take("backupRetain",v=>Number.isInteger(v)&&v>=5&&v<=100);if(raw.urgency&&typeof raw.urgency==="object"){
+const u=raw.urgency;if([u.soon,u.near].every(Number.isInteger)&&u.soon>u.near&&u.near>0)s.urgency={calm:u.calm||u.soon,soon:u.soon,near:u.near,due:0
+};else corrupt=true}if(raw.tagMap&&typeof raw.tagMap==="object"){const tm={}
+;for(const[k,v]of Object.entries(raw.tagMap))if(/^[a-z0-9]{1,3}$/i.test(k)&&typeof v==="string"&&v.trim())tm[k.toLowerCase()]=v.trim();s.tagMap=tm}return{s:s,
+corrupt:corrupt}};const load=async()=>{let raw;try{raw=await DB.metaGet("settings")}catch(e){raw=undefined}const{s:s,corrupt:corrupt}=sanitize(raw)
+;Object.assign(SETTINGS,s);if(corrupt)setTimeout(()=>Render.showBanner("badset",{cls:"warn",closable:true,
+msg:"Some saved settings couldn't be read and were reset to defaults. Your tasks are untouched."}),0);applyTheme();applyDensity()};const set=async(key,value)=>{
+SETTINGS[key]=value;await persist();switch(key){case"theme":applyTheme();Render.render();break;case"accent":applyAccent();break;case"density":applyDensity()
+;break;case"urgency":case"showCompletedDays":case"tagMap":Render.render();break;case"mdStyle":case"writeBlockIds":Persist.markDirty();break}}
+;const isOpen=()=>panelOpen;const closePanel=()=>{if(!panelOpen)return;panelOpen=false;document.getElementById("overlayRoot").textContent=""
+;const gear=$("settingsBtn");gear.setAttribute("aria-expanded","false");gear.focus()};const row=(label,control,hint)=>{const r=E("div",{class:"set-row"})
+;if(typeof label==="string")r.append(E("span",{class:"slbl",text:label}));else if(label)r.append(label);if(control)r.append(control);if(hint)r.append(E("span",{
+class:"hint",text:hint}));return r};const segButtons=(options,current,onPick)=>{const wrap=E("div",{class:"seg-btns",role:"group"})
+;for(const[val,label]of options){const b=E("button",{text:label,"aria-pressed":val===current?"true":"false"});on(b,"click",()=>{onPick(val)
+;for(const x of wrap.children)x.setAttribute("aria-pressed","false");b.setAttribute("aria-pressed","true")});wrap.append(b)}return wrap}
+;const checkbox=(label,checked,onChange)=>{const id="set-"+Math.random().toString(36).slice(2,8);const cb=E("input",{type:"checkbox",id:id});cb.checked=checked
+;on(cb,"change",()=>onChange(cb.checked));const r=E("div",{class:"set-row"},E("label",{class:"slbl",for:id,text:label}),cb);return r};const mdSample=()=>{
+const t=Model.fresh({title:"Send an email to frank",tags:[Object.values(SETTINGS.tagMap)[0]||"DPN"],due:"2027-05-12",priority:0});t.id="k3f9qm"
+;return MD.renderTask(t,SETTINGS)[0]};const buildPanel=()=>{const body=E("div",{class:"panel-b"});const ap=E("div",{class:"set-sect"},E("h3",{text:"Appearance"
+}));ap.append(row("Theme",segButtons([["system","System"],["light","Light"],["dark","Dark"],["geocities","GeoCities"]],SETTINGS.theme,v=>{set("theme",v)
+;refreshAccentRow()})));const accentRow=E("div",{class:"accent-row"+(SETTINGS.theme==="geocities"?" disabled":"")})
+;for(const[name,hex]of Object.entries(ACCENTS)){const b=E("button",{class:"accent-sw",title:name,"aria-label":"Accent: "+name,
+"aria-pressed":SETTINGS.accent===name?"true":"false",style:"background:"+hex});on(b,"click",()=>{set("accent",name)
+;for(const x of accentRow.children)x.setAttribute("aria-pressed","false");b.setAttribute("aria-pressed","true")});accentRow.append(b)}
+const accentHint=E("span",{class:"hint",text:SETTINGS.theme==="geocities"?"GeoCities picks its own colours.":""});const refreshAccentRow=()=>{
+accentRow.classList.toggle("disabled",SETTINGS.theme==="geocities");accentHint.textContent=SETTINGS.theme==="geocities"?"GeoCities picks its own colours.":""}
+;ap.append(row("Accent",accentRow),row(null,null),accentHint)
+;ap.append(row("Density",segButtons([["comfortable","Comfortable"],["compact","Compact"]],SETTINGS.density,v=>set("density",v))));body.append(ap)
+;const ug=E("div",{class:"set-sect"},E("h3",{text:"Urgency"}));const err=E("span",{class:"set-err",hidden:true,
+text:"Each threshold must be smaller than the one above it."});const soonIn=E("input",{type:"number",min:"1",max:"365","aria-label":"Soon threshold (days)"})
+;soonIn.value=SETTINGS.urgency.soon;const nearIn=E("input",{type:"number",min:"1",max:"365","aria-label":"Near threshold (days)"})
+;nearIn.value=SETTINGS.urgency.near;const dueIn=E("input",{type:"number",disabled:true,"aria-label":"Due threshold (fixed: today)"});dueIn.value=0
+;const ramp=E("div",{class:"ramp-preview"});const drawRamp=()=>{ramp.textContent="";const soon=+soonIn.value,near=+nearIn.value
+;const items=[["calm",1,"> "+soon+"d"],["soon",2,near+1+"–"+soon+"d"],["near",3,"1–"+near+"d"],["due",4,"today"]];for(const[name,fill,lab]of items){
+const g=E("span",{class:"g"});for(let i=0;i<4;i++){const seg=E("i",null);if(i<fill)seg.style.background="var(--"+name+"-bar)";g.append(seg)}
+ramp.append(E("span",{class:"rp"},g,name+" "+lab))}};drawRamp();const commitUrg=()=>{const soon=parseInt(soonIn.value,10),near=parseInt(nearIn.value,10)
+;const bad=!(Number.isInteger(soon)&&Number.isInteger(near)&&soon>near&&near>0);soonIn.classList.toggle("bad",bad);nearIn.classList.toggle("bad",bad)
+;err.hidden=!bad;if(!bad){set("urgency",{calm:soon,soon:soon,near:near,due:0});drawRamp()}};on(soonIn,"input",commitUrg);on(nearIn,"input",commitUrg)
+;ug.append(row("Soon within (days)",soonIn),row("Near within (days)",nearIn),row("Due",dueIn,"Overdue is anything before today; undated is never coloured."),err,ramp)
+;body.append(ug);const dt=E("div",{class:"set-sect"},E("h3",{text:"Dates"}))
+;dt.append(checkbox("Roll past dates forward",SETTINGS.rollForward,v=>set("rollForward",v)))
+;dt.append(row(null,null,"Example: typing “12 5” after 12 May resolves to 12 May next year. Shift+Enter always keeps the literal date."));body.append(dt)
+;const fl=E("div",{class:"set-sect"},E("h3",{text:"File"}));const p=Persist.state();fl.append(row("Current file",E("span",{class:"hint",style:"flex:none",
+text:p.handle?(p.fileName||"todo.md")+(p.permission==="granted"?"":" (reconnect needed)"):"none"})));if(CAPS.fsa){const btns=E("div",{class:"set-row"})
+;const mk=(label,fn)=>{const b=E("button",{class:"mini-btn",text:label});on(b,"click",fn);return b}
+;btns.append(mk("Choose todo.md…",()=>Persist.chooseFile()),mk("Create new…",()=>Persist.createFile()))
+;if(p.handle)btns.append(mk("Disconnect",()=>Persist.disconnect()));fl.append(btns)}else{
+fl.append(row(null,null,"Direct file access isn't available in this browser. Tasks are stored in the browser; use Export / Import to move the markdown file."))}
+const exRow=E("div",{class:"set-row"});const exB=E("button",{class:"mini-btn",text:"Export .md"});on(exB,"click",()=>Persist.exportMd());const imB=E("button",{
+class:"mini-btn",text:"Import .md"});const imInput=E("input",{type:"file",accept:".md,.markdown,.txt",class:"sr","aria-hidden":"true",tabindex:"-1"})
+;on(imInput,"change",()=>{if(imInput.files[0])Persist.importMd(imInput.files[0]);imInput.value=""});on(imB,"click",()=>imInput.click())
+;exRow.append(exB,imB,imInput);fl.append(exRow);if(CAPS.fsaDir){const fm=checkbox("Use a folder instead of a single file",SETTINGS.folderMode,async v=>{if(v){
+await set("folderMode",true);Persist.chooseFolder()}else{await set("folderMode",false)}})
+;fl.append(fm,row(null,null,"Folder mode writes todo.md plus timestamped backups after each change."));const br=E("input",{type:"number",min:"5",max:"100",
+"aria-label":"Backups to keep"});br.value=SETTINGS.backupRetain;on(br,"change",()=>{const v=Math.min(100,Math.max(5,parseInt(br.value,10)||20));br.value=v
+;set("backupRetain",v)});fl.append(row("Backups to keep",br));if(SETTINGS.folderMode&&p.dirHandle){const bl=E("div",{class:"backup-list"});bl.append(E("span",{
+class:"hint",text:"Loading backups…"}));Persist.listBackups().then(async list=>{bl.textContent="";if(!list.length){bl.append(E("span",{class:"hint",
+text:"No backups yet."}));return}for(const e of list.slice(0,30)){let count="";try{const txt=await(await e.handle.getFile()).text()
+;count=(txt.match(/^[-*]\s*\[[ xX]\]/gm)||[]).length+" tasks"}catch(er){count="?"}const b=E("button",null,E("span",{text:e.name}),E("span",{class:"bn",
+text:count}));on(b,"click",()=>{closePanel();Persist.restoreBackup(e)});bl.append(b)}});fl.append(row("Restore from backup",null),bl)}}body.append(fl)
+;const md=E("div",{class:"set-sect"},E("h3",{text:"Markdown"}));const sample=E("div",{class:"mono-sample",text:mdSample()})
+;md.append(row("Metadata style",segButtons([["emoji","Emoji"],["bracket","Bracket"]],SETTINGS.mdStyle,async v=>{await set("mdStyle",v)
+;sample.textContent=mdSample()})));md.append(sample);md.append(checkbox("Write block IDs (^id)",SETTINGS.writeBlockIds,async v=>{await set("writeBlockIds",v)
+;sample.textContent=mdSample()}));body.append(md);const tg=E("div",{class:"set-sect"},E("h3",{text:"Tags"}));const table=E("table",{class:"tagmap-table"})
+;const rebuildTagTable=()=>{table.textContent="";table.append(E("tr",null,E("td",{class:"hint",text:"key"}),E("td",{class:"hint",text:"label"}),E("td",null)))
+;const rows=[];const commitAll=()=>{const tm={};for(const[ki,li]of rows){const k=ki.value.trim().toLowerCase(),l=li.value.trim()
+;if(/^[a-z0-9]{1,3}$/.test(k)&&l)tm[k]=l}set("tagMap",tm)};const addRow=(k,v)=>{const ki=E("input",{type:"text","aria-label":"Tag key",maxlength:"3"})
+;ki.value=k;const li=E("input",{type:"text","aria-label":"Tag label"});li.value=v;const pair=[ki,li];rows.push(pair);const rm=E("button",{
+class:"mini-btn danger",text:"✕","aria-label":"Remove tag "+(v||"row")});on(rm,"click",()=>{rows.splice(rows.indexOf(pair),1);commitAll();rebuildTagTable()})
+;for(const inp of pair)on(inp,"change",commitAll);table.append(E("tr",null,E("td",null,ki),E("td",null,li),E("td",null,rm)))}
+;for(const[k,v]of Object.entries(SETTINGS.tagMap))addRow(k,v)};rebuildTagTable();tg.append(table);const addWrap=E("div",{class:"set-row"})
+;const addBtn=E("button",{class:"mini-btn",text:"+ Add tag"});on(addBtn,"click",()=>{const k=window.prompt("Short key (1–3 letters):","")
+;if(!k||!/^[a-z0-9]{1,3}$/i.test(k.trim()))return;const l=window.prompt("Tag label:","");if(!l||!l.trim())return;const tm=Util.snap(SETTINGS.tagMap)
+;tm[k.trim().toLowerCase()]=l.trim();set("tagMap",tm).then(rebuildTagTable)});addWrap.append(addBtn)
+;tg.append(addWrap,row(null,null,"Type [key] in the title field to apply the tag. Both #Label and [key] are understood in the file."));body.append(tg)
+;const ad=E("div",{class:"set-sect"},E("h3",{text:"Advanced"}));const deb=E("input",{type:"number",min:"100",max:"60000",step:"100",
+"aria-label":"Autosave debounce (ms)"});deb.value=SETTINGS.autosaveDebounceMs
+;on(deb,"change",()=>set("autosaveDebounceMs",Math.min(6e4,Math.max(100,parseInt(deb.value,10)||800))));const uw=E("input",{type:"number",min:"2",max:"120",
+"aria-label":"Undo toast window (seconds)"});uw.value=SETTINGS.undoWindowSec
+;on(uw,"change",()=>set("undoWindowSec",Math.min(120,Math.max(2,parseInt(uw.value,10)||8))))
+;ad.append(row("Autosave debounce (ms)",deb),row("Undo window (s)",uw));const exS=E("button",{class:"mini-btn",text:"Export settings"});on(exS,"click",()=>{
+const blob=new Blob([JSON.stringify(SETTINGS,null,2)],{type:"application/json"});const url=URL.createObjectURL(blob);const a=E("a",{href:url,
+download:"runway-settings.json"});document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),5e3)});const imS=E("button",{
+class:"mini-btn",text:"Import settings"});const imSF=E("input",{type:"file",accept:".json",class:"sr","aria-hidden":"true",tabindex:"-1"})
+;on(imSF,"change",async()=>{const f=imSF.files[0];imSF.value="";if(!f)return;try{const{s:s}=sanitize(JSON.parse(await f.text()));Object.assign(SETTINGS,s)
+;await persist();applyTheme();applyDensity();Render.render();closePanel();openPanel()}catch(e){Render.showBanner("setimp",{cls:"warn",closable:true,
+msg:"That file couldn't be read as settings JSON. Nothing was changed."})}});on(imS,"click",()=>imSF.click());ad.append(row(null,E("div",{class:"set-row",
+style:"padding:0"},exS,imS,imSF)));const wipeIn=E("input",{type:"text",placeholder:"type wipe","aria-label":"Type wipe to confirm"});const wipeB=E("button",{
+class:"mini-btn danger",text:"Wipe local data",disabled:true});on(wipeIn,"input",()=>{wipeB.disabled=wipeIn.value.trim().toLowerCase()!=="wipe"})
+;on(wipeB,"click",()=>App.wipe())
+;ad.append(row("Wipe local data",wipeIn),row(null,wipeB,"Clears tasks, settings, undo history and the remembered file from this browser. The markdown file on disk is not touched."))
+;ad.append(row(null,null,"Privacy note: every page opened from file:// shares one browser storage origin, so other local HTML files opened in this browser could read this app's stored tasks and the remembered file path. Keys are namespaced under “runway”, but namespacing is not isolation. Avoid credentials or client-identifying detail in task text on machines that also open untrusted local HTML; serving the app from localhost or a real https origin gives it an isolated origin."))
+;body.append(ad);return body};const openPanel=()=>{if(panelOpen){closePanel();return}panelOpen=true;prevFocus=document.activeElement
+;const root=document.getElementById("overlayRoot");root.textContent="";const scrim=E("div",{class:"scrim"});on(scrim,"mousedown",closePanel)
+;const panel=E("div",{class:"panel",role:"dialog","aria-modal":"true","aria-label":"Settings"})
+;if(document.getElementById("app").clientWidth<=560)panel.classList.add("full");const head=E("div",{class:"panel-h"},E("h2",{text:"Settings"}))
+;const x=E("button",{class:"px","aria-label":"Close settings",text:"✕"});on(x,"click",closePanel);head.append(x);panel.append(head,buildPanel())
+;on(panel,"keydown",e=>{if(e.key==="Escape"){e.stopPropagation();closePanel();return}if(e.key==="Tab"){
+const focusables=panel.querySelectorAll("button:not([disabled]),input:not([disabled]):not(.sr),select,[tabindex='0']");if(!focusables.length)return
+;const first=focusables[0],last=focusables[focusables.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus()
+}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus()}}});root.append(scrim,panel)
+;document.getElementById("settingsBtn").setAttribute("aria-expanded","true");x.focus()};return{load:load,set:set,persist:persist,applyTheme:applyTheme,
+applyAccent:applyAccent,applyDensity:applyDensity,openPanel:openPanel,closePanel:closePanel,isOpen:isOpen,sanitize:sanitize}})();
+/* ================================================================ Entry wiring */const Entry=(()=>{const $=id=>document.getElementById(id);let chipsEl=null
+;const renderChips=()=>{const parsed=EntryParse.parse($("titleInput").value,SETTINGS.tagMap);if(!chipsEl){chipsEl=E("div",{class:"entry-chips",
+"aria-hidden":"true"});$("datePreview").before(chipsEl)}chipsEl.textContent="";for(const t of parsed.tags)chipsEl.append(E("span",{class:"tag",text:t}))
+;if(parsed.priority)chipsEl.append(E("span",{class:"pri p"+parsed.priority,text:"!".repeat(parsed.priority)}))};const previewText=r=>{
+if(r.kind==="invalid")return{text:r.reason,cls:"invalid"};if(r.kind==="empty")return{text:"no date",cls:""};const today=Util.midnight(new Date)
+;const d=Util.daysBetween(today,Util.parseISO(r.iso));let suffix
+;if(r.rolled)suffix="rolled forward";else if(d<0)suffix=-d+" days ago";else if(d===0)suffix="today";else if(d===1)suffix="in 1 day";else suffix="in "+d+" days"
+;return{text:Util.fmtLong(r.iso)+" · "+suffix,cls:r.rolled?"rolled":d<0?"past":""}};const updatePreview=()=>{const el=$("datePreview")
+;const r=DateParse.parse($("dateInput").value,{rollForward:SETTINGS.rollForward});const p=previewText(r);el.textContent=p.text
+;el.className="date-preview "+p.cls;$("dateInput").classList.toggle("bad",r.kind==="invalid")};const clear=()=>{$("titleInput").value="";$("dateInput").value=""
+;$("dateInput").classList.remove("bad");$("datePreview").textContent="";$("datePreview").className="date-preview";if(chipsEl)chipsEl.textContent=""}
+;const commit=async literal=>{const raw=$("titleInput").value;const parsed=EntryParse.parse(raw,SETTINGS.tagMap);if(!parsed.title){$("titleInput").focus()
+;return}const r=DateParse.parse($("dateInput").value,{literal:literal,rollForward:SETTINGS.rollForward});if(r.kind==="invalid"){
+$("dateInput").classList.add("bad");updatePreview();$("dateInput").focus();return}await Actions.add({title:parsed.title,tags:parsed.tags,
+priority:parsed.priority,due:r.iso});clear();$("titleInput").focus()};const confirmBulk=lines=>{const root=document.getElementById("overlayRoot")
+;root.textContent="";const scrim=E("div",{class:"scrim"});const box=E("div",{class:"shortcuts",role:"dialog","aria-modal":"true","aria-label":"Confirm paste",
+style:"width:min(380px,90vw)"});box.append(E("h2",{text:"Add "+lines.length+" tasks?"}));box.append(E("p",{class:"count-line",
+text:"One task per pasted line. Dates in the text are not parsed."}));const rowEl=E("div",{class:"set-row"});const addB=E("button",{class:"mini-btn",
+text:"Add "+lines.length+" tasks"});const cancelB=E("button",{class:"mini-btn",text:"Cancel"});const close=()=>{root.textContent="";$("titleInput").focus()}
+;on(cancelB,"click",close);on(scrim,"mousedown",close);on(box,"keydown",e=>{if(e.key==="Escape"){e.stopPropagation();close()}});on(addB,"click",async()=>{
+close();const r=DateParse.parse($("dateInput").value,{rollForward:SETTINGS.rollForward});const due=r.kind==="date"?r.iso:null;const fields=lines.map(l=>{
+const p=EntryParse.parse(l,SETTINGS.tagMap);return{title:p.title||l.trim(),tags:p.tags,priority:p.priority,due:due}}).filter(f=>f.title)
+;await Actions.bulkAdd(fields);clear()});rowEl.append(addB,cancelB);box.append(rowEl);root.append(scrim,box);addB.focus()};const init=()=>{
+const ti=$("titleInput"),di=$("dateInput");on(ti,"keydown",e=>{if(e.key==="Enter"){e.preventDefault();commit(false)}else if(e.key==="Escape"){clear();ti.blur()}
+});on(ti,"input",renderChips);on(ti,"paste",e=>{const text=(e.clipboardData||window.clipboardData).getData("text");if(!text||!text.includes("\n"))return
+;const lines=text.split(/\r\n|\n|\r/).map(l=>l.trim()).filter(Boolean);if(lines.length<2)return;e.preventDefault();confirmBulk(lines)});on(di,"keydown",e=>{
+if(e.key==="Enter"){e.preventDefault();commit(e.shiftKey)}else if(e.key==="Escape"){clear();di.blur()}});on(di,"input",Util.debounce(updatePreview,120))}
+;return{init:init,clear:clear}})();
+/* ================================================================ App */const App=(()=>{let midnightTimer=null;const armMidnight=()=>{
+clearTimeout(midnightTimer);const now=new Date;const next=new Date(now.getFullYear(),now.getMonth(),now.getDate()+1,0,0,1);midnightTimer=setTimeout(()=>{
+Render.render();armMidnight()},next-now)};const dbWriteError=e=>{const quota=e&&(e.name==="QuotaExceededError"||(e.message||"").includes("uota"))
+;Render.showBanner("dberr",{cls:"alert",closable:true,
+msg:quota?"Browser storage is full ("+Model.tasks.length+" tasks stored). Archive or delete completed items, or export and wipe, to free space.":"Couldn't write to browser storage: "+(e&&(e.message||e.name)||"unknown error")+". Recent changes may not survive a reload — export your tasks."
+})};const wipe=async()=>{try{await DB.clear("tasks");await DB.clear("journal");await DB.clear("meta")}catch(e){}Model.tasks.length=0;Model.byId.clear()
+;Object.assign(SETTINGS,defaultSettings());Settings.applyTheme();Settings.applyDensity();await Persist.disconnect();Settings.closePanel();Render.render()
+;Render.showBanner("wiped",{cls:"warn",closable:true,msg:"Local data wiped. The markdown file on disk was not touched."})}
+;const overlayOpen=()=>Settings.isOpen()||Shortcuts.isOpen()||!!document.querySelector("#overlayRoot .shortcuts[aria-label='Confirm paste']")
+;const boot=async()=>{const dbOk=await DB.open();await Settings.load();await Model.load();await Undo.load();Render.init();Entry.init();Keys.init(overlayOpen)
+;Render.render();on(document.getElementById("settingsBtn"),"click",()=>{if(Settings.isOpen())Settings.closePanel();else Settings.openPanel()})
+;on(document.getElementById("completedToggle"),"click",Render.toggleCompleted);on(document.getElementById("choosePill"),"click",()=>Persist.chooseFile())
+;on(document.getElementById("reconnectPill"),"click",()=>Persist.reconnect());const si=document.getElementById("searchInput")
+;on(si,"input",Util.debounce(()=>Render.setQuery(si.value),100));on(si,"keydown",e=>{if(e.key==="Escape"){si.value="";Render.setQuery("");si.blur()}})
+;on(document.getElementById("searchClear"),"click",()=>{si.value="";Render.setQuery("");si.focus()});if(!dbOk){Persist.setTier(3);Render.showBanner("tier3",{
+cls:"alert",msg:"Storage is unavailable in this browser session. Your tasks will be lost when you close this tab. Export to a file before you leave.",actions:[{
+label:"Export .md",fn:()=>Persist.exportMd()}]})}if(Model.quarantine.length)Render.showBanner("quar",{cls:"warn",closable:true,
+msg:Model.quarantine.length+" stored task record(s) couldn't be validated and were set aside. They remain in browser storage untouched."});await Persist.init()
+;Render.updateFileUI();Persist.connect();armMidnight();on(document,"visibilitychange",()=>{if(document.visibilityState==="hidden"){
+if(Persist.state().dirty)Persist.flush(true)}else{Render.render();Persist.checkExternal()}});on(window,"focus",()=>Persist.checkExternal())
+;on(window,"beforeunload",()=>{if(Persist.state().dirty)Persist.flush(true)});if(location.hash==="#test"||/[?&]test\b/.test(location.search))Tests.runInPage()
+;on(window,"hashchange",()=>{if(location.hash==="#test")Tests.runInPage()})};return{boot:boot,wipe:wipe,dbWriteError:dbWriteError}})();
+/* ================================================================ Tests */const Tests=(()=>{const REF=()=>new Date(2026,7,25);const TM={d:"DPN",b:"BSM",
+t:"Highside"};const MS={mdStyle:"emoji",writeBlockIds:true}
+;const VECTORS=[["12 5","2027-05-12"],["12 5 27","2027-05-12"],["1-9-2026","2026-09-01"],["26 8","2026-08-26"],["25 8","2026-08-25"],["24 8","2027-08-24"],["1/9","2026-09-01"],["1 1","2027-01-01"],["29 2 28","2028-02-29"],["29 2","2028-02-29"],["29 2 27",null],["31 4",null],["+3","2026-08-28"],["+1w","2026-09-01"],["+2w","2026-09-08"],["tom","2026-08-26"],["fri","2026-08-28"],["wed","2026-08-26"],["tue","2026-09-01"],["mon","2026-08-31"],["eow","2026-08-28"],["eom","2026-08-31"],["",""],["12 5","2026-05-12",true],["banana",null],["12.5","2027-05-12"],["+1m","2026-09-25"]]
+;const SAMPLE=["# To Do","\x3c!-- Runway v1 · edit freely; the app preserves anything it does not recognise --\x3e","","## Open","- [ ] Send an email to frank #DPN 📅 2027-05-12 ^k3f9qm","- [ ] Patch the jump host #Highside ⏫ 📅 2026-08-26 ^a7b2xd","    Needs change approval before the window opens.","    - [ ] raise CR","    - [x] schedule window","","## Reference","Some prose the app must never touch.","","## No date","- [ ] Buy vinyl inner sleeves ^q8w3ez","","## Completed","- [x] Replace the failing SSD #Highside ✅ 2026-08-18 ^z1x4cv",""].join("\n")
+;const run=()=>{const results=[];const ok=(name,cond,detail)=>results.push({name:name,pass:!!cond,detail:detail||""})
+;const d=(input,opts)=>DateParse.parse(input,Object.assign({today:REF()},opts));for(const[inp,want,lit]of VECTORS){const r=d(inp,lit?{literal:true}:null)
+;const got=r.kind==="date"?r.iso:r.kind==="empty"?"":null
+;ok("date "+JSON.stringify(inp)+(lit?" literal":""),got===want,"expected "+want+", got "+(got===null?"invalid "+(r.reason||""):got))}
+ok("literal past distance",(()=>{const r=d("12 5",{literal:true});return r.past===true&&Util.daysBetween(Util.parseISO(r.iso),REF())===105})())
+;ok("reason 31 4",d("31 4").reason==="31 April doesn't exist",d("31 4").reason)
+;ok("reason 29 2 27",d("29 2 27").reason==="2027 isn't a leap year",d("29 2 27").reason);ok("+1m clamps",DateParse.parse("+1m",{today:new Date(2026,0,31)
+}).iso==="2026-02-28");const ep=(s,t,tags,pri)=>{const e=EntryParse.parse(s,TM)
+;ok("entry "+JSON.stringify(s),e.title===t&&e.tags.join()===tags&&e.priority===(pri||0),JSON.stringify(e))};ep("Email frank [d]","Email frank","DPN")
+;ep("[d] Email frank","Email frank","DPN");ep("Email frank #Personal","Email frank","Personal");ep("Patch host !!!","Patch host","",3)
+;ep("Read [Article Title] later","Read [Article Title] later","");const rtOf=p=>MD.serialise(p.tasks,{blocks:p.blocks,eol:p.eol},MS);let p=MD.parse(SAMPLE,{
+tagMap:TM});ok("md parses 4 tasks",p.tasks.length===4,"got "+p.tasks.length);const rt=rtOf(p)
+;ok("md byte-identical round-trip",rt===SAMPLE,"diff at index "+[...rt].findIndex((c,i)=>c!==SAMPLE[i]));const t1=p.tasks.find(x=>x.id==="a7b2xd")
+;ok("md subtasks + note",t1&&t1.subtasks.length===2&&t1.subtasks[1].done===true&&t1.note==="Needs change approval before the window opens.")
+;ok("md priority + tag",t1&&t1.priority===3&&t1.tags.join()==="Highside");p=MD.parse("## Open\n- [ ] hand added task 📅 2026-09-14\n",{tagMap:TM})
+;ok("md hand-added line adopts an id",/- \[ \] hand added task 📅 2026-09-14 \^[0-9a-z]{6}\n/.test(rtOf(p)),rtOf(p));p=MD.parse(SAMPLE,{tagMap:TM})
+;const mv=p.tasks.find(x=>x.id==="k3f9qm");mv.done=true;mv.doneAt="2026-08-25";const rt3=rtOf(p)
+;ok("md completed task moves section",rt3.indexOf("Send an email to frank")>rt3.indexOf("## Completed")&&rt3.includes("✅ 2026-08-25"))
+;ok("md raw section preserved on move",rt3.includes("Some prose the app must never touch."))
+;p=MD.parse("## Open\n- [ ] Bracket style [due:: 2027-05-12] [priority:: high] ^m0p4rs\n",{tagMap:TM})
+;ok("md bracket metadata",p.tasks[0]&&p.tasks[0].due==="2027-05-12"&&p.tasks[0].priority===3);p=MD.parse("## Open\n- [ ] From the file [d] ^h5j8lc\n",{tagMap:TM
+});ok("md [d] in file → DPN",p.tasks[0]&&p.tasks[0].tags.join()==="DPN"&&p.tasks[0].title==="From the file")
+;const CRLF="## Open\r\n- [ ] crlf task 📅 2026-09-01 ^aaaaaa\r\n";p=MD.parse(CRLF,{tagMap:TM});ok("md CRLF stays CRLF",rtOf(p)===CRLF)
+;const BAD="## Open\n- [ ] bad date 📅 2026-02-30 ^bbbbbb\n";p=MD.parse(BAD,{tagMap:TM})
+;ok("md invalid date → undated + reported",p.tasks[0]&&p.tasks[0].due===null&&p.problems.length===1);ok("md invalid date line preserved",rtOf(p)===BAD)
+;p=MD.parse("## Completed\n* [X] star bullet done ✅ 2026-08-01 ^cccccc\n",{tagMap:TM});ok("md * and [X] accepted",p.tasks[0]&&p.tasks[0].done===true)
+;const ft=Model.validate({id:"zzzzzz",title:"Chase vendor",tags:["DPN"],due:"2026-08-20",priority:2,done:false,doneAt:null,note:null,subtasks:[],
+createdAt:"2026-08-01T00:00:00Z",updatedAt:"2026-08-01T00:00:00Z"});const ctx={days:new Map([["zzzzzz",-5]])}
+;const fm=q=>Filter.match(ft,Filter.parseQuery(q),ctx)
+;for(const[q,hit]of[["#dpn",1],["overdue",1],["!!",1],["!!!",0],["-#dpn",0],["chsvndr",1],["is:undated",0],["today",0],["due:<7d",0],["has:note",0]])ok("filter "+JSON.stringify(q),hit?fm(q)>=0:fm(q)<0,"rank "+fm(q))
+;return results};const runInPage=()=>{const results=run();const old=document.getElementById("testpanel");if(old)old.remove();const panel=E("div",{
+id:"testpanel",role:"log"});const passed=results.filter(r=>r.pass).length;panel.append(E("div",null,E("strong",{text:passed+" / "+results.length+" passed"})))
+;for(const r of results)panel.append(E("div",{class:r.pass?"pass":"fail",text:(r.pass?"✓ ":"✗ ")+r.name+(r.pass||!r.detail?"":" — "+r.detail)}))
+;const x=E("button",{class:"mini-btn",text:"Close",style:"margin-top:8px"});on(x,"click",()=>panel.remove());panel.append(x);document.body.append(panel)}
+;return{run:run,runInPage:runInPage}})();
+/* ================================================================ boot */if(typeof document!=="undefined"&&typeof window!=="undefined"){
+if(document.readyState==="loading")on(document,"DOMContentLoaded",()=>{App.boot()});else App.boot()}if(typeof module!=="undefined"&&module.exports){
+module.exports={Util:Util,DateParse:DateParse,EntryParse:EntryParse,MD:MD,Model:Model,Filter:Filter,Tests:Tests,SETTINGS:SETTINGS}}})();
+/*JS-END*/
+</script>
+</body>
+</html>
