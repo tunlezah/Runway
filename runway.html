@@ -193,7 +193,7 @@ body{background:var(--surface);color:var(--fg);font:14px/1.45 var(--font-sans)}
 .bcol{flex:0 0 232px;min-width:0}
 .bcol.dropover{outline:2px dashed var(--accent);outline-offset:2px;border-radius:var(--radius)}
 .bcol-list{min-height:60px;display:flex;flex-direction:column;gap:var(--sp-2);padding-top:var(--sp-2)}
-.bcard{--u-bar:var(--seg-empty);--u-text:var(--fg-muted);background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--u-bar);border-radius:var(--radius);padding:var(--sp-2);cursor:grab}
+.bcard{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--u-bar,var(--seg-empty));border-radius:var(--radius);padding:var(--sp-2);cursor:grab}
 .bcard.dragging{opacity:.5;cursor:grabbing}
 .bcard.sel{outline:2px solid var(--accent);outline-offset:-2px;background:var(--accent-soft)}
 .bcard-top{display:flex;align-items:flex-start;gap:var(--sp-2)}
@@ -219,7 +219,7 @@ body{background:var(--surface);color:var(--fg);font:14px/1.45 var(--font-sans)}
 .cal-num{align-self:flex-start;font:500 11px var(--font-mono);color:var(--fg-muted);min-width:22px;min-height:20px;border-radius:var(--radius);padding:1px 4px}
 .cal-num:hover{background:var(--accent-soft);color:var(--accent)}
 .cal-chips{display:flex;flex-direction:column;gap:2px;min-width:0}
-.cchip{--u-bar:var(--seg-empty);--u-text:var(--fg-muted);--u-tint:var(--surface-raised);display:block;width:100%;text-align:left;font:400 10px var(--font-mono);color:var(--u-text);background:var(--u-tint);border:1px solid var(--u-bar);border-radius:3px;padding:1px 4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.cchip{display:block;width:100%;text-align:left;font:400 10px var(--font-mono);color:var(--u-text,var(--fg-muted));background:var(--u-tint,var(--surface-raised));border:1px solid var(--u-bar,var(--seg-empty));border-radius:3px;padding:1px 4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
 .cchip-more{font:400 10px var(--font-mono);color:var(--fg-muted);text-align:left;padding:0 4px}
 .cchip-more:hover{color:var(--fg)}
 @container app (max-width:560px){.cal-day{min-height:54px}
@@ -288,6 +288,19 @@ body{background:var(--surface);color:var(--fg);font:14px/1.45 var(--font-sans)}
 .backup-list button{display:flex;width:100%;gap:var(--sp-2);padding:6px 8px;min-height:32px;border-radius:var(--radius);font:400 12px var(--font-mono);text-align:left}
 .backup-list button:hover{background:var(--surface-raised)}
 .backup-list .bn{margin-left:auto;color:var(--fg-muted)}
+/* stats panel */
+.stat-kv{display:flex;align-items:baseline;gap:var(--sp-2);padding:5px 0;font-size:13px;border-bottom:1px solid var(--border)}
+.stat-kv .k{color:var(--fg-muted);flex:1}
+.stat-kv .v{font:500 13px var(--font-mono);font-variant-numeric:tabular-nums;text-align:right}
+.stat-kv .v.bad{color:var(--due-text)}
+.stat-kv .v.warn{color:var(--dirty)}
+.stat-cap{font:400 11px var(--font-mono);color:var(--fg-muted);margin-top:var(--sp-3)}
+.stat-bars{display:flex;align-items:flex-end;gap:2px;height:48px;margin-top:var(--sp-1)}
+.stat-bars i{flex:1;min-height:2px;background:var(--accent);border-radius:2px 2px 0 0;opacity:.55}
+.stat-bars i.cur{opacity:1}
+.stat-bars i.nw{opacity:.3}
+.stat-bars i.heavy{background:var(--due-bar);opacity:1}
+.stat-lbls{display:flex;justify-content:space-between;font:400 10px var(--font-mono);color:var(--fg-muted);padding-top:2px}
 /* shortcut overlay */
 .shortcuts{position:fixed;z-index:81;top:50%;left:50%;transform:translate(-50%,-50%);width:min(640px,calc(100vw - 32px));max-height:80vh;overflow-y:auto;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:var(--sp-4)}
 .shortcuts h2{font:600 13px var(--font-title);margin-bottom:var(--sp-2)}
@@ -341,6 +354,9 @@ to{transform:none}
 <button id="fileChip" class="pill" hidden><span class="g" aria-hidden="true"></span><span class="lbl"></span></button>
 <span id="saveInd" class="save-ind" hidden><span class="dot"></span><span class="txt"></span></span>
 <button id="completedToggle" class="hdr-btn" aria-pressed="false" title="Show completed tasks"></button>
+<button id="statsBtn" class="hdr-btn" aria-label="Stats" aria-expanded="false" title="Stats">
+<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20v-9M10 20V5M16 20v-6M2.5 20h19"/></svg>
+</button>
 <button id="settingsBtn" class="hdr-btn" aria-label="Settings" aria-expanded="false" title="Settings">
 <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.8v3M12 18.2v3M2.8 12h3M18.2 12h3M5.5 5.5l2.1 2.1M16.4 16.4l2.1 2.1M18.5 5.5l-2.1 2.1M7.6 16.4l-2.1 2.1"/></svg>
 </button>
@@ -562,6 +578,77 @@ const dueForCol=(key,today)=>{today=Util.midnight(today||new Date)
 ;for(let c=0;c<7;c++)row.push(Util.isoOf(new Date(start.getFullYear(),start.getMonth(),start.getDate()+r*7+c)));weeks.push(row)}return weeks}
 ;const tlIndex=rec=>{if(!rec)return null;if(rec.cal<0)return 0;if(rec.cal<=28)return 1+rec.cal;return null}
 ;return{dueForCol:dueForCol,calWeeks:calWeeks,tlIndex:tlIndex}})();
+/* ================================================================ Stats */const Stats=(()=>{const iso=d=>Util.isoOf(d)
+;const weekStartISO=d=>{const x=Util.midnight(d);x.setDate(x.getDate()-(x.getDay()+6)%7);return iso(x)}
+;const throughput=(tasks,today,opts)=>{const isWork=opts&&opts.isWork||Days.isWorkDay;today=Util.midnight(today||new Date)
+;const todayIso=iso(today);const thisWk=weekStartISO(today)
+;const back=(base,days)=>{const x=Util.parseISO(base);x.setDate(x.getDate()-days);return iso(x)}
+;const lastWkStart=back(thisWk,7);const wk8Start=back(thisWk,49);let dToday=0,week=0,lastWeek=0;const dow=[0,0,0,0,0,0,0];const byDay=new Map
+;for(const t of tasks){if(!t.done||!t.doneAt)continue;const d=t.doneAt;if(d===todayIso)dToday++
+;if(d>=thisWk&&d<=todayIso)week++;else if(d>=lastWkStart&&d<thisWk)lastWeek++
+;if(d>=wk8Start)dow[Util.parseISO(d).getDay()]++;byDay.set(d,(byDay.get(d)||0)+1)}
+const weeks=[];for(let i=7;i>=0;i--){const s=Util.parseISO(back(thisWk,7*i));let n=0
+;for(let j=0;j<7;j++)n+=byDay.get(iso(new Date(s.getFullYear(),s.getMonth(),s.getDate()+j)))||0;weeks.push({startIso:iso(s),count:n})}
+let busiest=null;for(let i=0;i<7;i++)if(dow[i]>0&&(!busiest||dow[i]>busiest.count))busiest={dow:i,label:Util.DAYS3[i],count:dow[i]}
+;let streak=0;{const cur=new Date(today);for(let i=0;i<366;i++){const k=iso(cur);const n=byDay.get(k)||0
+;if(isWork(cur)){if(n>0)streak++;else if(k!==todayIso)break}cur.setDate(cur.getDate()-1)}}
+return{today:dToday,week:week,lastWeek:lastWeek,delta:week-lastWeek,busiest:busiest,weeks:weeks,streak:streak}}
+;const forecast=(tasks,today,opts)=>{const isWork=opts&&opts.isWork||Days.isWorkDay;today=Util.midnight(today||new Date)
+;const counts=new Map;for(const t of tasks)if(!t.done&&t.due)counts.set(t.due,(counts.get(t.due)||0)+1)
+;let sum=0;const rows=[];for(let i=0;i<14;i++){const d=new Date(today.getFullYear(),today.getMonth(),today.getDate()+i);const k=iso(d)
+;const c=counts.get(k)||0;sum+=c;rows.push({iso:k,dom:d.getDate(),dow3:Util.DAYS3[d.getDay()],count:c,work:isWork(d)})}
+const cut=Math.max(3,Math.ceil(2*sum/14));for(const r of rows)r.heavy=r.count>=cut;return rows}
+;const health=(tasks,today)=>{today=Util.midnight(today||new Date);const open=tasks.filter(t=>!t.done);const todayIso=iso(today)
+;let overdue=0,ageSum=0,oldest=null,stale=0,staleOldest=null,undated=0
+;for(const t of open){if(t.due&&t.due<todayIso)overdue++;if(!t.due)undated++
+;const age=Util.daysBetween(Util.midnight(new Date(t.createdAt)),today);ageSum+=age;if(!oldest||age>oldest.age)oldest={id:t.id,title:t.title,age:age}
+;const upd=Util.daysBetween(Util.midnight(new Date(t.updatedAt)),today);if(upd>30){stale++;if(!staleOldest||upd>staleOldest.age)staleOldest={
+title:t.title,age:upd}}}
+return{open:open.length,overdue:overdue,avgAge:open.length?Math.round(ageSum/open.length):0,oldest:oldest,stale:stale,staleOldest:staleOldest,
+undated:undated,undatedPct:open.length?Math.round(undated/open.length*100):0}}
+;let panelOpen=false;const isOpen=()=>panelOpen;const closePanel=()=>{if(!panelOpen)return;panelOpen=false
+;document.getElementById("overlayRoot").textContent="";const b=document.getElementById("statsBtn");b.setAttribute("aria-expanded","false");b.focus()}
+;const kv=(label,value,cls)=>{const r=E("div",{class:"stat-kv"})
+;r.append(E("span",{class:"k",text:label}),E("span",{class:"v"+(cls?" "+cls:""),text:value}));return r}
+;const barRow=(items,aria)=>{const max=Math.max(1,...items.map(x=>x.v));const bars=E("div",{class:"stat-bars",role:"img","aria-label":aria})
+;for(const it of items){const b=E("i",{class:it.cls||null,title:it.title});b.style.height=(it.v?Math.max(8,Math.round(it.v/max*100)):0)+"%"
+;bars.append(b)}return bars}
+;const buildPanel=()=>{const body=E("div",{class:"panel-b"});const today=new Date;const tasks=Model.tasks
+;if(!tasks.length){body.append(E("div",{class:"empty"},E("b",{text:"No tasks yet."}),"Nothing to measure."));return body}
+const tp=throughput(tasks,today);const sec1=E("div",{class:"set-sect"},E("h3",{text:"Throughput"}))
+;sec1.append(kv("Completed today",String(tp.today)),
+kv("This week",tp.week+(tp.delta===0?" · same as last week":tp.delta>0?" · ▲ "+tp.delta+" vs last week":" · ▼ "+-tp.delta+" vs last week")),
+kv("Busiest day",tp.busiest?tp.busiest.label+" · "+tp.busiest.count+" done in 8 weeks":"—"),
+kv("Streak",tp.streak+" work day"+(tp.streak===1?"":"s")+" with a completion"))
+;sec1.append(E("div",{class:"stat-cap",text:"Completed per week — last 8 weeks"}))
+;sec1.append(barRow(tp.weeks.map((w,i)=>({v:w.count,cls:i===7?"cur":null,
+title:"w/c "+Util.fmtShort(w.startIso,today)+" — "+w.count+" done"})),"Completed per week for the last 8 weeks"))
+;const wl=E("div",{class:"stat-lbls"});wl.append(E("span",{text:"w/c "+Util.fmtShort(tp.weeks[0].startIso,today)}),E("span",{text:"this week"}))
+;sec1.append(wl);body.append(sec1)
+;const fc=forecast(tasks,today);const heavy=fc.filter(r=>r.heavy);const dueN=fc.reduce((s,r)=>s+r.count,0)
+;const sec2=E("div",{class:"set-sect"},E("h3",{text:"Forecast — next 14 days"}));sec2.append(kv("Due in the next 14 days",String(dueN)))
+;sec2.append(barRow(fc.map(r=>({v:r.count,cls:((r.heavy?"heavy ":"")+(r.work?"":"nw")).trim()||null,
+title:r.dow3+" "+Util.fmtShort(r.iso,today)+" — "+r.count+" due"+(r.work?"":" (non-work day)")})),"Tasks due per day for the next 14 days"))
+;const fl=E("div",{class:"stat-lbls"});fl.append(E("span",{text:"today"}),E("span",{text:"+2 weeks"}));sec2.append(fl)
+;sec2.append(E("div",{class:"stat-cap",text:heavy.length?"Heavy: "+heavy.map(r=>r.dow3+" "+Util.fmtShort(r.iso,today)+" ("+r.count+")").join(", "):
+"No overloaded days ahead."}));body.append(sec2)
+;const h=health(tasks,today);const sec3=E("div",{class:"set-sect"},E("h3",{text:"List health"}))
+;sec3.append(kv("Open tasks",String(h.open)),kv("Overdue",String(h.overdue),h.overdue?"bad":null),kv("Average age of open",h.avgAge+"d"),
+kv("Oldest open",h.oldest?"“"+h.oldest.title+"” · "+h.oldest.age+"d":"—"),
+kv("Stale (untouched >30d)",h.stale+(h.staleOldest?" · worst "+h.staleOldest.age+"d":""),h.stale?"warn":null),
+kv("No date",h.undated+" of "+h.open+" ("+h.undatedPct+"%)"));body.append(sec3);return body}
+;const openPanel=()=>{if(panelOpen){closePanel();return}panelOpen=true
+;const root=document.getElementById("overlayRoot");root.textContent="";const scrim=E("div",{class:"scrim"});on(scrim,"mousedown",closePanel)
+;const panel=E("div",{class:"panel",role:"dialog","aria-modal":"true","aria-label":"Stats"})
+;if(document.getElementById("app").clientWidth<=560)panel.classList.add("full")
+;const head=E("div",{class:"panel-h"},E("h2",{text:"Stats"}));const x=E("button",{class:"px","aria-label":"Close stats",text:"✕"})
+;on(x,"click",closePanel);head.append(x);panel.append(head,buildPanel())
+;on(panel,"keydown",e=>{if(e.key==="Escape"){e.stopPropagation();closePanel();return}if(e.key==="Tab"){
+const f=panel.querySelectorAll("button:not([disabled]),input:not([disabled]):not(.sr),select,[tabindex='0']");if(!f.length)return
+;const first=f[0],last=f[f.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus()}
+else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus()}}})
+;root.append(scrim,panel);document.getElementById("statsBtn").setAttribute("aria-expanded","true");x.focus()}
+;return{weekStartISO:weekStartISO,throughput:throughput,forecast:forecast,health:health,openPanel:openPanel,closePanel:closePanel,isOpen:isOpen}})();
 /* ================================================================ Persist */const Persist=(()=>{let tier=3;let handle=null;let dirHandle=null
 ;let fileMeta=null;let mdState={blocks:[],eol:"\n"};let dirty=false;let flushTimer=null;let flushing=false;let permission="none";let lastError=null
 ;const state=()=>({tier:tier,handle:handle,dirHandle:dirHandle,fileMeta:fileMeta,dirty:dirty,permission:permission,lastError:lastError,
@@ -1206,9 +1293,10 @@ msg:quota?"Browser storage is full ("+Model.tasks.length+" tasks stored). Archiv
 })};const wipe=async()=>{try{await DB.clear("tasks");await DB.clear("journal");await DB.clear("meta")}catch(e){}Model.tasks.length=0;Model.byId.clear()
 ;Object.assign(SETTINGS,defaultSettings());Settings.applyTheme();Settings.applyDensity();await Persist.disconnect();Settings.closePanel();Render.render()
 ;Render.showBanner("wiped",{cls:"warn",closable:true,msg:"Local data wiped. The markdown file on disk was not touched."})}
-;const overlayOpen=()=>Settings.isOpen()||Shortcuts.isOpen()||!!document.querySelector("#overlayRoot .shortcuts[aria-label='Confirm paste']")
+;const overlayOpen=()=>Settings.isOpen()||Shortcuts.isOpen()||Stats.isOpen()||!!document.querySelector("#overlayRoot .shortcuts[aria-label='Confirm paste']")
 ;const boot=async()=>{const dbOk=await DB.open();await Settings.load();await Model.load();await Undo.load();Render.init();Entry.init();Keys.init(overlayOpen)
 ;Render.render();on(document.getElementById("settingsBtn"),"click",()=>{if(Settings.isOpen())Settings.closePanel();else Settings.openPanel()})
+;on(document.getElementById("statsBtn"),"click",()=>{if(Stats.isOpen())Stats.closePanel();else Stats.openPanel()})
 ;on(document.getElementById("completedToggle"),"click",Render.toggleCompleted);const si=document.getElementById("searchInput")
 ;on(si,"input",Util.debounce(()=>Render.setQuery(si.value),100));on(si,"keydown",e=>{if(e.key==="Escape"){si.value="";Render.setQuery("");si.blur()}})
 ;on(document.getElementById("searchClear"),"click",()=>{si.value="";Render.setQuery("");si.focus()});if(!dbOk){Persist.setTier(3);Render.showBanner("tier3",{
@@ -1333,6 +1421,28 @@ createdAt:"2026-08-01T00:00:00Z",updatedAt:"2026-08-01T00:00:00Z"})
 ;ok("calWeeks sept 2026",wks.length===5&&wks[0][0]==="2026-08-31"&&wks[0][6]==="2026-09-06"&&wks[4][6]==="2026-10-04")
 ;ok("calWeeks monday columns",wks.every(w=>Util.parseISO(w[0]).getDay()===1))
 ;ok("tlIndex",Views.tlIndex({cal:-3})===0&&Views.tlIndex({cal:0})===1&&Views.tlIndex({cal:28})===29&&Views.tlIndex({cal:29})===null&&Views.tlIndex(null)===null)
+;/* stats */const MFb=wkArr(MF);const isW=d=>MFb[d.getDay()]
+;const dn=d=>({done:true,doneAt:d,createdAt:"2026-08-01T00:00:00",updatedAt:"2026-08-01T00:00:00"})
+;ok("stats weekStart",Stats.weekStartISO(REF())==="2026-08-24"&&Stats.weekStartISO(new Date(2026,7,30))==="2026-08-24")
+;const tpT=Stats.throughput([dn("2026-08-25"),dn("2026-08-25"),dn("2026-08-24"),dn("2026-08-21"),dn("2026-08-20"),dn("2026-08-16")],REF(),{isWork:isW})
+;ok("stats throughput",tpT.today===2&&tpT.week===3&&tpT.lastWeek===2&&tpT.delta===1&&tpT.busiest.label==="Tue"&&tpT.weeks.length===8&&tpT.weeks[7].count===3,
+JSON.stringify(tpT))
+;ok("stats streak weekend-skip",tpT.streak===4,"got "+tpT.streak)
+;const tpT2=Stats.throughput([dn("2026-08-24"),dn("2026-08-21"),dn("2026-08-20")],REF(),{isWork:isW})
+;ok("stats streak skips today-with-none",tpT2.streak===3&&tpT2.today===0,"got "+tpT2.streak)
+;const op=d=>({done:false,due:d,createdAt:"2026-08-01T00:00:00",updatedAt:"2026-08-25T00:00:00",title:"t",id:"x"})
+;const fcT=Stats.forecast([op("2026-08-25"),op("2026-08-25"),op("2026-08-25"),op("2026-08-26"),op("2026-08-29"),dn("2026-08-25")],REF(),{isWork:isW})
+;ok("stats forecast",fcT.length===14&&fcT[0].count===3&&fcT[0].heavy===true&&fcT[1].count===1&&fcT[1].heavy===false&&fcT[4].work===false&&fcT[4].count===1,
+JSON.stringify(fcT.slice(0,5)))
+;const hT=Stats.health([
+{done:false,due:"2026-08-20",title:"a",id:"a1",createdAt:"2026-08-01T00:00:00",updatedAt:"2026-08-25T00:00:00"},
+{done:false,due:"2026-08-30",title:"b",id:"b1",createdAt:"2026-07-01T00:00:00",updatedAt:"2026-07-20T00:00:00"},
+{done:false,due:null,title:"c",id:"c1",createdAt:"2026-08-20T00:00:00",updatedAt:"2026-08-24T00:00:00"},
+{done:true,due:"2026-08-01",title:"d",id:"d1",createdAt:"2026-07-01T00:00:00",updatedAt:"2026-08-01T00:00:00"}],REF())
+;ok("stats health",hT.open===3&&hT.overdue===1&&hT.avgAge===28&&hT.oldest.title==="b"&&hT.stale===1&&hT.staleOldest.age===36&&hT.undated===1&&hT.undatedPct===33,
+JSON.stringify(hT))
+;ok("stats stale boundary 30d",Stats.health([{done:false,due:null,title:"e",id:"e1",createdAt:"2026-07-26T00:00:00",updatedAt:"2026-07-26T00:00:00"}],REF()).stale===0)
+;ok("stats stale 31d",Stats.health([{done:false,due:null,title:"e",id:"e1",createdAt:"2026-07-25T00:00:00",updatedAt:"2026-07-25T00:00:00"}],REF()).stale===1)
 ;return results};const runInPage=()=>{const results=run();const old=document.getElementById("testpanel");if(old)old.remove();const panel=E("div",{
 id:"testpanel",role:"log"});const passed=results.filter(r=>r.pass).length;panel.append(E("div",null,E("strong",{text:passed+" / "+results.length+" passed"})))
 ;for(const r of results)panel.append(E("div",{class:r.pass?"pass":"fail",text:(r.pass?"✓ ":"✗ ")+r.name+(r.pass||!r.detail?"":" — "+r.detail)}))
@@ -1340,7 +1450,7 @@ id:"testpanel",role:"log"});const passed=results.filter(r=>r.pass).length;panel.
 ;return{run:run,runInPage:runInPage}})();
 /* ================================================================ boot */if(typeof document!=="undefined"&&typeof window!=="undefined"){
 if(document.readyState==="loading")on(document,"DOMContentLoaded",()=>{App.boot()});else App.boot()}if(typeof module!=="undefined"&&module.exports){
-module.exports={Util:Util,Days:Days,Views:Views,DateParse:DateParse,EntryParse:EntryParse,MD:MD,Model:Model,Filter:Filter,Tests:Tests,
+module.exports={Util:Util,Days:Days,Views:Views,Stats:Stats,DateParse:DateParse,EntryParse:EntryParse,MD:MD,Model:Model,Filter:Filter,Tests:Tests,
 SETTINGS:SETTINGS}}})();
 /*JS-END*/
 </script>
