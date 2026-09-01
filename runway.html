@@ -119,10 +119,10 @@ body{background:var(--surface);color:var(--fg);font:14px/1.45 var(--font-sans)}
 .gauge i{flex:1;background:var(--seg-empty);border-radius:var(--seg-radius);transition:background var(--dur-gauge)}
 .gauge i.f{background:var(--u-bar,var(--seg-empty))}
 .task{--u-bar:var(--seg-empty);--u-text:var(--fg-muted)}
-.task.u-calm{--u-bar:var(--calm-bar);--u-text:var(--calm-text)}
-.task.u-soon{--u-bar:var(--soon-bar);--u-text:var(--soon-text)}
-.task.u-near{--u-bar:var(--near-bar);--u-text:var(--near-text)}
-.task.u-due,.task.u-overdue{--u-bar:var(--due-bar);--u-text:var(--due-text)}
+.u-calm{--u-bar:var(--calm-bar);--u-text:var(--calm-text);--u-tint:var(--calm-tint)}
+.u-soon{--u-bar:var(--soon-bar);--u-text:var(--soon-text);--u-tint:var(--soon-tint)}
+.u-near{--u-bar:var(--near-bar);--u-text:var(--near-text);--u-tint:var(--near-tint)}
+.u-due,.u-overdue{--u-bar:var(--due-bar);--u-text:var(--due-text);--u-tint:var(--due-tint)}
 .task .cb{grid-area:c;width:16px;height:16px;justify-self:center;accent-color:var(--accent);cursor:pointer}
 .tmain{grid-area:main;display:flex;align-items:center;gap:var(--sp-2);min-width:0}
 .title{font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:text}
@@ -168,6 +168,64 @@ body{background:var(--surface);color:var(--fg);font:14px/1.45 var(--font-sans)}
 .note-toggle.sub-drives{color:var(--u-text);font-weight:600}
 .task.done .title{color:var(--fg-muted);text-decoration:line-through}
 .donechip{font:400 12px var(--font-mono);color:var(--fg-muted)}
+/* view switcher */
+.view-seg button{min-width:34px;min-height:32px;display:inline-flex;align-items:center;justify-content:center;color:var(--fg-muted)}
+.view-seg button svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.6}
+/* runway timeline */
+.tl{margin-top:var(--sp-4)}
+.tl-h{display:flex;align-items:baseline;gap:var(--sp-2)}
+.tl-toggle{font:600 11px var(--font-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--fg-muted);min-height:24px}
+.tl-toggle:hover{color:var(--fg)}
+.tl-sum{font:400 11px var(--font-mono);color:var(--fg-muted);font-variant-numeric:tabular-nums}
+.tl-body{margin-top:var(--sp-1)}
+.tl-scale{display:flex;align-items:flex-end;gap:1px;height:64px;border-bottom:1px solid var(--border);overflow-x:auto}
+.tl-day{flex:1 1 0;min-width:9px;display:flex;flex-direction:column-reverse;align-items:center;gap:2px;height:100%;padding-bottom:3px}
+.tl-day.late{flex:0 0 34px;background:var(--due-tint);border-right:1px solid var(--border)}
+.tl-day.today{background:var(--accent-soft)}
+.tl-day.nonwork{background:var(--surface-raised)}
+.tl-day.wk{border-left:1px solid var(--border)}
+.tl-dot{width:8px;height:8px;border-radius:50%;background:var(--u-bar,var(--seg-empty));padding:0;flex:none;transition:transform var(--dur-gauge)}
+.tl-dot:hover,.tl-dot:focus-visible{transform:scale(1.5)}
+.tl-more{font:400 9px var(--font-mono);color:var(--fg-muted)}
+.tl-ax{display:flex;justify-content:space-between;font:400 10px var(--font-mono);color:var(--fg-muted);padding-top:2px}
+/* board view */
+.board{display:flex;gap:var(--sp-3);margin-top:var(--sp-4);overflow-x:auto;align-items:flex-start;padding-bottom:var(--sp-3)}
+.bcol{flex:0 0 232px;min-width:0}
+.bcol.dropover{outline:2px dashed var(--accent);outline-offset:2px;border-radius:var(--radius)}
+.bcol-list{min-height:60px;display:flex;flex-direction:column;gap:var(--sp-2);padding-top:var(--sp-2)}
+.bcard{--u-bar:var(--seg-empty);--u-text:var(--fg-muted);background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--u-bar);border-radius:var(--radius);padding:var(--sp-2);cursor:grab}
+.bcard.dragging{opacity:.5;cursor:grabbing}
+.bcard.sel{outline:2px solid var(--accent);outline-offset:-2px;background:var(--accent-soft)}
+.bcard-top{display:flex;align-items:flex-start;gap:var(--sp-2)}
+.bcard-top .cb{width:15px;height:15px;accent-color:var(--accent);flex:none;margin-top:2px}
+.bcard .title{font-size:13px;white-space:normal;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;cursor:text;min-width:0}
+.bcard-meta{display:flex;align-items:center;gap:var(--sp-1);flex-wrap:wrap;margin-top:var(--sp-1);padding-left:23px;font-variant-numeric:tabular-nums}
+.bcol-empty{color:var(--fg-muted);text-align:center;padding:var(--sp-3) 0;border:1px dashed var(--border);border-radius:var(--radius);font-size:12px}
+@container app (max-width:560px){.bcol{flex-basis:200px}
+}
+/* calendar view */
+.cal{margin-top:var(--sp-4)}
+.cal-h{display:flex;align-items:center;gap:var(--sp-2);margin-bottom:var(--sp-2)}
+.cal-title{font:600 14px var(--font-title);min-width:150px;text-align:center}
+.cal-nav{min-width:32px;min-height:32px;border:1px solid var(--border);border-radius:var(--radius);color:var(--fg)}
+.cal-nav:hover{border-color:var(--accent);color:var(--accent)}
+.cal-h .mini-btn{margin-left:auto}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.cal-dow{background:var(--surface-raised);font:600 10px var(--font-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--fg-muted);text-align:center;padding:4px 0}
+.cal-day{background:var(--surface);min-height:78px;padding:2px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.cal-day.nonwork{background:var(--surface-raised)}
+.cal-day.out .cal-num{opacity:.35}
+.cal-day.today{outline:2px solid var(--accent);outline-offset:-2px}
+.cal-num{align-self:flex-start;font:500 11px var(--font-mono);color:var(--fg-muted);min-width:22px;min-height:20px;border-radius:var(--radius);padding:1px 4px}
+.cal-num:hover{background:var(--accent-soft);color:var(--accent)}
+.cal-chips{display:flex;flex-direction:column;gap:2px;min-width:0}
+.cchip{--u-bar:var(--seg-empty);--u-text:var(--fg-muted);--u-tint:var(--surface-raised);display:block;width:100%;text-align:left;font:400 10px var(--font-mono);color:var(--u-text);background:var(--u-tint);border:1px solid var(--u-bar);border-radius:3px;padding:1px 4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.cchip-more{font:400 10px var(--font-mono);color:var(--fg-muted);text-align:left;padding:0 4px}
+.cchip-more:hover{color:var(--fg)}
+@container app (max-width:560px){.cal-day{min-height:54px}
+.cchip{width:9px;height:9px;border-radius:50%;padding:0;border-width:2px}
+.cchip .t{display:none}
+}
 /* empty states */
 .empty{padding:40px 0;text-align:center;color:var(--fg-muted);font-size:13px}
 .empty b{display:block;color:var(--fg);font-size:14px;margin-bottom:4px}
@@ -247,7 +305,8 @@ body{background:var(--surface);color:var(--fg);font:14px/1.45 var(--font-sans)}
 /* ============ GeoCities decoration layer ============ */
 [data-theme="geocities"] body,:root[data-theme="geocities"] body{background-color:#000080;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Crect width='16' height='16' fill='%23000080'/%3E%3Crect x='3' y='2' width='1' height='1' fill='%23fff'/%3E%3Crect x='12' y='6' width='1' height='1' fill='%23ccc'/%3E%3Crect x='7' y='11' width='1' height='1' fill='%23fff'/%3E%3Crect x='14' y='14' width='1' height='1' fill='%23888'/%3E%3C/svg%3E")}
 [data-theme="geocities"] .task,[data-theme="geocities"] .sect-h,[data-theme="geocities"] .hdr,[data-theme="geocities"] .tagkey{background:var(--surface)}
-[data-theme="geocities"] .hdr-btn,[data-theme="geocities"] .pill,[data-theme="geocities"] .tkchip,[data-theme="geocities"] .mini-btn,[data-theme="geocities"] .seg-btns button,[data-theme="geocities"] .banner button{border:2px outset #C0C0C0;background:#C0C0C0;color:#000;border-radius:0;font-family:var(--font-title)}
+[data-theme="geocities"] .hdr-btn,[data-theme="geocities"] .pill,[data-theme="geocities"] .tkchip,[data-theme="geocities"] .mini-btn,[data-theme="geocities"] .seg-btns button,[data-theme="geocities"] .banner button,[data-theme="geocities"] .cal-nav{border:2px outset #C0C0C0;background:#C0C0C0;color:#000;border-radius:0;font-family:var(--font-title)}
+[data-theme="geocities"] .bcard{border:2px outset #C0C0C0;border-left:6px solid var(--u-bar)}
 [data-theme="geocities"] .hdr-btn:hover,[data-theme="geocities"] .pill:hover,[data-theme="geocities"] .mini-btn:hover{color:#000080;background:#C0C0C0}
 [data-theme="geocities"] .hdr-btn:active,[data-theme="geocities"] .pill:active,[data-theme="geocities"] .tkchip:active,[data-theme="geocities"] .mini-btn:active,[data-theme="geocities"] .tkchip[aria-pressed="true"],[data-theme="geocities"] .seg-btns button[aria-pressed="true"]{border-style:inset;background:#000066;color:#00FFFF}
 [data-theme="geocities"] .tkchip .k{color:#000080}
@@ -278,6 +337,7 @@ to{transform:none}
 <div class="app" id="app">
 <header class="hdr">
 <h1 class="app-title" id="appTitle">Runway</h1>
+<div class="seg-btns view-seg" id="viewSeg" role="group" aria-label="View"></div>
 <button id="fileChip" class="pill" hidden><span class="g" aria-hidden="true"></span><span class="lbl"></span></button>
 <span id="saveInd" class="save-ind" hidden><span class="dot"></span><span class="txt"></span></span>
 <button id="completedToggle" class="hdr-btn" aria-pressed="false" title="Show completed tasks"></button>
@@ -465,7 +525,8 @@ lines:["## "+sect],section:sect,heading:true});entries.push(...newEntries)}}cons
 ;let text=lines.join(eol);if(!blocks.length&&text&&!text.endsWith(eol))text+=eol;return text};return{parse:parse,serialise:serialise,renderTask:renderTask,
 targetSection:targetSection,MANAGED:MANAGED}})();
 /* ================================================================ settings data */const defaultSettings=()=>({schemaVersion:1,theme:"system",accent:"indigo",
-density:"comfortable",urgency:{calm:14,soon:14,near:5,due:0},rollForward:true,dayMode:"calendar",workWeek:[1,2,3,4,5],mdStyle:"emoji",writeBlockIds:true,
+density:"comfortable",urgency:{calm:14,soon:14,near:5,due:0},rollForward:true,dayMode:"calendar",workWeek:[1,2,3,4,5],view:"list",timelineOpen:true,
+mdStyle:"emoji",writeBlockIds:true,
 showCompletedDays:7,autosaveDebounceMs:800,
 undoWindowSec:8,folderMode:false,backupRetain:20,tagMap:{d:"DPN",b:"BSM",t:"Highside"}});const SETTINGS=defaultSettings();const ACCENTS={neutral:"#475569",
 cyan:"#0891B2",sky:"#0284C7",blue:"#2563EB",indigo:"#4F46E5",violet:"#7C3AED"};
@@ -491,6 +552,16 @@ cyan:"#0891B2",sky:"#0284C7",blue:"#2563EB",indigo:"#4F46E5",violet:"#7C3AED"};
 ;const parseOpts=extra=>Object.assign({rollForward:SETTINGS.rollForward,business:business(),workDays:configuredWeek()},extra)
 ;return{weekArr:weekArr,configuredWeek:configuredWeek,business:business,isWorkDay:isWorkDay,recFor:recFor,mapFor:mapFor,urgencyOf:urgencyOf,
 bucketOf:bucketOf,fmtRel:fmtRel,addWorkDays:addWorkDays,effectiveColourIso:effectiveColourIso,parseOpts:parseOpts}})();
+/* ================================================================ Views (pure view calcs) */const Views=(()=>{
+const dueForCol=(key,today)=>{today=Util.midnight(today||new Date)
+;const eff=n=>Days.business()?Days.addWorkDays(today,n):new Date(today.getFullYear(),today.getMonth(),today.getDate()+n)
+;switch(key){case"today":return Util.isoOf(today);case"tomorrow":return Util.isoOf(eff(1));case"week":return Util.isoOf(eff(2))
+;case"later":return Util.isoOf(eff(8));case"undated":return null;default:return undefined}}
+;const calWeeks=(y,m)=>{const lead=(new Date(y,m-1,1).getDay()+6)%7;const start=new Date(y,m-1,1-lead)
+;const rows=Math.ceil((lead+Util.daysInMonth(y,m))/7);const weeks=[];for(let r=0;r<rows;r++){const row=[]
+;for(let c=0;c<7;c++)row.push(Util.isoOf(new Date(start.getFullYear(),start.getMonth(),start.getDate()+r*7+c)));weeks.push(row)}return weeks}
+;const tlIndex=rec=>{if(!rec)return null;if(rec.cal<0)return 0;if(rec.cal<=28)return 1+rec.cal;return null}
+;return{dueForCol:dueForCol,calWeeks:calWeeks,tlIndex:tlIndex}})();
 /* ================================================================ Persist */const Persist=(()=>{let tier=3;let handle=null;let dirHandle=null
 ;let fileMeta=null;let mdState={blocks:[],eol:"\n"};let dirty=false;let flushTimer=null;let flushing=false;let permission="none";let lastError=null
 ;const state=()=>({tier:tier,handle:handle,dirHandle:dirHandle,fileMeta:fileMeta,dirty:dirty,permission:permission,lastError:lastError,
@@ -611,14 +682,20 @@ setPriority:setPriority,toggleSubtask:toggleSubtask,subtaskAdd:subtaskAdd,subtas
 subtaskMove:subtaskMove,subtaskDue:subtaskDue,undo:undo,redo:redo}})();
 /* ================================================================ Render */const Render=(()=>{const $=id=>document.getElementById(id);const els={}
 ;const state={sel:null,filters:new Set,query:"",showCompleted:false,expanded:new Set,editingId:null,dateEditId:null,lastAdded:null,visible:[],
-digestDismissed:false,subEditing:null,subDateEdit:null,subAdding:null,subFocus:null};const NONE="·none";const init=()=>{
-["app","appTitle","banners","tagKey","titleInput","dateInput","datePreview","searchWrap","searchInput","searchClear","countLine","digestWrap","listRoot","completedRoot","toasts","overlayRoot","popRoot","fileChip","saveInd","completedToggle","settingsBtn"].forEach(id=>{
-els[id]=$(id)});els.appTitle.textContent=APP_NAME;on(els.fileChip,"click",()=>{if(chipAct)chipAct()})}
+digestDismissed:false,subEditing:null,subDateEdit:null,subAdding:null,subFocus:null,calCursor:null};const NONE="·none";let dragId=null
+;const VIEW_DEFS=[["list","List view",["M4 6h16","M4 12h16","M4 18h16"]],["board","Board view",["M4 5h4.5v14H4z","M9.75 5h4.5v10h-4.5z","M15.5 5H20v7h-4.5z"]],
+["cal","Calendar view",["M4 6h16v14H4z","M4 10h16","M8 3v4","M16 3v4"]]];const init=()=>{
+["app","appTitle","banners","tagKey","titleInput","dateInput","datePreview","searchWrap","searchInput","searchClear","countLine","digestWrap","listRoot","completedRoot","toasts","overlayRoot","popRoot","fileChip","saveInd","completedToggle","settingsBtn","viewSeg"].forEach(id=>{
+els[id]=$(id)});els.appTitle.textContent=APP_NAME;on(els.fileChip,"click",()=>{if(chipAct)chipAct()})
+;for(const[v,label,paths]of VIEW_DEFS){const b=E("button",{dataset:{v:v},"aria-label":label,title:label,"aria-pressed":"false"})
+;b.append(Util.svgIcon(paths));on(b,"click",()=>{if(SETTINGS.view!==v)Settings.set("view",v)});els.viewSeg.append(b)}}
+;const refreshViewSeg=()=>{if(!els.viewSeg)return
+;for(const b of els.viewSeg.children)b.setAttribute("aria-pressed",b.dataset.v===SETTINGS.view?"true":"false")}
 ;const urgencyOf=Days.urgencyOf;const sectionsFor=()=>{const biz=Days.business()
 ;return[["overdue","Overdue"],["today","Today"],["tomorrow",biz?"Next work day":"Tomorrow"],["week",biz?"This work week":"This week"],["later","Later"],["undated","No date"]]}
 ;const SEGS={none:0,calm:1,soon:2,near:3,due:4,overdue:4};const cmpOpen=(a,b)=>{if(a.due!==b.due){if(a.due===null)return 1
 ;if(b.due===null)return-1;return a.due<b.due?-1:1}if(a.priority!==b.priority)return b.priority-a.priority
-;if(a.createdAt!==b.createdAt)return a.createdAt<b.createdAt?-1:1;return a.id<b.id?-1:a.id>b.id?1:0};const render=()=>{
+;if(a.createdAt!==b.createdAt)return a.createdAt<b.createdAt?-1:1;return a.id<b.id?-1:a.id>b.id?1:0};const computeView=()=>{
 const recs=Days.mapFor(Model.tasks);const ctx={recs:recs
 };const parsedQ=Filter.parseQuery(state.query);const searching=!parsedQ.empty;const open=Model.tasks.filter(t=>!t.done)
 ;let domain=parsedQ.wantDone?Model.tasks.filter(t=>t.done):open;if(state.filters.size){
@@ -628,19 +705,96 @@ week:[],later:[],undated:[]};for(const t of domain)buckets[Days.bucketOf(recs.ge
 ;const rankCmp=base=>(a,b)=>{if(searching){const ra=ranks.get(a.id)||0,rb=ranks.get(b.id)||0;if(ra!==rb)return ra-rb}return base(a,b)}
 ;for(const k of["overdue","today","tomorrow","week","later"])buckets[k].sort(rankCmp(cmpOpen))
 ;buckets.undated.sort(rankCmp((a,b)=>a.createdAt>b.createdAt?-1:a.createdAt<b.createdAt?1:0))
-;const SECTIONS=sectionsFor()
-;const root=els.listRoot;root.textContent="";state.visible=[];const totalOpen=open.length
 ;const dueTodayCount=open.filter(t=>{const r=recs.get(t.id);return!!r&&r.eff===0}).length
-;const overdueCount=open.filter(t=>{const r=recs.get(t.id);return!!r&&r.overdue}).length;if(parsedQ.wantDone){
-renderDoneList(root,domain.slice().sort(rankCmp((a,b)=>(a.doneAt||"")<(b.doneAt||"")?1:(a.doneAt||"")>(b.doneAt||"")?-1:0)))}else{let any=false
-;for(const[key,label]of SECTIONS){const list=buckets[key];if(!list.length)continue;any=true;const sect=E("section",{class:"sect"});const h=E("h2",{
+;const overdueCount=open.filter(t=>{const r=recs.get(t.id);return!!r&&r.overdue}).length
+;return{recs:recs,parsedQ:parsedQ,searching:searching,ranks:ranks,rankCmp:rankCmp,open:open,domain:domain,buckets:buckets,
+totalOpen:open.length,dueTodayCount:dueTodayCount,overdueCount:overdueCount}}
+;const render=()=>{const vc=computeView();els.app.dataset.view=SETTINGS.view;const root=els.listRoot;root.textContent="";state.visible=[]
+;if(vc.parsedQ.wantDone){
+renderDoneList(root,vc.domain.slice().sort(vc.rankCmp((a,b)=>(a.doneAt||"")<(b.doneAt||"")?1:(a.doneAt||"")>(b.doneAt||"")?-1:0)))}
+else if(SETTINGS.view==="board")renderBoard(root,vc);else if(SETTINGS.view==="cal")renderCalendar(root,vc);else{renderTimeline(root,vc)
+;renderList(root,vc)}
+if(state.sel&&!state.visible.includes(state.sel))state.sel=null;if(state.sel){const li=root.querySelector('[data-id="'+state.sel+'"]')
+;if(li)li.classList.add("sel")}renderTagKey(vc.open,vc.recs);renderCompletedToggle();renderCompletedSection()
+;renderCountLine(vc.domain.length,vc.totalOpen,vc.searching);renderDigest(vc.overdueCount,vc.dueTodayCount)
+;document.title=(vc.dueTodayCount+vc.overdueCount>0?"("+(vc.dueTodayCount+vc.overdueCount)+") ":"")+APP_NAME;state.lastAdded=null;refreshViewSeg()}
+;const renderList=(root,vc)=>{let any=false
+;for(const[key,label]of sectionsFor()){const list=vc.buckets[key];if(!list.length)continue;any=true;const sect=E("section",{class:"sect"});const h=E("h2",{
 class:"sect-h"},label,E("span",{class:"n",text:"· "+list.length}));sect.append(h);const ul=E("ul",{role:"list"});for(const t of list){
-ul.append(buildRow(t,recs.get(t.id)));state.visible.push(t.id)}sect.append(ul);root.append(sect)}
-if(!any)root.append(emptyState(searching,totalOpen));else if(buckets.undated.length&&buckets.undated.length===state.visible.length&&!searching&&!state.filters.size)root.prepend(E("div",{
-class:"empty",style:"padding:16px 0"},E("b",{text:"Nothing scheduled."}),"Tasks without a date are listed below."))}
-if(state.sel&&!state.visible.includes(state.sel))state.sel=null;if(state.sel){const li=root.querySelector('li[data-id="'+state.sel+'"]')
-;if(li)li.classList.add("sel")}renderTagKey(open,recs);renderCompletedToggle();renderCompletedSection();renderCountLine(domain.length,totalOpen,searching)
-;renderDigest(overdueCount,dueTodayCount);document.title=(dueTodayCount+overdueCount>0?"("+(dueTodayCount+overdueCount)+") ":"")+APP_NAME;state.lastAdded=null}
+ul.append(buildRow(t,vc.recs.get(t.id)));state.visible.push(t.id)}sect.append(ul);root.append(sect)}
+if(!any)root.append(emptyState(vc.searching,vc.totalOpen))
+;else if(vc.buckets.undated.length&&vc.buckets.undated.length===state.visible.length&&!vc.searching&&!state.filters.size)root.insertBefore(E("div",{
+class:"empty",style:"padding:16px 0"},E("b",{text:"Nothing scheduled."}),"Tasks without a date are listed below."),root.querySelector(".sect"))}
+;const renderTimeline=(root,vc)=>{const dated=vc.domain.filter(t=>t.due&&!t.done);if(!dated.length)return
+;const cells=Array.from({length:30},()=>[]);let beyond=0
+;for(const t of dated){const idx=Views.tlIndex(vc.recs.get(t.id));if(idx===null)beyond++;else cells[idx].push(t)}
+;const sect=E("section",{class:"tl"});const head=E("div",{class:"tl-h"})
+;const tog=E("button",{class:"tl-toggle","aria-expanded":SETTINGS.timelineOpen?"true":"false",
+text:"Runway "+(SETTINGS.timelineOpen?"⌃":"⌄")});on(tog,"click",()=>Settings.set("timelineOpen",!SETTINGS.timelineOpen))
+;head.append(tog,E("span",{class:"tl-sum",
+text:cells[0].length+" late · "+(dated.length-cells[0].length-beyond)+" in 4w"+(beyond?" · "+beyond+" beyond":"")}));sect.append(head)
+;if(SETTINGS.timelineOpen){const body=E("div",{class:"tl-body"});const scale=E("div",{class:"tl-scale"});const today=Util.midnight(new Date)
+;for(let i=0;i<30;i++){const day=i===0?null:new Date(today.getFullYear(),today.getMonth(),today.getDate()+(i-1));const cls=["tl-day"]
+;if(i===0)cls.push("late");else{if(i===1)cls.push("today");if(!Days.isWorkDay(day))cls.push("nonwork");if(day.getDay()===1&&i>1)cls.push("wk")}
+const col=E("div",{class:cls.join(" "),title:i===0?"Overdue":Util.fmtLong(Util.isoOf(day))});const stack=cells[i]
+;stack.slice(0,4).forEach(t=>{const r=vc.recs.get(t.id);const dot=E("button",{class:"tl-dot u-"+Days.urgencyOf(r.eff),
+title:t.title+" — "+Util.fmtShort(t.due,new Date),"aria-label":t.title+", due "+Util.fmtLong(t.due)})
+;on(dot,"click",()=>select(t.id,true));col.append(dot)})
+;if(stack.length>4)col.append(E("span",{class:"tl-more",text:"+"+(stack.length-4)}));scale.append(col)}body.append(scale)
+;const ax=E("div",{class:"tl-ax"});for(const s of["late","today","+1w","+2w","+3w","+4w"])ax.append(E("span",{text:s}));body.append(ax)
+;sect.append(body)}root.append(sect)}
+;const renderBoard=(root,vc)=>{const board=E("div",{class:"board"});const today=new Date
+;for(const[key,label]of sectionsFor()){const col=E("section",{class:"bcol",dataset:{col:key}})
+;col.append(E("h2",{class:"sect-h"},label,E("span",{class:"n",text:"· "+vc.buckets[key].length})))
+;const ul=E("ul",{class:"bcol-list",role:"list"});for(const t of vc.buckets[key]){ul.append(buildCard(t,vc.recs.get(t.id)))
+;state.visible.push(t.id)}if(!vc.buckets[key].length)ul.append(E("li",{class:"bcol-empty",text:"—"}));col.append(ul)
+;on(col,"dragover",e=>{if(dragId&&key!=="overdue"){e.preventDefault();e.dataTransfer.dropEffect="move";col.classList.add("dropover")}})
+;on(col,"dragleave",e=>{if(!col.contains(e.relatedTarget))col.classList.remove("dropover")})
+;on(col,"drop",e=>{e.preventDefault();const id=dragId;dragId=null
+;for(const x of board.querySelectorAll(".dropover"))x.classList.remove("dropover");if(!id||key==="overdue")return
+;const t=Model.byId.get(id);if(!t)return;const due=Views.dueForCol(key,today);if(due!==undefined&&due!==t.due)Actions.snooze(id,due)})
+;board.append(col)}root.append(board);if(!vc.domain.length)root.append(emptyState(vc.searching,vc.totalOpen))}
+;const buildCard=(t,rec)=>{const colourIso=Days.effectiveColourIso(t)
+;const colourRec=colourIso?colourIso===t.due?rec||Days.recFor(colourIso):Days.recFor(colourIso):null
+;const urg=t.done?"none":urgencyOf(colourRec?colourRec.eff:null)
+;const li=E("li",{class:"bcard u-"+urg,dataset:{id:t.id},draggable:"true",tabindex:"0",
+"aria-label":t.title+(t.due?", due "+Util.fmtLong(t.due):", no date")})
+;const top=E("div",{class:"bcard-top"});const cb=E("input",{class:"cb",type:"checkbox","aria-label":"Complete: "+t.title});cb.checked=t.done
+;on(cb,"change",()=>{if(cb.checked)Actions.complete(t.id);else Actions.uncomplete(t.id)});top.append(cb)
+;if(state.editingId===t.id)top.append(buildTitleEditor(t));else{const ttl=E("span",{class:"title",text:t.title})
+;on(ttl,"click",()=>startEdit(t.id));top.append(ttl)}li.append(top);const meta=E("div",{class:"bcard-meta"})
+;for(const tag of t.tags)meta.append(E("span",{class:"tag",text:tag}))
+;if(t.priority)meta.append(E("span",{class:"pri p"+t.priority,text:"!".repeat(t.priority)}))
+;if(t.subtasks.length)meta.append(E("span",{class:"donechip",text:t.subtasks.filter(s=>s.done).length+"/"+t.subtasks.length}))
+;if(state.dateEditId===t.id)meta.append(buildDateEditor(t));else{
+const chip=E("button",{class:"datechip"+(t.due?"":" undated"),text:t.due?dateChipText(t,rec):"no date",
+"aria-label":"Due date: "+(t.due?Util.fmtLong(t.due)+lateAria(rec):"none")});on(chip,"click",e=>{e.stopPropagation();openSnooze(t.id,chip)})
+;meta.append(chip)}li.append(meta)
+;on(li,"dragstart",e=>{dragId=t.id;e.dataTransfer.setData("text/plain",t.id);e.dataTransfer.effectAllowed="move";li.classList.add("dragging")})
+;on(li,"dragend",()=>{dragId=null;li.classList.remove("dragging")
+;for(const x of els.listRoot.querySelectorAll(".dropover"))x.classList.remove("dropover")})
+;on(li,"mousedown",()=>select(t.id,false));return li}
+;const renderCalendar=(root,vc)=>{const today=Util.midnight(new Date);const cur=state.calCursor||Util.isoOf(today).slice(0,7)
+;const y=+cur.slice(0,4),m=+cur.slice(5,7);const cal=E("div",{class:"cal"});const head=E("div",{class:"cal-h"})
+;const nav=(txt,label,dm)=>{const b=E("button",{class:"cal-nav",text:txt,"aria-label":label});on(b,"click",()=>{
+let ny=y,nm=m+dm;if(nm<1){nm=12;ny--}if(nm>12){nm=1;ny++}state.calCursor=ny+"-"+Util.pad2(nm);render()});return b}
+;head.append(nav("‹","Previous month",-1),E("h2",{class:"cal-title","aria-live":"polite",text:Util.MONTHS[m-1]+" "+y}),nav("›","Next month",1))
+;const tdy=E("button",{class:"mini-btn",text:"Today"});on(tdy,"click",()=>{state.calCursor=null;render()});head.append(tdy);cal.append(head)
+;const byDue=new Map;for(const t of vc.domain){if(!t.due)continue;if(!byDue.has(t.due))byDue.set(t.due,[]);byDue.get(t.due).push(t)}
+;const grid=E("div",{class:"cal-grid",role:"grid"})
+;for(const d3 of["Mon","Tue","Wed","Thu","Fri","Sat","Sun"])grid.append(E("div",{class:"cal-dow",role:"columnheader",text:d3}))
+;const todayISO=Util.isoOf(today);for(const week of Views.calWeeks(y,m))for(const iso of week){const d=Util.parseISO(iso);const cls=["cal-day"]
+;if(d.getMonth()!==m-1)cls.push("out");if(iso===todayISO)cls.push("today");if(!Days.isWorkDay(d))cls.push("nonwork")
+;const dayTasks=byDue.get(iso)||[];const cell=E("div",{class:cls.join(" "),role:"gridcell",dataset:{iso:iso},
+"aria-label":Util.fmtLong(iso)+", "+(dayTasks.length?dayTasks.length+" task"+(dayTasks.length>1?"s":"")+" due":"no tasks due")})
+;const num=E("button",{class:"cal-num",text:String(d.getDate()),"aria-label":"Add task due "+Util.fmtLong(iso)})
+;on(num,"click",()=>Entry.prefillDate(iso));cell.append(num);const chips=E("div",{class:"cal-chips"})
+;dayTasks.slice(0,3).forEach(t=>{const r=vc.recs.get(t.id);const chip=E("button",{class:"cchip u-"+(t.done?"none":urgencyOf(r?r.eff:null)),
+title:t.title+" — due "+Util.fmtLong(iso)},E("span",{class:"t",text:t.title}))
+;on(chip,"click",e=>{e.stopPropagation();openCalTask(t.id,chip)});chips.append(chip)})
+;if(dayTasks.length>3){const more=E("button",{class:"cchip-more",text:"+"+(dayTasks.length-3)+" more"})
+;on(more,"click",e=>{e.stopPropagation();openCalDay(iso,dayTasks,more)});chips.append(more)}cell.append(chips)
+;on(cell,"click",e=>{if(e.target===cell||e.target===chips)Entry.prefillDate(iso)});grid.append(cell)}cal.append(grid);root.append(cal)}
 ;const emptyState=(searching,totalOpen)=>{const wrap=E("div",{class:"empty"});if(searching||state.filters.size){wrap.append(E("b",{
 text:"No matches for “"+(state.query.trim()||"this filter")+"”."}),"Press Esc to clear.")}else if(Model.tasks.length===0){
 if(document.documentElement.getAttribute("data-theme")==="geocities")wrap.append(E("b",{text:"~ Welcome to my To-Do Page ~"
@@ -751,11 +905,11 @@ state.filters.clear();render()};const renderCountLine=(shown,totalOpen,searching
 ;sect.append(E("h2",{class:"sect-h"},"Completed",E("span",{class:"n",text:"· "+done.length})));if(!done.length)sect.append(E("div",{class:"empty",
 text:"Nothing completed yet."}));let curDate=null,ul=null;for(const t of done){if(t.doneAt!==curDate){curDate=t.doneAt;sect.append(E("h4",{
 class:"sect-h comp-group",text:Util.fmtLong(curDate)}));ul=E("ul",{role:"list"});sect.append(ul)}ul.append(buildRow(t,null))}root.append(sect)}
-;const renderDoneList=list=>{const root=els.listRoot;const sect=E("section",{class:"sect"});sect.append(E("h2",{class:"sect-h"},"Completed",E("span",{class:"n",
+;const renderDoneList=(root,list)=>{const sect=E("section",{class:"sect"});sect.append(E("h2",{class:"sect-h"},"Completed",E("span",{class:"n",
 text:"· "+list.length})));const ul=E("ul",{role:"list"});for(const t of list){ul.append(buildRow(t,null));state.visible.push(t.id)}sect.append(ul)
 ;if(!list.length)sect.append(emptyState(true,0));root.append(sect)};const select=(id,scroll)=>{state.sel=id
-;for(const li of els.listRoot.querySelectorAll("li.task.sel"))li.classList.remove("sel");if(!id)return
-;const li=els.listRoot.querySelector('li[data-id="'+id+'"]');if(li){li.classList.add("sel");if(scroll)li.scrollIntoView({block:"nearest"})}}
+;for(const li of els.listRoot.querySelectorAll(".task.sel,.bcard.sel"))li.classList.remove("sel");if(!id)return
+;const li=els.listRoot.querySelector('[data-id="'+id+'"]');if(li){li.classList.add("sel");if(scroll)li.scrollIntoView({block:"nearest"})}}
 ;const selectMove=delta=>{if(!state.visible.length)return;let i=state.visible.indexOf(state.sel)
 ;i=i===-1?delta>0?0:state.visible.length-1:Math.min(state.visible.length-1,Math.max(0,i+delta));select(state.visible[i],true)}
 ;const selected=()=>state.sel&&Model.byId.get(state.sel)?state.sel:null;const showBanner=(id,opts)=>{hideBanner(id);const b=E("div",{
@@ -819,20 +973,34 @@ text:"⌘Z"}));const drain=E("div",{class:"drain"});el.append(drain);on(el,"mous
 const undoToasts=toasts.filter(x=>x.kind==="undo");if(undoToasts.length>=3){const total=undoToasts.reduce((s,x)=>s+x.undoCount,0)+1
 ;for(const x of[...undoToasts])dropToast(x);makeToast(total+" tasks completed",total);return}makeToast("Completed “"+task.title+"”",1)}
 ;const toastDeleted=task=>makeToast("Deleted “"+task.title+"”",1);let popCleanup=null;const closePop=()=>{if(popCleanup){popCleanup();popCleanup=null}}
-;const openSnooze=(id,anchor)=>{closePop();const t=Model.byId.get(id);if(!t)return;const today=new Date;const opt=(n,label,iso)=>({n:n,label:label,iso:iso})
+;const openPop=(label,build,anchor,onKey)=>{closePop();const pop=E("div",{class:"pop",role:"menu","aria-label":label});build(pop)
+;els.popRoot.append(pop);const r=(anchor||els.listRoot).getBoundingClientRect()
+;pop.style.left=Math.max(8,Math.min(window.innerWidth-pop.offsetWidth-8,r.left))+"px"
+;pop.style.top=Math.min(window.innerHeight-pop.offsetHeight-8,r.bottom+4+window.scrollY)+"px";pop.style.position="absolute"
+;const key=e=>{if(e.key==="Escape"){e.stopPropagation();closePop();return}if(onKey)onKey(e)}
+;const away=e=>{if(!pop.contains(e.target))closePop()};on(window,"keydown",key,true);setTimeout(()=>on(window,"mousedown",away),0)
+;popCleanup=()=>{pop.remove();window.removeEventListener("keydown",key,true);window.removeEventListener("mousedown",away)}
+;const f=pop.querySelector("button,input");if(f)f.focus();return pop}
+;const openSnooze=(id,anchor)=>{const t=Model.byId.get(id);if(!t)return;const today=new Date;const opt=(n,label,iso)=>({n:n,label:label,iso:iso})
 ;const plus=days=>Util.isoOf(new Date(today.getFullYear(),today.getMonth(),today.getDate()+days));const pm=DateParse.parse("+1m",{today:today})
 ;const wplus=n=>Util.isoOf(Days.addWorkDays(today,n));const options=Days.business()
 ?[opt(1,"Next work day",wplus(1)),opt(2,"In 3 work days",wplus(3)),opt(3,"In 7 work days",wplus(7)),opt(4,"Next month",pm.iso),opt(5,"Remove date",null)]
 :[opt(1,"Tomorrow",plus(1)),opt(2,"In 3 days",plus(3)),opt(3,"Next week",plus(7)),opt(4,"Next month",pm.iso),opt(5,"Remove date",null)]
-;const pop=E("div",{class:"pop",role:"menu","aria-label":"Snooze"});pop.append(E("h3",{text:"Snooze to…"}));const btns=options.map(o=>{const b=E("button",{
+;openPop("Snooze",pop=>{pop.append(E("h3",{text:"Snooze to…"}));for(const o of options){const b=E("button",{
 role:"menuitem"},E("span",{class:"kk",text:String(o.n)}),E("span",{text:o.label}),E("span",{class:"dd",text:o.iso?Util.fmtShort(o.iso,today):"(undated)"}))
-;on(b,"click",()=>{closePop();Actions.snooze(id,o.iso)});pop.append(b);return b});els.popRoot.append(pop)
-;const r=(anchor||els.listRoot.querySelector('li[data-id="'+id+'"]')||els.listRoot).getBoundingClientRect()
-;pop.style.left=Math.max(8,Math.min(window.innerWidth-pop.offsetWidth-8,r.left))+"px"
-;pop.style.top=Math.min(window.innerHeight-pop.offsetHeight-8,r.bottom+4+window.scrollY)+"px";pop.style.position="absolute";const key=e=>{if(e.key==="Escape"){
-e.stopPropagation();closePop()}const n=parseInt(e.key,10);if(n>=1&&n<=5){e.preventDefault();e.stopPropagation();closePop();Actions.snooze(id,options[n-1].iso)}}
-;const away=e=>{if(!pop.contains(e.target))closePop()};on(window,"keydown",key,true);setTimeout(()=>on(window,"mousedown",away),0);popCleanup=()=>{pop.remove()
-;window.removeEventListener("keydown",key,true);window.removeEventListener("mousedown",away)};btns[0].focus()};const popOpen=()=>!!popCleanup
+;on(b,"click",()=>{closePop();Actions.snooze(id,o.iso)});pop.append(b)}},anchor||els.listRoot.querySelector('[data-id="'+id+'"]'),
+e=>{const n=parseInt(e.key,10);if(n>=1&&n<=5){e.preventDefault();e.stopPropagation();closePop();Actions.snooze(id,options[n-1].iso)}})}
+;const openCalTask=(id,anchor)=>{const t=Model.byId.get(id);if(!t)return
+;openPop("Task actions",pop=>{pop.append(E("h3",{text:t.title}))
+;const mk=(label,fn)=>{const b=E("button",{role:"menuitem"},E("span",{text:label}));on(b,"click",fn);pop.append(b)}
+;mk(t.done?"↩ Reopen":"✓ Complete",()=>{closePop();if(t.done)Actions.uncomplete(id);else Actions.complete(id)})
+;mk("Edit date…",()=>{pop.textContent="";pop.append(E("h3",{text:t.title}))
+;const ed=buildDateEditorFor(t.due,async iso=>{closePop();await Actions.patch(id,{due:iso},"edit")},()=>closePop());pop.append(ed)
+;const di=ed.querySelector(".date-edit");if(di){di.focus();di.select()}})
+;mk("Open in list",()=>{closePop();state.sel=id;Settings.set("view","list").then(()=>select(id,true))})},anchor)}
+;const openCalDay=(iso,tasks,anchor)=>{openPop("Tasks due "+iso,pop=>{pop.append(E("h3",{text:Util.fmtLong(iso)}))
+;for(const t of tasks){const b=E("button",{role:"menuitem"},E("span",{text:t.title}));on(b,"click",()=>openCalTask(t.id,anchor));pop.append(b)}},anchor)}
+;const popOpen=()=>!!popCleanup
 ;const animateAdd=id=>{state.lastAdded=id};const setQuery=q=>{state.query=q;els.searchWrap.classList.toggle("hasq",!!q.trim());render()}
 ;const toggleCompleted=()=>{state.showCompleted=!state.showCompleted;render()};return{init:init,render:render,state:state,select:select,selectMove:selectMove,
 selected:selected,showBanner:showBanner,hideBanner:hideBanner,showConflict:showConflict,showParseProblems:showParseProblems,showFileGone:showFileGone,
@@ -854,11 +1022,13 @@ const t=Model.byId.get(sel);if(t.done)Actions.uncomplete(sel);else{const li=docu
 ;case".":if(sel){e.preventDefault();Render.openSnooze(sel,null)}break;case"!":if(sel){
 e.preventDefault();const t=Model.byId.get(sel);Actions.setPriority(sel,(t.priority+1)%4)}break;case"1":case"2":case"3":{e.preventDefault()
 ;const labels=Object.values(SETTINGS.tagMap);const label=labels[+e.key-1];if(label)Render.toggleFilter(label);break}case"0":e.preventDefault()
-;Render.clearFilters();break;case"?":e.preventDefault();Shortcuts.toggle();break;case"Escape":{const si=document.getElementById("searchInput");if(si.value){
+;Render.clearFilters();break;case"v":{e.preventDefault();const order=["list","board","cal"]
+;Settings.set("view",order[(order.indexOf(SETTINGS.view)+1)%order.length]);break}
+case"?":e.preventDefault();Shortcuts.toggle();break;case"Escape":{const si=document.getElementById("searchInput");if(si.value){
 Render.setQuery("");si.value=""}else Render.select(null,false);break}}};const init=fnOverlayOpen=>{overlayOpen=fnOverlayOpen;on(window,"keydown",handler)}
 ;return{init:init}})();
 /* ================================================================ Shortcuts overlay */const Shortcuts=(()=>{let open=false,elRef=null,prevFocus=null
-;const GROUPS=[["Navigate",[["j / ↓","Select next task"],["k / ↑","Select previous task"],["Esc","Close overlay · clear search · deselect"]]],["Act",[["x / Space","Toggle complete"],["e","Rename task"],["d","Edit date"],["s","Add sub-task"],[".","Snooze menu"],["!","Cycle priority"],["n","New task (focus entry)"]]],["Filter",[["/","Focus search"],["1 2 3","Toggle tag filter"],["0","Clear all filters"]]],["Entry",[["Enter","Add task"],["Shift+Enter","Add with literal date (no roll-forward)"],["Tab","Title → date field"],["+3b","Date fields: in 3 work days"]]],["System",[["Ctrl/⌘ Z","Undo"],["Ctrl/⌘ ⇧ Z","Redo"],["Ctrl/⌘ S","Save to disk"],["?","This overlay"]]]]
+;const GROUPS=[["Navigate",[["j / ↓","Select next task"],["k / ↑","Select previous task"],["v","Cycle list · board · calendar"],["Esc","Close overlay · clear search · deselect"]]],["Act",[["x / Space","Toggle complete"],["e","Rename task"],["d","Edit date"],["s","Add sub-task"],[".","Snooze menu"],["!","Cycle priority"],["n","New task (focus entry)"]]],["Filter",[["/","Focus search"],["1 2 3","Toggle tag filter"],["0","Clear all filters"]]],["Entry",[["Enter","Add task"],["Shift+Enter","Add with literal date (no roll-forward)"],["Tab","Title → date field"],["+3b","Date fields: in 3 work days"]]],["System",[["Ctrl/⌘ Z","Undo"],["Ctrl/⌘ ⇧ Z","Redo"],["Ctrl/⌘ S","Save to disk"],["?","This overlay"]]]]
 ;const close=()=>{if(!open)return;open=false;document.getElementById("overlayRoot").textContent="";if(prevFocus&&prevFocus.focus)prevFocus.focus()}
 ;const show=()=>{if(open)return;prevFocus=document.activeElement;open=true;const root=document.getElementById("overlayRoot");const scrim=E("div",{class:"scrim"
 });on(scrim,"mousedown",close);const box=E("div",{class:"shortcuts",role:"dialog","aria-modal":"true","aria-label":"Keyboard shortcuts",tabindex:"-1"})
@@ -878,6 +1048,7 @@ if(raw[k]!==undefined&&ok(raw[k]))s[k]=raw[k];else if(raw[k]!==undefined)corrupt
 ;take("accent",v=>v in ACCENTS);take("density",v=>["comfortable","compact"].includes(v));take("rollForward",v=>typeof v==="boolean")
 ;take("dayMode",v=>["calendar","business"].includes(v));if(raw.workWeek!==undefined){if(Array.isArray(raw.workWeek)){
 const ww=[...new Set(raw.workWeek.filter(v=>Number.isInteger(v)&&v>=0&&v<=6))].sort((a,b)=>a-b);if(ww.length)s.workWeek=ww;else corrupt=true}else corrupt=true}
+;take("view",v=>["list","board","cal"].includes(v));take("timelineOpen",v=>typeof v==="boolean")
 ;take("mdStyle",v=>["emoji","bracket"].includes(v));take("writeBlockIds",v=>typeof v==="boolean");take("showCompletedDays",v=>Number.isInteger(v)&&v>=1&&v<=365)
 ;take("autosaveDebounceMs",v=>Number.isInteger(v)&&v>=100&&v<=6e4);take("undoWindowSec",v=>Number.isInteger(v)&&v>=2&&v<=120)
 ;take("folderMode",v=>typeof v==="boolean");take("backupRetain",v=>Number.isInteger(v)&&v>=5&&v<=100);if(raw.urgency&&typeof raw.urgency==="object"){
@@ -888,7 +1059,7 @@ corrupt:corrupt}};const load=async()=>{let raw;try{raw=await DB.metaGet("setting
 ;Object.assign(SETTINGS,s);if(corrupt)setTimeout(()=>Render.showBanner("badset",{cls:"warn",closable:true,
 msg:"Some saved settings couldn't be read and were reset to defaults. Your tasks are untouched."}),0);applyTheme();applyDensity()};const set=async(key,value)=>{
 SETTINGS[key]=value;await persist();switch(key){case"theme":applyTheme();Render.render();break;case"accent":applyAccent();break;case"density":applyDensity()
-;break;case"urgency":case"showCompletedDays":case"tagMap":case"dayMode":case"workWeek":Render.render();break
+;break;case"urgency":case"showCompletedDays":case"tagMap":case"dayMode":case"workWeek":case"view":case"timelineOpen":Render.render();break
 ;case"mdStyle":case"writeBlockIds":Persist.markDirty();break}}
 ;const isOpen=()=>panelOpen;const closePanel=()=>{if(!panelOpen)return;panelOpen=false;document.getElementById("overlayRoot").textContent=""
 ;const gear=$("settingsBtn");gear.setAttribute("aria-expanded","false");gear.focus()};const row=(label,control,hint)=>{const r=E("div",{class:"set-row"})
@@ -1008,6 +1179,8 @@ else if(rec.cal<0)suffix=-rec.cal+" days ago";else if(rec.cal===0)suffix="today"
 ;const r=DateParse.parse($("dateInput").value,Days.parseOpts());const p=previewText(r);el.textContent=p.text
 ;el.className="date-preview "+p.cls;$("dateInput").classList.toggle("bad",r.kind==="invalid")};const clear=()=>{$("titleInput").value="";$("dateInput").value=""
 ;$("dateInput").classList.remove("bad");$("datePreview").textContent="";$("datePreview").className="date-preview";if(chipsEl)chipsEl.textContent=""}
+;const prefillDate=iso=>{$("dateInput").value=iso||"";updatePreview();$("titleInput").focus()
+;$("titleInput").scrollIntoView({block:"nearest"})}
 ;const commit=async literal=>{const raw=$("titleInput").value;const parsed=EntryParse.parse(raw,SETTINGS.tagMap);if(!parsed.title){$("titleInput").focus()
 ;return}const r=DateParse.parse($("dateInput").value,Days.parseOpts({literal:literal}));if(r.kind==="invalid"){
 $("dateInput").classList.add("bad");updatePreview();$("dateInput").focus();return}await Actions.add({title:parsed.title,tags:parsed.tags,
@@ -1024,7 +1197,7 @@ const ti=$("titleInput"),di=$("dateInput");on(ti,"keydown",e=>{if(e.key==="Enter
 });on(ti,"input",renderChips);on(ti,"paste",e=>{const text=(e.clipboardData||window.clipboardData).getData("text");if(!text||!text.includes("\n"))return
 ;const lines=text.split(/\r\n|\n|\r/).map(l=>l.trim()).filter(Boolean);if(lines.length<2)return;e.preventDefault();confirmBulk(lines)});on(di,"keydown",e=>{
 if(e.key==="Enter"){e.preventDefault();commit(e.shiftKey)}else if(e.key==="Escape"){clear();di.blur()}});on(di,"input",Util.debounce(updatePreview,120))}
-;return{init:init,clear:clear}})();
+;return{init:init,clear:clear,prefillDate:prefillDate}})();
 /* ================================================================ App */const App=(()=>{let midnightTimer=null;const armMidnight=()=>{
 clearTimeout(midnightTimer);const now=new Date;const next=new Date(now.getFullYear(),now.getMonth(),now.getDate()+1,0,0,1);midnightTimer=setTimeout(()=>{
 Render.render();armMidnight()},next-now)};const dbWriteError=e=>{const quota=e&&(e.name==="QuotaExceededError"||(e.message||"").includes("uota"))
@@ -1149,6 +1322,17 @@ createdAt:"2026-08-01T00:00:00Z",updatedAt:"2026-08-01T00:00:00Z"})
 ;ok("effColour undated parent",ec(mkt(null,[{text:"a",done:false,due:"2026-09-01"}]))==="2026-09-01")
 ;ok("effColour none dated",ec(mkt(null,[{text:"a",done:false,due:null}]))===null)
 ;ok("effColour done task",ec(mkt("2026-09-10",[],true))===null)
+;/* views */withDays("calendar",MF,()=>{const dc=k=>Views.dueForCol(k,REF())
+;ok("dueForCol calendar",dc("today")==="2026-08-25"&&dc("tomorrow")==="2026-08-26"&&dc("week")==="2026-08-27"&&dc("later")==="2026-09-02"&&dc("undated")===null&&dc("overdue")===undefined)})
+;withDays("business",MF,()=>{const dc=k=>Views.dueForCol(k,REF())
+;ok("dueForCol business",dc("tomorrow")==="2026-08-26"&&dc("week")==="2026-08-27"&&dc("later")==="2026-09-04")
+;ok("dueForCol biz Fri→next wd",Views.dueForCol("tomorrow",new Date(2026,7,28))==="2026-08-31")
+;let consistent=true;for(const k of["today","tomorrow","week","later"]){const iso=Views.dueForCol(k,REF())
+;if(Days.bucketOf(Days.recFor(iso,REF()))!==k)consistent=false}ok("dueForCol lands in its bucket",consistent)})
+;const wks=Views.calWeeks(2026,9)
+;ok("calWeeks sept 2026",wks.length===5&&wks[0][0]==="2026-08-31"&&wks[0][6]==="2026-09-06"&&wks[4][6]==="2026-10-04")
+;ok("calWeeks monday columns",wks.every(w=>Util.parseISO(w[0]).getDay()===1))
+;ok("tlIndex",Views.tlIndex({cal:-3})===0&&Views.tlIndex({cal:0})===1&&Views.tlIndex({cal:28})===29&&Views.tlIndex({cal:29})===null&&Views.tlIndex(null)===null)
 ;return results};const runInPage=()=>{const results=run();const old=document.getElementById("testpanel");if(old)old.remove();const panel=E("div",{
 id:"testpanel",role:"log"});const passed=results.filter(r=>r.pass).length;panel.append(E("div",null,E("strong",{text:passed+" / "+results.length+" passed"})))
 ;for(const r of results)panel.append(E("div",{class:r.pass?"pass":"fail",text:(r.pass?"✓ ":"✗ ")+r.name+(r.pass||!r.detail?"":" — "+r.detail)}))
@@ -1156,7 +1340,8 @@ id:"testpanel",role:"log"});const passed=results.filter(r=>r.pass).length;panel.
 ;return{run:run,runInPage:runInPage}})();
 /* ================================================================ boot */if(typeof document!=="undefined"&&typeof window!=="undefined"){
 if(document.readyState==="loading")on(document,"DOMContentLoaded",()=>{App.boot()});else App.boot()}if(typeof module!=="undefined"&&module.exports){
-module.exports={Util:Util,Days:Days,DateParse:DateParse,EntryParse:EntryParse,MD:MD,Model:Model,Filter:Filter,Tests:Tests,SETTINGS:SETTINGS}}})();
+module.exports={Util:Util,Days:Days,Views:Views,DateParse:DateParse,EntryParse:EntryParse,MD:MD,Model:Model,Filter:Filter,Tests:Tests,
+SETTINGS:SETTINGS}}})();
 /*JS-END*/
 </script>
 </body>
