@@ -162,6 +162,8 @@ body{background:var(--surface);color:var(--fg);font:14px/1.45 var(--font-sans)}
 .subactions button:disabled{opacity:.3;cursor:default}
 .subactions button:disabled:hover{background:none;color:var(--fg-muted)}
 .subactions svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:1.6}
+@media (hover:none){.rowactions,.subactions{visibility:visible}
+}
 .sub-edit{flex:1;min-width:0;background:var(--surface-raised);border:1px solid var(--accent);border-radius:var(--radius);padding:2px 6px;font-size:13px}
 .sub-add{display:block;width:100%;max-width:340px;margin-top:4px;padding:4px 8px;background:var(--surface-raised);border:1px solid var(--border);border-radius:var(--radius);font-size:13px;color:var(--fg)}
 .sub-add::placeholder{color:var(--fg-muted);opacity:.7}
@@ -913,7 +915,7 @@ class:"tmeta"});const actions=E("span",{class:"rowactions"});const ren=E("button
 ;snz.append(Util.svgIcon(["M12 7v5l3 2","M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z"]));on(snz,"click",e=>{e.stopPropagation();openSnooze(t.id,snz)})
 ;const delb=E("button",{title:"Delete","aria-label":"Delete: "+t.title})
 ;delb.append(Util.svgIcon(["M4 7h16","M9 7V5h6v2","M6 7l1 13h10l1-13","M10 11v6M14 11v6"]));on(delb,"click",e=>{e.stopPropagation();Actions.del(t.id)})
-;actions.append(ren,sadd,snz,delb);meta.append(actions);for(const tag of t.tags){const known=Object.values(SETTINGS.tagMap).includes(tag);meta.append(E("span",{
+;for(const b of[ren,sadd,snz,delb])on(b,"mousedown",e=>e.preventDefault());actions.append(ren,sadd,snz,delb);meta.append(actions);for(const tag of t.tags){const known=Object.values(SETTINGS.tagMap).includes(tag);meta.append(E("span",{
 class:"tag"+(known?"":" unknown"),text:tag}))}if(t.priority)meta.append(E("span",{class:"pri p"+t.priority,text:"!".repeat(t.priority),
 title:["","low priority","medium priority","high priority"][t.priority]}));if(t.done){meta.append(E("span",{class:"donechip",
 text:"done "+Util.fmtShort(t.doneAt,new Date)}))}else if(state.dateEditId===t.id){meta.append(buildDateEditor(t))}else{
@@ -941,14 +943,17 @@ text:s.due?Util.fmtShort(s.due,new Date)+" · "+Days.fmtRel(sRec):"+ date",
 "aria-label":"Sub-task due date: "+(s.due?Util.fmtLong(s.due)+lateAria(sRec):"none")})
 ;on(chip,"click",()=>{state.subDateEdit={id:t.id,idx:i};state.subEditing=null;render()});li.append(chip)}
 const sact=E("span",{class:"subactions"});const mkb=(title,paths,fn,dis)=>{const b=E("button",{title:title,"aria-label":title+": "+s.text,
-disabled:dis||null});b.append(Util.svgIcon(paths));on(b,"click",e=>{e.stopPropagation();fn()});return b}
+disabled:dis||null});b.append(Util.svgIcon(paths));on(b,"mousedown",e=>e.preventDefault())
+;on(b,"click",e=>{e.stopPropagation();state.subEditing=null;state.subDateEdit=null;fn()});return b}
 ;sact.append(mkb("Move up",["M12 19V5","M5 12l7-7 7 7"],()=>Actions.subtaskMove(t.id,i,-1),i===0),
 mkb("Move down",["M12 5v14","M19 12l-7 7-7-7"],()=>Actions.subtaskMove(t.id,i,1),i===t.subtasks.length-1),
 mkb("Delete sub-task",["M4 7h16","M9 7V5h6v2","M6 7l1 13h10l1-13"],()=>Actions.subtaskDelete(t.id,i)));li.append(sact);ul.append(li)})
 ;wrap.append(ul);const addInp=E("input",{class:"sub-add",type:"text",placeholder:"Add sub-task…","aria-label":"Add sub-task"})
 ;on(addInp,"keydown",async e=>{if(e.key==="Enter"){e.preventDefault();const v=addInp.value.trim();if(!v)return;state.subAdding=t.id
 ;state.subFocus=t.id;await Actions.subtaskAdd(t.id,v)}else if(e.key==="Escape"){e.stopPropagation();addInp.value="";state.subAdding=null;addInp.blur()
-;render()}});wrap.append(addInp);if(state.subFocus===t.id){state.subFocus=null;setTimeout(()=>addInp.focus(),0)}return wrap};const collapseThen=(li,fn)=>{const h=li.getBoundingClientRect().height;li.style.height=h+"px";li.getBoundingClientRect()
+;render()}});on(addInp,"blur",()=>{if(addInp.value.trim()||state.subAdding!==t.id||t.subtasks.length||t.note)return
+;setTimeout(()=>{if(state.subAdding===t.id&&document.activeElement!==addInp&&!addInp.value.trim()){state.subAdding=null;render()}},150)})
+;wrap.append(addInp);if(state.subFocus===t.id){state.subFocus=null;setTimeout(()=>addInp.focus(),0)}return wrap};const collapseThen=(li,fn)=>{const h=li.getBoundingClientRect().height;li.style.height=h+"px";li.getBoundingClientRect()
 ;li.classList.add("collapsing");li.style.height="0px";let doneCalled=false;const go=()=>{if(!doneCalled){doneCalled=true;fn()}};on(li,"transitionend",go,{
 once:true});setTimeout(go,300)};const startEdit=id=>{state.editingId=id;state.dateEditId=null;render();focusEditor()};const startDateEdit=id=>{
 state.dateEditId=id;state.editingId=null;render();focusEditor()};const focusEditor=()=>{const inp=els.listRoot.querySelector(".title-edit, .date-edit");if(inp){
