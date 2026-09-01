@@ -36,6 +36,13 @@ body{background:var(--surface);color:var(--fg);font:14px/1.45 var(--font-sans)}
 .hdr-btn[aria-pressed="true"]{color:var(--accent);background:var(--accent-soft)}
 .pill{display:inline-flex;align-items:center;gap:6px;min-height:32px;padding:4px 10px;border:1px solid var(--border);border-radius:999px;font:500 12px var(--font-mono);color:var(--fg)}
 .pill:hover{border-color:var(--accent);color:var(--accent)}
+.pill.warn,.pill.warn:hover{border-color:var(--dirty);color:var(--dirty)}
+.pill.err,.pill.err:hover{border-color:var(--err);color:var(--err)}
+.pill.warn:hover,.pill.err:hover{background:var(--surface-raised)}
+.pill .g:empty{display:none}
+@container app (max-width:560px){#fileChip .lbl{display:none}
+#fileChip .g{min-width:14px}
+}
 .save-ind{display:inline-flex;align-items:center;gap:6px;min-height:32px;padding:4px 6px;font:400 12px var(--font-mono);color:var(--fg-muted)}
 .save-ind .dot{width:7px;height:7px;border-radius:50%;background:var(--fg-muted);opacity:.4}
 .save-ind.dirty .dot{background:var(--dirty);opacity:1}
@@ -112,10 +119,10 @@ body{background:var(--surface);color:var(--fg);font:14px/1.45 var(--font-sans)}
 .gauge i{flex:1;background:var(--seg-empty);border-radius:var(--seg-radius);transition:background var(--dur-gauge)}
 .gauge i.f{background:var(--u-bar,var(--seg-empty))}
 .task{--u-bar:var(--seg-empty);--u-text:var(--fg-muted)}
-.task.u-calm{--u-bar:var(--calm-bar);--u-text:var(--calm-text)}
-.task.u-soon{--u-bar:var(--soon-bar);--u-text:var(--soon-text)}
-.task.u-near{--u-bar:var(--near-bar);--u-text:var(--near-text)}
-.task.u-due,.task.u-overdue{--u-bar:var(--due-bar);--u-text:var(--due-text)}
+.u-calm{--u-bar:var(--calm-bar);--u-text:var(--calm-text);--u-tint:var(--calm-tint)}
+.u-soon{--u-bar:var(--soon-bar);--u-text:var(--soon-text);--u-tint:var(--soon-tint)}
+.u-near{--u-bar:var(--near-bar);--u-text:var(--near-text);--u-tint:var(--near-tint)}
+.u-due,.u-overdue{--u-bar:var(--due-bar);--u-text:var(--due-text);--u-tint:var(--due-tint)}
 .task .cb{grid-area:c;width:16px;height:16px;justify-self:center;accent-color:var(--accent);cursor:pointer}
 .tmain{grid-area:main;display:flex;align-items:center;gap:var(--sp-2);min-width:0}
 .title{font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:text}
@@ -144,10 +151,81 @@ body{background:var(--surface);color:var(--fg);font:14px/1.45 var(--font-sans)}
 .notetext.clip{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .subtasks{margin-top:2px}
 .subtasks li{display:flex;align-items:center;gap:6px;padding:2px 0;font-size:13px;color:var(--fg)}
-.subtasks input{width:13px;height:13px;accent-color:var(--accent)}
+.subtasks input[type=checkbox]{width:13px;height:13px;accent-color:var(--accent);flex:none}
 .subtasks .sdone{color:var(--fg-muted);text-decoration:line-through}
+.subtasks .stext{cursor:text;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.subtasks .datechip{font-size:11px;padding:1px 4px;flex:none}
+.subactions{display:inline-flex;gap:2px;visibility:hidden;margin-left:auto}
+.subtasks li:hover .subactions,.subtasks li:focus-within .subactions{visibility:visible}
+.subactions button{min-width:24px;min-height:24px;display:inline-flex;align-items:center;justify-content:center;border-radius:var(--radius);color:var(--fg-muted)}
+.subactions button:hover{background:var(--surface-raised);color:var(--fg)}
+.subactions button:disabled{opacity:.3;cursor:default}
+.subactions button:disabled:hover{background:none;color:var(--fg-muted)}
+.subactions svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:1.6}
+.sub-edit{flex:1;min-width:0;background:var(--surface-raised);border:1px solid var(--accent);border-radius:var(--radius);padding:2px 6px;font-size:13px}
+.sub-add{display:block;width:100%;max-width:340px;margin-top:4px;padding:4px 8px;background:var(--surface-raised);border:1px solid var(--border);border-radius:var(--radius);font-size:13px;color:var(--fg)}
+.sub-add::placeholder{color:var(--fg-muted);opacity:.7}
+.note-toggle.sub-drives{color:var(--u-text);font-weight:600}
 .task.done .title{color:var(--fg-muted);text-decoration:line-through}
 .donechip{font:400 12px var(--font-mono);color:var(--fg-muted)}
+/* view switcher */
+.view-seg button{min-width:34px;min-height:32px;display:inline-flex;align-items:center;justify-content:center;color:var(--fg-muted)}
+.view-seg button svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.6}
+/* runway timeline */
+.tl{margin-top:var(--sp-4)}
+.tl-h{display:flex;align-items:baseline;gap:var(--sp-2)}
+.tl-toggle{font:600 11px var(--font-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--fg-muted);min-height:24px}
+.tl-toggle:hover{color:var(--fg)}
+.tl-sum{font:400 11px var(--font-mono);color:var(--fg-muted);font-variant-numeric:tabular-nums}
+.tl-body{margin-top:var(--sp-1)}
+.tl-scale{display:flex;align-items:flex-end;gap:1px;height:64px;border-bottom:1px solid var(--border);overflow-x:auto}
+.tl-day{flex:1 1 0;min-width:9px;display:flex;flex-direction:column-reverse;align-items:center;gap:2px;height:100%;padding-bottom:3px}
+.tl-day.late{flex:0 0 34px;background:var(--due-tint);border-right:1px solid var(--border)}
+.tl-day.today{background:var(--accent-soft)}
+.tl-day.nonwork{background:var(--surface-raised)}
+.tl-day.wk{border-left:1px solid var(--border)}
+.tl-dot{width:8px;height:8px;border-radius:50%;background:var(--u-bar,var(--seg-empty));padding:0;flex:none;transition:transform var(--dur-gauge)}
+.tl-dot:hover,.tl-dot:focus-visible{transform:scale(1.5)}
+.tl-more{font:400 9px var(--font-mono);color:var(--fg-muted)}
+.tl-ax{display:flex;justify-content:space-between;font:400 10px var(--font-mono);color:var(--fg-muted);padding-top:2px}
+/* board view */
+.board{display:flex;gap:var(--sp-3);margin-top:var(--sp-4);overflow-x:auto;align-items:flex-start;padding-bottom:var(--sp-3)}
+.bcol{flex:0 0 232px;min-width:0}
+.bcol.dropover{outline:2px dashed var(--accent);outline-offset:2px;border-radius:var(--radius)}
+.bcol-list{min-height:60px;display:flex;flex-direction:column;gap:var(--sp-2);padding-top:var(--sp-2)}
+.bcard{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--u-bar,var(--seg-empty));border-radius:var(--radius);padding:var(--sp-2);cursor:grab}
+.bcard.dragging{opacity:.5;cursor:grabbing}
+.bcard.sel{outline:2px solid var(--accent);outline-offset:-2px;background:var(--accent-soft)}
+.bcard-top{display:flex;align-items:flex-start;gap:var(--sp-2)}
+.bcard-top .cb{width:15px;height:15px;accent-color:var(--accent);flex:none;margin-top:2px}
+.bcard .title{font-size:13px;white-space:normal;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;cursor:text;min-width:0}
+.bcard-meta{display:flex;align-items:center;gap:var(--sp-1);flex-wrap:wrap;margin-top:var(--sp-1);padding-left:23px;font-variant-numeric:tabular-nums}
+.bcol-empty{color:var(--fg-muted);text-align:center;padding:var(--sp-3) 0;border:1px dashed var(--border);border-radius:var(--radius);font-size:12px}
+@container app (max-width:560px){.bcol{flex-basis:200px}
+}
+/* calendar view */
+.cal{margin-top:var(--sp-4)}
+.cal-h{display:flex;align-items:center;gap:var(--sp-2);margin-bottom:var(--sp-2)}
+.cal-title{font:600 14px var(--font-title);min-width:150px;text-align:center}
+.cal-nav{min-width:32px;min-height:32px;border:1px solid var(--border);border-radius:var(--radius);color:var(--fg)}
+.cal-nav:hover{border-color:var(--accent);color:var(--accent)}
+.cal-h .mini-btn{margin-left:auto}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.cal-dow{background:var(--surface-raised);font:600 10px var(--font-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--fg-muted);text-align:center;padding:4px 0}
+.cal-day{background:var(--surface);min-height:78px;padding:2px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.cal-day.nonwork{background:var(--surface-raised)}
+.cal-day.out .cal-num{opacity:.35}
+.cal-day.today{outline:2px solid var(--accent);outline-offset:-2px}
+.cal-num{align-self:flex-start;font:500 11px var(--font-mono);color:var(--fg-muted);min-width:22px;min-height:20px;border-radius:var(--radius);padding:1px 4px}
+.cal-num:hover{background:var(--accent-soft);color:var(--accent)}
+.cal-chips{display:flex;flex-direction:column;gap:2px;min-width:0}
+.cchip{display:block;width:100%;text-align:left;font:400 10px var(--font-mono);color:var(--u-text,var(--fg-muted));background:var(--u-tint,var(--surface-raised));border:1px solid var(--u-bar,var(--seg-empty));border-radius:3px;padding:1px 4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.cchip-more{font:400 10px var(--font-mono);color:var(--fg-muted);text-align:left;padding:0 4px}
+.cchip-more:hover{color:var(--fg)}
+@container app (max-width:560px){.cal-day{min-height:54px}
+.cchip{width:9px;height:9px;border-radius:50%;padding:0;border-width:2px}
+.cchip .t{display:none}
+}
 /* empty states */
 .empty{padding:40px 0;text-align:center;color:var(--fg-muted);font-size:13px}
 .empty b{display:block;color:var(--fg);font-size:14px;margin-bottom:4px}
@@ -210,6 +288,19 @@ body{background:var(--surface);color:var(--fg);font:14px/1.45 var(--font-sans)}
 .backup-list button{display:flex;width:100%;gap:var(--sp-2);padding:6px 8px;min-height:32px;border-radius:var(--radius);font:400 12px var(--font-mono);text-align:left}
 .backup-list button:hover{background:var(--surface-raised)}
 .backup-list .bn{margin-left:auto;color:var(--fg-muted)}
+/* stats panel */
+.stat-kv{display:flex;align-items:baseline;gap:var(--sp-2);padding:5px 0;font-size:13px;border-bottom:1px solid var(--border)}
+.stat-kv .k{color:var(--fg-muted);flex:1}
+.stat-kv .v{font:500 13px var(--font-mono);font-variant-numeric:tabular-nums;text-align:right}
+.stat-kv .v.bad{color:var(--due-text)}
+.stat-kv .v.warn{color:var(--dirty)}
+.stat-cap{font:400 11px var(--font-mono);color:var(--fg-muted);margin-top:var(--sp-3)}
+.stat-bars{display:flex;align-items:flex-end;gap:2px;height:48px;margin-top:var(--sp-1)}
+.stat-bars i{flex:1;min-height:2px;background:var(--accent);border-radius:2px 2px 0 0;opacity:.55}
+.stat-bars i.cur{opacity:1}
+.stat-bars i.nw{opacity:.3}
+.stat-bars i.heavy{background:var(--due-bar);opacity:1}
+.stat-lbls{display:flex;justify-content:space-between;font:400 10px var(--font-mono);color:var(--fg-muted);padding-top:2px}
 /* shortcut overlay */
 .shortcuts{position:fixed;z-index:81;top:50%;left:50%;transform:translate(-50%,-50%);width:min(640px,calc(100vw - 32px));max-height:80vh;overflow-y:auto;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:var(--sp-4)}
 .shortcuts h2{font:600 13px var(--font-title);margin-bottom:var(--sp-2)}
@@ -227,7 +318,8 @@ body{background:var(--surface);color:var(--fg);font:14px/1.45 var(--font-sans)}
 /* ============ GeoCities decoration layer ============ */
 [data-theme="geocities"] body,:root[data-theme="geocities"] body{background-color:#000080;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Crect width='16' height='16' fill='%23000080'/%3E%3Crect x='3' y='2' width='1' height='1' fill='%23fff'/%3E%3Crect x='12' y='6' width='1' height='1' fill='%23ccc'/%3E%3Crect x='7' y='11' width='1' height='1' fill='%23fff'/%3E%3Crect x='14' y='14' width='1' height='1' fill='%23888'/%3E%3C/svg%3E")}
 [data-theme="geocities"] .task,[data-theme="geocities"] .sect-h,[data-theme="geocities"] .hdr,[data-theme="geocities"] .tagkey{background:var(--surface)}
-[data-theme="geocities"] .hdr-btn,[data-theme="geocities"] .pill,[data-theme="geocities"] .tkchip,[data-theme="geocities"] .mini-btn,[data-theme="geocities"] .seg-btns button,[data-theme="geocities"] .banner button{border:2px outset #C0C0C0;background:#C0C0C0;color:#000;border-radius:0;font-family:var(--font-title)}
+[data-theme="geocities"] .hdr-btn,[data-theme="geocities"] .pill,[data-theme="geocities"] .tkchip,[data-theme="geocities"] .mini-btn,[data-theme="geocities"] .seg-btns button,[data-theme="geocities"] .banner button,[data-theme="geocities"] .cal-nav{border:2px outset #C0C0C0;background:#C0C0C0;color:#000;border-radius:0;font-family:var(--font-title)}
+[data-theme="geocities"] .bcard{border:2px outset #C0C0C0;border-left:6px solid var(--u-bar)}
 [data-theme="geocities"] .hdr-btn:hover,[data-theme="geocities"] .pill:hover,[data-theme="geocities"] .mini-btn:hover{color:#000080;background:#C0C0C0}
 [data-theme="geocities"] .hdr-btn:active,[data-theme="geocities"] .pill:active,[data-theme="geocities"] .tkchip:active,[data-theme="geocities"] .mini-btn:active,[data-theme="geocities"] .tkchip[aria-pressed="true"],[data-theme="geocities"] .seg-btns button[aria-pressed="true"]{border-style:inset;background:#000066;color:#00FFFF}
 [data-theme="geocities"] .tkchip .k{color:#000080}
@@ -258,10 +350,13 @@ to{transform:none}
 <div class="app" id="app">
 <header class="hdr">
 <h1 class="app-title" id="appTitle">Runway</h1>
-<button id="choosePill" class="pill" hidden>Choose todo.md</button>
-<button id="reconnectPill" class="pill" hidden>&#8644; Reconnect todo.md</button>
+<div class="seg-btns view-seg" id="viewSeg" role="group" aria-label="View"></div>
+<button id="fileChip" class="pill" hidden><span class="g" aria-hidden="true"></span><span class="lbl"></span></button>
 <span id="saveInd" class="save-ind" hidden><span class="dot"></span><span class="txt"></span></span>
 <button id="completedToggle" class="hdr-btn" aria-pressed="false" title="Show completed tasks"></button>
+<button id="statsBtn" class="hdr-btn" aria-label="Stats" aria-expanded="false" title="Stats">
+<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20v-9M10 20V5M16 20v-6M2.5 20h19"/></svg>
+</button>
 <button id="settingsBtn" class="hdr-btn" aria-label="Settings" aria-expanded="false" title="Settings">
 <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.8v3M12 18.2v3M2.8 12h3M18.2 12h3M5.5 5.5l2.1 2.1M16.4 16.4l2.1 2.1M18.5 5.5l-2.1 2.1M7.6 16.4l-2.1 2.1"/></svg>
 </button>
@@ -301,6 +396,11 @@ const MONTHS=["January","February","March","April","May","June","July","August",
 ;const MON3=MONTHS.map(m=>m.slice(0,3));const DAYS3=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];const pad2=n=>String(n).padStart(2,"0")
 ;const isLeap=y=>y%4===0&&y%100!==0||y%400===0;const daysInMonth=(y,m)=>[31,isLeap(y)?29:28,31,30,31,30,31,31,30,31,30,31][m-1];const midnight=d=>{
 const x=new Date(d);x.setHours(0,0,0,0);return x};const daysBetween=(a,b)=>Math.round((midnight(b)-midnight(a))/864e5)
+;const workDaysBetween=(a,b,workArr)=>{const cal=daysBetween(a,b);if(cal===0)return 0;const sign=cal>0?1:-1;const len=Math.abs(cal)
+;const startDow=midnight(sign>0?a:b).getDay();let per=0;for(let i=0;i<7;i++)if(workArr[i])per++;let n=Math.floor(len/7)*per
+;for(let i=1;i<=len%7;i++)if(workArr[(startDow+i)%7])n++;return sign*n}
+;const addWorkDays=(from,n,workArr)=>{const d=midnight(from);let count=0,guard=0;while(count<n&&guard<7e3){d.setDate(d.getDate()+1);guard++
+;if(workArr[d.getDay()])count++}return d}
 ;const isoOf=d=>d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate());const parseISO=s=>{const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(s)
 ;return m?new Date(+m[1],+m[2]-1,+m[3]):null};const validISO=s=>{const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(s);if(!m)return false;const y=+m[1],mo=+m[2],d=+m[3]
 ;return mo>=1&&mo<=12&&d>=1&&d<=daysInMonth(y,mo)};const fmtLong=iso=>{const d=parseISO(iso)
@@ -315,7 +415,7 @@ if(v===null||v===undefined||v===false)continue
 }for(const c of children)if(c!=null)n.append(c);return n};const svgIcon=paths=>{const NS="http://www.w3.org/2000/svg";const s=document.createElementNS(NS,"svg")
 ;s.setAttribute("viewBox","0 0 24 24");s.setAttribute("aria-hidden","true");for(const d of paths){const p=document.createElementNS(NS,"path")
 ;p.setAttribute("d",d);s.append(p)}return s};const snap=o=>JSON.parse(JSON.stringify(o));return{MONTHS:MONTHS,MON3:MON3,DAYS3:DAYS3,pad2:pad2,isLeap:isLeap,
-daysInMonth:daysInMonth,midnight:midnight,daysBetween:daysBetween,isoOf:isoOf,parseISO:parseISO,validISO:validISO,fmtLong:fmtLong,fmtShort:fmtShort,
+daysInMonth:daysInMonth,midnight:midnight,daysBetween:daysBetween,workDaysBetween:workDaysBetween,addWorkDays:addWorkDays,isoOf:isoOf,parseISO:parseISO,validISO:validISO,fmtLong:fmtLong,fmtShort:fmtShort,
 debounce:debounce,hash:hash,fuzzy:fuzzy,el:el,svgIcon:svgIcon,snap:snap}})();const E=Util.el;
 /* ================================================================ DB */const DB=(()=>{let db=null;let failed=false;const open=()=>new Promise(resolve=>{
 if(!CAPS.idb){failed=true;resolve(false);return}let req;try{req=indexedDB.open("runway",1)}catch(e){failed=true;resolve(false);return}req.onupgradeneeded=e=>{
@@ -344,7 +444,8 @@ updatedAt:nowISO()},f||{});const validate=t=>{if(!t||typeof t!=="object")return 
 ;if(t.due===undefined)t.due=null;t.priority=[0,1,2,3].includes(t.priority)?t.priority:0;t.done=!!t.done;if(t.done&&!t.doneAt)t.doneAt=Util.isoOf(new Date)
 ;if(!t.done)t.doneAt=null;t.tags=Array.isArray(t.tags)?[...new Set(t.tags.filter(x=>typeof x==="string"&&x.trim()))]:[]
 ;if(typeof t.note!=="string"||!t.note)t.note=null
-;t.subtasks=Array.isArray(t.subtasks)?t.subtasks.filter(s=>s&&typeof s.text==="string"&&s.text.trim()).map(s=>({text:s.text,done:!!s.done})):[]
+;t.subtasks=Array.isArray(t.subtasks)?t.subtasks.filter(s=>s&&typeof s.text==="string"&&s.text.trim()).map(s=>({text:s.text,done:!!s.done,
+due:s.due!=null&&Util.validISO(s.due)?s.due:null})):[]
 ;if(!t.createdAt)t.createdAt=nowISO();if(!t.updatedAt||t.updatedAt<t.createdAt)t.updatedAt=t.createdAt;return t};const add=t=>{tasks.push(t);byId.set(t.id,t)}
 ;const removeMem=id=>{const i=tasks.findIndex(t=>t.id===id);if(i>=0)tasks.splice(i,1);byId.delete(id)};const load=async()=>{const recs=await DB.all("tasks")
 ;tasks.length=0;byId.clear();for(const r of recs){const t=validate(r);if(t)add(t);else quarantine.push(r)}};const commit=async t=>{t.updatedAt=nowISO()
@@ -361,11 +462,15 @@ newId:newId,fresh:fresh,validate:validate,load:load,commit:commit,remove:remove,
 ;const today=Util.midnight(opts.today||new Date);const rollFwd=opts.rollForward!==false&&!opts.literal;const s=String(input==null?"":input).trim().toLowerCase()
 ;if(!s)return{kind:"empty",iso:null};if(s==="tod"||s==="today")return result(today,today)
 ;if(s==="tom"||s==="tmw"||s==="tomorrow")return result(new Date(today.getFullYear(),today.getMonth(),today.getDate()+1),today)
-;let m=/^\+(\d{1,3})(d|w|m)?$/.exec(s);if(m){const n=+m[1],unit=m[2]||"d";if(unit==="m"){let y=today.getFullYear(),mo=today.getMonth()+1+n
+;let m=/^\+(\d{1,3})(d|w|m|b)?$/.exec(s);if(m){const n=+m[1],unit=m[2]||"d";if(unit==="m"){let y=today.getFullYear(),mo=today.getMonth()+1+n
 ;y+=Math.floor((mo-1)/12);mo=(mo-1)%12+1;const day=Math.min(today.getDate(),Util.daysInMonth(y,mo));return result(mkDate(y,mo,day),today)}
-const days=unit==="w"?n*7:n;return result(new Date(today.getFullYear(),today.getMonth(),today.getDate()+days),today)}if(WD_RE.test(s)){
+if(unit==="b")return result(Util.addWorkDays(today,n,opts.workDays||[false,true,true,true,true,true,false]),today)
+;const days=unit==="w"?n*7:n;return result(new Date(today.getFullYear(),today.getMonth(),today.getDate()+days),today)}if(WD_RE.test(s)){
 const target=WD[s.slice(0,3)];const delta=(target-today.getDay()+6)%7+1
-;return result(new Date(today.getFullYear(),today.getMonth(),today.getDate()+delta),today)}if(s==="eow"){const dowM=(today.getDay()+6)%7;let delta=4-dowM
+;return result(new Date(today.getFullYear(),today.getMonth(),today.getDate()+delta),today)}if(s==="eow"){
+if(opts.business&&opts.workDays){const wk=opts.workDays;let per=0;for(const v of wk)if(v)per++;if(per>0&&per<7)for(let i=0;i<=14;i++){
+const d=new Date(today.getFullYear(),today.getMonth(),today.getDate()+i);if(wk[d.getDay()]&&!wk[(d.getDay()+1)%7])return result(d,today)}}
+const dowM=(today.getDay()+6)%7;let delta=4-dowM
 ;if(delta<0)delta+=7;return result(new Date(today.getFullYear(),today.getMonth(),today.getDate()+delta),today)}
 if(s==="eom")return result(mkDate(today.getFullYear(),today.getMonth()+1,Util.daysInMonth(today.getFullYear(),today.getMonth()+1)),today)
 ;m=/^(\d{1,4})(?:[\s\/\-.]+(\d{1,2})(?:[\s\/\-.]+(\d{1,4}))?)?$/.exec(s);if(!m||!m[2])return inv("can't read that as a date");const d=+m[1],mo=+m[2]
@@ -383,7 +488,11 @@ priority:pri}};return{parse:parse}})();
 /* ================================================================ MD */const MD=(()=>{const MANAGED=new Set(["Open","No date","Completed"])
 ;const CANON=["Open","No date","Completed"];const targetSection=t=>t.done?"Completed":t.due?"Open":"No date";const DATE_RE=/\b(\d{4})-(\d{1,2})-(\d{1,2})\b/
 ;const normDate=raw=>{const m=DATE_RE.exec(raw);if(!m)return{iso:null,bad:true};const iso=m[1]+"-"+Util.pad2(+m[2])+"-"+Util.pad2(+m[3])
-;return Util.validISO(iso)?{iso:iso,bad:false}:{iso:null,bad:true}};const extractBody=(body,tagMap)=>{tagMap=tagMap||{}
+;return Util.validISO(iso)?{iso:iso,bad:false}:{iso:null,bad:true}}
+;const subDue=body=>{let due=null
+;body=body.replace(/ ?📅\s*([0-9]{4}-[0-9]{1,2}-[0-9]{1,2})/,(all,g)=>{const r=normDate(g);if(r.bad)return all;due=r.iso;return""})
+;if(!due)body=body.replace(/ ?\[\s*due::\s*([^\]]*)\]/i,(all,g)=>{const r=normDate(g.trim());if(r.bad)return all;due=r.iso;return""})
+;return{text:body.trim(),due:due}};const extractBody=(body,tagMap)=>{tagMap=tagMap||{}
 ;let due=null,doneAt=null,priority=0,id=null,badDate=false;const tags=[];let s=" "+body+" ";s=s.replace(/\s\^([0-9a-zA-Z_-]+)(?=\s)/,(all,g)=>{
 id=g.toLowerCase();return" "});s=s.replace(/📅\s*([0-9]{4}-[0-9]{1,2}-[0-9]{1,2})/,(all,g)=>{const r=normDate(g);if(r.bad){badDate=true;return" "}due=r.iso
 ;return" "});s=s.replace(/\[\s*due::\s*([^\]]*)\]/i,(all,g)=>{const r=normDate(g.trim());if(r.bad){badDate=true;return" "}due=r.iso;return" "})
@@ -403,8 +512,8 @@ hadBOM=true;text=text.slice(1)}const crlf=(text.match(/\r\n/g)||[]).length;const
 section=null;blocks.push({kind:"raw",raw:line,section:null});continue}const tm=TASK_RE.exec(line);if(tm&&!/^\s/.test(line)){
 const parsed=extractBody(tm[3],tagMap);if(!parsed){problems.push({line:i+1,text:line,msg:"empty title"});blocks.push({kind:"raw",raw:line,section:section})
 ;continue}const rawLines=[line];const noteLines=[];const subtasks=[];while(i+1<lines.length){const cm=CONT_RE.exec(lines[i+1]);if(!cm||!cm[1].trim())break;i++
-;rawLines.push(lines[i]);const sm=/^([-*])\s*\[( |x|X)\]\s+(.*\S.*)$/.exec(cm[1].trim());if(sm)subtasks.push({text:sm[3].trim(),done:sm[2]!==" "
-});else noteLines.push(cm[1].trimEnd())}if(parsed.badDate)problems.push({line:i+1-rawLines.length+1,text:line,msg:"unreadable date — treated as undated"})
+;rawLines.push(lines[i]);const sm=/^([-*])\s*\[( |x|X)\]\s+(.*\S.*)$/.exec(cm[1].trim());if(sm){const sd=subDue(sm[3].trim())
+;subtasks.push({text:sd.text,done:sm[2]!==" ",due:sd.due})}else noteLines.push(cm[1].trimEnd())}if(parsed.badDate)problems.push({line:i+1-rawLines.length+1,text:line,msg:"unreadable date — treated as undated"})
 ;let id=parsed.id,hadId=!!parsed.id;if(id&&(!/^[0-9a-z]{6}$/.test(id)||seenIds.has(id))){
 if(seenIds.has(id))console.warn(APP_NAME+": duplicate id ^"+id+" — assigning a fresh one");id=null;hadId=false}if(!id)id=Model.newId();seenIds.add(id)
 ;const done=tm[2]!==" ";const task=Model.validate({id:id,title:parsed.title,tags:parsed.tags,due:parsed.due,priority:parsed.priority,done:done,
@@ -415,7 +524,8 @@ problems:problems,eol:eol,hadBOM:hadBOM}};const PRI_EMOJI=["","🔽","🔼","⏫
 let l="- ["+(t.done?"x":" ")+"] "+t.title;for(const tag of t.tags)l+=" #"+tag.replace(/ /g,"_");if(settings.mdStyle==="bracket"){
 if(t.priority)l+=" [priority:: "+PRI_WORD[t.priority]+"]";if(t.due)l+=" [due:: "+t.due+"]";if(t.done&&t.doneAt)l+=" [completion:: "+t.doneAt+"]"}else{
 if(t.priority)l+=" "+PRI_EMOJI[t.priority];if(t.due)l+=" 📅 "+t.due;if(t.done&&t.doneAt)l+=" ✅ "+t.doneAt}if(settings.writeBlockIds!==false)l+=" ^"+t.id
-;const out=[l];if(t.note)for(const n of t.note.split("\n"))out.push("    "+n);for(const s of t.subtasks)out.push("    - ["+(s.done?"x":" ")+"] "+s.text)
+;const out=[l];if(t.note)for(const n of t.note.split("\n"))out.push("    "+n)
+;for(const s of t.subtasks)out.push("    - ["+(s.done?"x":" ")+"] "+s.text+(s.due?settings.mdStyle==="bracket"?" [due:: "+s.due+"]":" 📅 "+s.due:""))
 ;return out};const serialise=(tasks,state,settings)=>{state=state||{};const eol=state.eol||"\n";const blocks=state.blocks||[]
 ;const byId=new Map(tasks.map(t=>[t.id,t]));const entries=[];const placed=new Set;let cur=null;if(!blocks.length){entries.push({lines:["# To Do"],section:null})
 ;entries.push({lines:["\x3c!-- "+APP_NAME+" v1 · edit freely; the app preserves anything it does not recognise --\x3e"],section:null})}for(const b of blocks){
@@ -431,9 +541,114 @@ lines:["## "+sect],section:sect,heading:true});entries.push(...newEntries)}}cons
 ;let text=lines.join(eol);if(!blocks.length&&text&&!text.endsWith(eol))text+=eol;return text};return{parse:parse,serialise:serialise,renderTask:renderTask,
 targetSection:targetSection,MANAGED:MANAGED}})();
 /* ================================================================ settings data */const defaultSettings=()=>({schemaVersion:1,theme:"system",accent:"indigo",
-density:"comfortable",urgency:{calm:14,soon:14,near:5,due:0},rollForward:true,mdStyle:"emoji",writeBlockIds:true,showCompletedDays:7,autosaveDebounceMs:800,
+density:"comfortable",urgency:{calm:14,soon:14,near:5,due:0},rollForward:true,dayMode:"calendar",workWeek:[1,2,3,4,5],view:"list",timelineOpen:true,
+mdStyle:"emoji",writeBlockIds:true,
+showCompletedDays:7,autosaveDebounceMs:800,
 undoWindowSec:8,folderMode:false,backupRetain:20,tagMap:{d:"DPN",b:"BSM",t:"Highside"}});const SETTINGS=defaultSettings();const ACCENTS={neutral:"#475569",
 cyan:"#0891B2",sky:"#0284C7",blue:"#2563EB",indigo:"#4F46E5",violet:"#7C3AED"};
+/* ================================================================ Days (effective day counts) */const Days=(()=>{let memo={key:"",map:new Map}
+;const weekArr=list=>{const a=[false,false,false,false,false,false,false];for(const d of list||[])a[d]=true;return a}
+;const configuredWeek=()=>weekArr(SETTINGS.workWeek)
+;const business=()=>SETTINGS.dayMode==="business"
+;const isWorkDay=d=>configuredWeek()[d.getDay()]
+;const recFor=(iso,today)=>{today=Util.midnight(today||new Date)
+;const key=Util.isoOf(today)+"|"+SETTINGS.dayMode+"|"+(SETTINGS.workWeek||[]).join("");if(memo.key!==key)memo={key:key,map:new Map}
+;if(!memo.map.has(iso)){const due=Util.parseISO(iso);const cal=Util.daysBetween(today,due)
+;const wd=business()?Util.workDaysBetween(today,due,configuredWeek()):cal
+;memo.map.set(iso,{cal:cal,wd:wd,overdue:cal<0,eff:cal<0?Math.min(wd,-1):wd})}return memo.map.get(iso)}
+;const mapFor=(tasks,today)=>{const m=new Map;for(const t of tasks)m.set(t.id,t.due?recFor(t.due,today):null);return m}
+;const urgencyOf=eff=>{if(eff===null||eff===undefined)return"none";if(eff<0)return"overdue";if(eff<=(SETTINGS.urgency.due??0))return"due"
+;if(eff<=SETTINGS.urgency.near)return"near";if(eff<=SETTINGS.urgency.soon)return"soon";return"calm"}
+;const bucketOf=rec=>{if(!rec)return"undated";if(rec.overdue)return"overdue";if(rec.eff===0)return"today";if(rec.eff===1)return"tomorrow"
+;if(rec.eff<=7)return"week";return"later"}
+;const fmtRel=rec=>{if(rec.cal===0)return"today";if(business()){if(rec.overdue)return rec.wd<0?-rec.wd+" wd late":"late"
+;return rec.eff===0?"0 wd":"in "+rec.eff+" wd"}if(rec.overdue)return-rec.cal+"d late";return rec.eff===1?"tomorrow":"in "+rec.eff+"d"}
+;const addWorkDays=(from,n)=>Util.addWorkDays(from,n,configuredWeek())
+;const effectiveColourIso=t=>{if(t.done)return null;let min=t.due;for(const s of t.subtasks)if(!s.done&&s.due&&(min===null||s.due<min))min=s.due;return min}
+;const parseOpts=extra=>Object.assign({rollForward:SETTINGS.rollForward,business:business(),workDays:configuredWeek()},extra)
+;return{weekArr:weekArr,configuredWeek:configuredWeek,business:business,isWorkDay:isWorkDay,recFor:recFor,mapFor:mapFor,urgencyOf:urgencyOf,
+bucketOf:bucketOf,fmtRel:fmtRel,addWorkDays:addWorkDays,effectiveColourIso:effectiveColourIso,parseOpts:parseOpts}})();
+/* ================================================================ Views (pure view calcs) */const Views=(()=>{
+const dueForCol=(key,today)=>{today=Util.midnight(today||new Date)
+;const eff=n=>Days.business()?Days.addWorkDays(today,n):new Date(today.getFullYear(),today.getMonth(),today.getDate()+n)
+;switch(key){case"today":return Util.isoOf(today);case"tomorrow":return Util.isoOf(eff(1));case"week":return Util.isoOf(eff(2))
+;case"later":return Util.isoOf(eff(8));case"undated":return null;default:return undefined}}
+;const calWeeks=(y,m)=>{const lead=(new Date(y,m-1,1).getDay()+6)%7;const start=new Date(y,m-1,1-lead)
+;const rows=Math.ceil((lead+Util.daysInMonth(y,m))/7);const weeks=[];for(let r=0;r<rows;r++){const row=[]
+;for(let c=0;c<7;c++)row.push(Util.isoOf(new Date(start.getFullYear(),start.getMonth(),start.getDate()+r*7+c)));weeks.push(row)}return weeks}
+;const tlIndex=rec=>{if(!rec)return null;if(rec.cal<0)return 0;if(rec.cal<=28)return 1+rec.cal;return null}
+;return{dueForCol:dueForCol,calWeeks:calWeeks,tlIndex:tlIndex}})();
+/* ================================================================ Stats */const Stats=(()=>{const iso=d=>Util.isoOf(d)
+;const weekStartISO=d=>{const x=Util.midnight(d);x.setDate(x.getDate()-(x.getDay()+6)%7);return iso(x)}
+;const throughput=(tasks,today,opts)=>{const isWork=opts&&opts.isWork||Days.isWorkDay;today=Util.midnight(today||new Date)
+;const todayIso=iso(today);const thisWk=weekStartISO(today)
+;const back=(base,days)=>{const x=Util.parseISO(base);x.setDate(x.getDate()-days);return iso(x)}
+;const lastWkStart=back(thisWk,7);const wk8Start=back(thisWk,49);let dToday=0,week=0,lastWeek=0;const dow=[0,0,0,0,0,0,0];const byDay=new Map
+;for(const t of tasks){if(!t.done||!t.doneAt)continue;const d=t.doneAt;if(d===todayIso)dToday++
+;if(d>=thisWk&&d<=todayIso)week++;else if(d>=lastWkStart&&d<thisWk)lastWeek++
+;if(d>=wk8Start)dow[Util.parseISO(d).getDay()]++;byDay.set(d,(byDay.get(d)||0)+1)}
+const weeks=[];for(let i=7;i>=0;i--){const s=Util.parseISO(back(thisWk,7*i));let n=0
+;for(let j=0;j<7;j++)n+=byDay.get(iso(new Date(s.getFullYear(),s.getMonth(),s.getDate()+j)))||0;weeks.push({startIso:iso(s),count:n})}
+let busiest=null;for(let i=0;i<7;i++)if(dow[i]>0&&(!busiest||dow[i]>busiest.count))busiest={dow:i,label:Util.DAYS3[i],count:dow[i]}
+;let streak=0;{const cur=new Date(today);for(let i=0;i<366;i++){const k=iso(cur);const n=byDay.get(k)||0
+;if(isWork(cur)){if(n>0)streak++;else if(k!==todayIso)break}cur.setDate(cur.getDate()-1)}}
+return{today:dToday,week:week,lastWeek:lastWeek,delta:week-lastWeek,busiest:busiest,weeks:weeks,streak:streak}}
+;const forecast=(tasks,today,opts)=>{const isWork=opts&&opts.isWork||Days.isWorkDay;today=Util.midnight(today||new Date)
+;const counts=new Map;for(const t of tasks)if(!t.done&&t.due)counts.set(t.due,(counts.get(t.due)||0)+1)
+;let sum=0;const rows=[];for(let i=0;i<14;i++){const d=new Date(today.getFullYear(),today.getMonth(),today.getDate()+i);const k=iso(d)
+;const c=counts.get(k)||0;sum+=c;rows.push({iso:k,dom:d.getDate(),dow3:Util.DAYS3[d.getDay()],count:c,work:isWork(d)})}
+const cut=Math.max(3,Math.ceil(2*sum/14));for(const r of rows)r.heavy=r.count>=cut;return rows}
+;const health=(tasks,today)=>{today=Util.midnight(today||new Date);const open=tasks.filter(t=>!t.done);const todayIso=iso(today)
+;let overdue=0,ageSum=0,oldest=null,stale=0,staleOldest=null,undated=0
+;for(const t of open){if(t.due&&t.due<todayIso)overdue++;if(!t.due)undated++
+;const age=Util.daysBetween(Util.midnight(new Date(t.createdAt)),today);ageSum+=age;if(!oldest||age>oldest.age)oldest={id:t.id,title:t.title,age:age}
+;const upd=Util.daysBetween(Util.midnight(new Date(t.updatedAt)),today);if(upd>30){stale++;if(!staleOldest||upd>staleOldest.age)staleOldest={
+title:t.title,age:upd}}}
+return{open:open.length,overdue:overdue,avgAge:open.length?Math.round(ageSum/open.length):0,oldest:oldest,stale:stale,staleOldest:staleOldest,
+undated:undated,undatedPct:open.length?Math.round(undated/open.length*100):0}}
+;let panelOpen=false;const isOpen=()=>panelOpen;const closePanel=()=>{if(!panelOpen)return;panelOpen=false
+;document.getElementById("overlayRoot").textContent="";const b=document.getElementById("statsBtn");b.setAttribute("aria-expanded","false");b.focus()}
+;const kv=(label,value,cls)=>{const r=E("div",{class:"stat-kv"})
+;r.append(E("span",{class:"k",text:label}),E("span",{class:"v"+(cls?" "+cls:""),text:value}));return r}
+;const barRow=(items,aria)=>{const max=Math.max(1,...items.map(x=>x.v));const bars=E("div",{class:"stat-bars",role:"img","aria-label":aria})
+;for(const it of items){const b=E("i",{class:it.cls||null,title:it.title});b.style.height=(it.v?Math.max(8,Math.round(it.v/max*100)):0)+"%"
+;bars.append(b)}return bars}
+;const buildPanel=()=>{const body=E("div",{class:"panel-b"});const today=new Date;const tasks=Model.tasks
+;if(!tasks.length){body.append(E("div",{class:"empty"},E("b",{text:"No tasks yet."}),"Nothing to measure."));return body}
+const tp=throughput(tasks,today);const sec1=E("div",{class:"set-sect"},E("h3",{text:"Throughput"}))
+;sec1.append(kv("Completed today",String(tp.today)),
+kv("This week",tp.week+(tp.delta===0?" · same as last week":tp.delta>0?" · ▲ "+tp.delta+" vs last week":" · ▼ "+-tp.delta+" vs last week")),
+kv("Busiest day",tp.busiest?tp.busiest.label+" · "+tp.busiest.count+" done in 8 weeks":"—"),
+kv("Streak",tp.streak+" work day"+(tp.streak===1?"":"s")+" with a completion"))
+;sec1.append(E("div",{class:"stat-cap",text:"Completed per week — last 8 weeks"}))
+;sec1.append(barRow(tp.weeks.map((w,i)=>({v:w.count,cls:i===7?"cur":null,
+title:"w/c "+Util.fmtShort(w.startIso,today)+" — "+w.count+" done"})),"Completed per week for the last 8 weeks"))
+;const wl=E("div",{class:"stat-lbls"});wl.append(E("span",{text:"w/c "+Util.fmtShort(tp.weeks[0].startIso,today)}),E("span",{text:"this week"}))
+;sec1.append(wl);body.append(sec1)
+;const fc=forecast(tasks,today);const heavy=fc.filter(r=>r.heavy);const dueN=fc.reduce((s,r)=>s+r.count,0)
+;const sec2=E("div",{class:"set-sect"},E("h3",{text:"Forecast — next 14 days"}));sec2.append(kv("Due in the next 14 days",String(dueN)))
+;sec2.append(barRow(fc.map(r=>({v:r.count,cls:((r.heavy?"heavy ":"")+(r.work?"":"nw")).trim()||null,
+title:r.dow3+" "+Util.fmtShort(r.iso,today)+" — "+r.count+" due"+(r.work?"":" (non-work day)")})),"Tasks due per day for the next 14 days"))
+;const fl=E("div",{class:"stat-lbls"});fl.append(E("span",{text:"today"}),E("span",{text:"+2 weeks"}));sec2.append(fl)
+;sec2.append(E("div",{class:"stat-cap",text:heavy.length?"Heavy: "+heavy.map(r=>r.dow3+" "+Util.fmtShort(r.iso,today)+" ("+r.count+")").join(", "):
+"No overloaded days ahead."}));body.append(sec2)
+;const h=health(tasks,today);const sec3=E("div",{class:"set-sect"},E("h3",{text:"List health"}))
+;sec3.append(kv("Open tasks",String(h.open)),kv("Overdue",String(h.overdue),h.overdue?"bad":null),kv("Average age of open",h.avgAge+"d"),
+kv("Oldest open",h.oldest?"“"+h.oldest.title+"” · "+h.oldest.age+"d":"—"),
+kv("Stale (untouched >30d)",h.stale+(h.staleOldest?" · worst "+h.staleOldest.age+"d":""),h.stale?"warn":null),
+kv("No date",h.undated+" of "+h.open+" ("+h.undatedPct+"%)"));body.append(sec3);return body}
+;const openPanel=()=>{if(panelOpen){closePanel();return}panelOpen=true
+;const root=document.getElementById("overlayRoot");root.textContent="";const scrim=E("div",{class:"scrim"});on(scrim,"mousedown",closePanel)
+;const panel=E("div",{class:"panel",role:"dialog","aria-modal":"true","aria-label":"Stats"})
+;if(document.getElementById("app").clientWidth<=560)panel.classList.add("full")
+;const head=E("div",{class:"panel-h"},E("h2",{text:"Stats"}));const x=E("button",{class:"px","aria-label":"Close stats",text:"✕"})
+;on(x,"click",closePanel);head.append(x);panel.append(head,buildPanel())
+;on(panel,"keydown",e=>{if(e.key==="Escape"){e.stopPropagation();closePanel();return}if(e.key==="Tab"){
+const f=panel.querySelectorAll("button:not([disabled]),input:not([disabled]):not(.sr),select,[tabindex='0']");if(!f.length)return
+;const first=f[0],last=f[f.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus()}
+else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus()}}})
+;root.append(scrim,panel);document.getElementById("statsBtn").setAttribute("aria-expanded","true");x.focus()}
+;return{weekStartISO:weekStartISO,throughput:throughput,forecast:forecast,health:health,openPanel:openPanel,closePanel:closePanel,isOpen:isOpen}})();
 /* ================================================================ Persist */const Persist=(()=>{let tier=3;let handle=null;let dirHandle=null
 ;let fileMeta=null;let mdState={blocks:[],eol:"\n"};let dirty=false;let flushTimer=null;let flushing=false;let permission="none";let lastError=null
 ;const state=()=>({tier:tier,handle:handle,dirHandle:dirHandle,fileMeta:fileMeta,dirty:dirty,permission:permission,lastError:lastError,
@@ -505,10 +720,10 @@ resolveKeepMine:resolveKeepMine,currentText:currentText,checkExternal:checkExter
 /* ================================================================ Filter */const Filter=(()=>{const parseQuery=q=>{const clauses=[];const free=[]
 ;let wantDone=false;for(let tok of String(q||"").trim().split(/\s+/)){if(!tok)continue;let neg=false;if(tok.length>1&&tok[0]==="-"){neg=true;tok=tok.slice(1)}
 const low=tok.toLowerCase();let test=null;let m;if(low[0]==="#"&&low.length>1){const pre=low.slice(1);test=t=>t.tags.some(x=>x.toLowerCase().startsWith(pre))
-}else if(/^!{1,3}$/.test(tok)){const lv=tok.length;test=t=>t.priority>=lv}else if(low==="overdue"){test=(t,ctx)=>t.due!==null&&ctx.days.get(t.id)<0
-}else if(low==="today"){test=(t,ctx)=>t.due!==null&&ctx.days.get(t.id)===0}else if(low==="week"){
-test=(t,ctx)=>t.due!==null&&ctx.days.get(t.id)>=0&&ctx.days.get(t.id)<=7}else if(m=/^due:([<>])(\d+)d$/.exec(low)){const n=+m[2],lt=m[1]==="<";test=(t,ctx)=>{
-if(t.due===null)return false;const d=ctx.days.get(t.id);return lt?d>=0&&d<n:d>n}}else if(m=/^due:([<>])(\d{4}-\d{2}-\d{2})$/.exec(low)){
+}else if(/^!{1,3}$/.test(tok)){const lv=tok.length;test=t=>t.priority>=lv}else if(low==="overdue"){test=(t,ctx)=>{const r=ctx.recs.get(t.id)
+;return!!r&&r.overdue}}else if(low==="today"){test=(t,ctx)=>{const r=ctx.recs.get(t.id);return!!r&&r.eff===0}}else if(low==="week"){
+test=(t,ctx)=>{const r=ctx.recs.get(t.id);return!!r&&r.eff>=0&&r.eff<=7}}else if(m=/^due:([<>])(\d+)d$/.exec(low)){const n=+m[2],lt=m[1]==="<";test=(t,ctx)=>{
+const r=ctx.recs.get(t.id);if(!r)return false;return lt?r.eff>=0&&r.eff<n:r.eff>n}}else if(m=/^due:([<>])(\d{4}-\d{2}-\d{2})$/.exec(low)){
 const iso=m[2],lt=m[1]==="<";test=t=>t.due!==null&&(lt?t.due<iso:t.due>iso)}else if(low==="is:done"){if(!neg)wantDone=true;test=t=>t.done
 }else if(low==="is:undated"){test=t=>t.due===null}else if(low==="has:note"){test=t=>!!t.note||t.subtasks.length>0}else{free.push({neg:neg,term:tok});continue}
 clauses.push({neg:neg,test:test})}return{clauses:clauses,free:free,wantDone:wantDone,empty:clauses.length===0&&free.length===0}}
@@ -538,71 +753,202 @@ const t=Model.byId.get(id);if(!t)return;const before=Util.snap(t);Object.assign(
 ;const before=Util.snap(t);await Model.remove(id);await Undo.record("delete",id,before,null);afterMutate();Render.toastDeleted(before)}
 ;const snooze=(id,due)=>patch(id,{due:due},"snooze");const setPriority=(id,p)=>patch(id,{priority:p},"priority");const toggleSubtask=async(id,idx)=>{
 const t=Model.byId.get(id);if(!t||!t.subtasks[idx])return;const before=Util.snap(t);t.subtasks[idx].done=!t.subtasks[idx].done;await Model.commit(t)
-;await Undo.record("edit",id,before,Util.snap(t));afterMutate()};const undo=async()=>{if(await Undo.undo())afterMutate()};const redo=async()=>{
+;await Undo.record("edit",id,before,Util.snap(t));afterMutate()}
+;const subPatch=async(id,op,fn)=>{const t=Model.byId.get(id);if(!t)return;const subs=Util.snap(t.subtasks);fn(subs);await patch(id,{subtasks:subs},op)}
+;const subtaskAdd=(id,text)=>{text=String(text||"").trim();if(!text)return Promise.resolve()
+;return subPatch(id,"subtask-add",s=>s.push({text:text,done:false,due:null}))}
+;const subtaskRename=(id,idx,text)=>{text=String(text||"").trim();if(!text)return Promise.resolve()
+;return subPatch(id,"subtask-edit",s=>{if(s[idx])s[idx].text=text})}
+;const subtaskDelete=(id,idx)=>subPatch(id,"subtask-del",s=>{if(idx>=0&&idx<s.length)s.splice(idx,1)})
+;const subtaskMove=(id,idx,delta)=>subPatch(id,"subtask-move",s=>{const j=idx+delta;if(idx<0||idx>=s.length||j<0||j>=s.length)return
+;const[x]=s.splice(idx,1);s.splice(j,0,x)})
+;const subtaskDue=(id,idx,iso)=>subPatch(id,"subtask-date",s=>{if(s[idx])s[idx].due=iso})
+;const undo=async()=>{if(await Undo.undo())afterMutate()};const redo=async()=>{
 if(await Undo.redo())afterMutate()};return{add:add,bulkAdd:bulkAdd,patch:patch,complete:complete,uncomplete:uncomplete,del:del,snooze:snooze,
-setPriority:setPriority,toggleSubtask:toggleSubtask,undo:undo,redo:redo}})();
+setPriority:setPriority,toggleSubtask:toggleSubtask,subtaskAdd:subtaskAdd,subtaskRename:subtaskRename,subtaskDelete:subtaskDelete,
+subtaskMove:subtaskMove,subtaskDue:subtaskDue,undo:undo,redo:redo}})();
 /* ================================================================ Render */const Render=(()=>{const $=id=>document.getElementById(id);const els={}
 ;const state={sel:null,filters:new Set,query:"",showCompleted:false,expanded:new Set,editingId:null,dateEditId:null,lastAdded:null,visible:[],
-digestDismissed:false};const NONE="·none";const init=()=>{
-["app","appTitle","banners","tagKey","titleInput","dateInput","datePreview","searchWrap","searchInput","searchClear","countLine","digestWrap","listRoot","completedRoot","toasts","overlayRoot","popRoot","choosePill","reconnectPill","saveInd","completedToggle","settingsBtn"].forEach(id=>{
-els[id]=$(id)});els.appTitle.textContent=APP_NAME};const daysMap=()=>{const today=new Date;const m=new Map
-;for(const t of Model.tasks)m.set(t.id,t.due?Util.daysBetween(today,Util.parseISO(t.due)):null);return m};const urgencyOf=d=>{if(d===null)return"none"
-;if(d<0)return"overdue";if(d<=(SETTINGS.urgency.due??0))return"due";if(d<=SETTINGS.urgency.near)return"near";if(d<=SETTINGS.urgency.soon)return"soon"
-;return"calm"};const SEGS={none:0,calm:1,soon:2,near:3,due:4,overdue:4};const cmpOpen=(a,b)=>{if(a.due!==b.due){if(a.due===null)return 1
+digestDismissed:false,subEditing:null,subDateEdit:null,subAdding:null,subFocus:null,calCursor:null};const NONE="·none";let dragId=null
+;const VIEW_DEFS=[["list","List view",["M4 6h16","M4 12h16","M4 18h16"]],["board","Board view",["M4 5h4.5v14H4z","M9.75 5h4.5v10h-4.5z","M15.5 5H20v7h-4.5z"]],
+["cal","Calendar view",["M4 6h16v14H4z","M4 10h16","M8 3v4","M16 3v4"]]];const init=()=>{
+["app","appTitle","banners","tagKey","titleInput","dateInput","datePreview","searchWrap","searchInput","searchClear","countLine","digestWrap","listRoot","completedRoot","toasts","overlayRoot","popRoot","fileChip","saveInd","completedToggle","settingsBtn","viewSeg"].forEach(id=>{
+els[id]=$(id)});els.appTitle.textContent=APP_NAME;on(els.fileChip,"click",()=>{if(chipAct)chipAct()})
+;for(const[v,label,paths]of VIEW_DEFS){const b=E("button",{dataset:{v:v},"aria-label":label,title:label,"aria-pressed":"false"})
+;b.append(Util.svgIcon(paths));on(b,"click",()=>{if(SETTINGS.view!==v)Settings.set("view",v)});els.viewSeg.append(b)}}
+;const refreshViewSeg=()=>{if(!els.viewSeg)return
+;for(const b of els.viewSeg.children)b.setAttribute("aria-pressed",b.dataset.v===SETTINGS.view?"true":"false")}
+;const urgencyOf=Days.urgencyOf;const sectionsFor=()=>{const biz=Days.business()
+;return[["overdue","Overdue"],["today","Today"],["tomorrow",biz?"Next work day":"Tomorrow"],["week",biz?"This work week":"This week"],["later","Later"],["undated","No date"]]}
+;const SEGS={none:0,calm:1,soon:2,near:3,due:4,overdue:4};const cmpOpen=(a,b)=>{if(a.due!==b.due){if(a.due===null)return 1
 ;if(b.due===null)return-1;return a.due<b.due?-1:1}if(a.priority!==b.priority)return b.priority-a.priority
-;if(a.createdAt!==b.createdAt)return a.createdAt<b.createdAt?-1:1;return a.id<b.id?-1:a.id>b.id?1:0};const render=()=>{const days=daysMap();const ctx={days:days
+;if(a.createdAt!==b.createdAt)return a.createdAt<b.createdAt?-1:1;return a.id<b.id?-1:a.id>b.id?1:0};const computeView=()=>{
+const recs=Days.mapFor(Model.tasks);const ctx={recs:recs
 };const parsedQ=Filter.parseQuery(state.query);const searching=!parsedQ.empty;const open=Model.tasks.filter(t=>!t.done)
 ;let domain=parsedQ.wantDone?Model.tasks.filter(t=>t.done):open;if(state.filters.size){
 domain=domain.filter(t=>state.filters.has(NONE)&&t.tags.length===0||t.tags.some(x=>state.filters.has(x)))}const ranks=new Map;if(searching){
 domain=domain.filter(t=>{const r=Filter.match(t,parsedQ,ctx);if(r<0)return false;ranks.set(t.id,r);return true})}const buckets={overdue:[],today:[],tomorrow:[],
-week:[],later:[],undated:[]};for(const t of domain){const d=days.get(t.id)
-;if(d===null)buckets.undated.push(t);else if(d<0)buckets.overdue.push(t);else if(d===0)buckets.today.push(t);else if(d===1)buckets.tomorrow.push(t);else if(d<=7)buckets.week.push(t);else buckets.later.push(t)
-}const rankCmp=base=>(a,b)=>{if(searching){const ra=ranks.get(a.id)||0,rb=ranks.get(b.id)||0;if(ra!==rb)return ra-rb}return base(a,b)}
+week:[],later:[],undated:[]};for(const t of domain)buckets[Days.bucketOf(recs.get(t.id))].push(t)
+;const rankCmp=base=>(a,b)=>{if(searching){const ra=ranks.get(a.id)||0,rb=ranks.get(b.id)||0;if(ra!==rb)return ra-rb}return base(a,b)}
 ;for(const k of["overdue","today","tomorrow","week","later"])buckets[k].sort(rankCmp(cmpOpen))
 ;buckets.undated.sort(rankCmp((a,b)=>a.createdAt>b.createdAt?-1:a.createdAt<b.createdAt?1:0))
-;const SECTIONS=[["overdue","Overdue"],["today","Today"],["tomorrow","Tomorrow"],["week","This week"],["later","Later"],["undated","No date"]]
-;const root=els.listRoot;root.textContent="";state.visible=[];const totalOpen=open.length;const dueTodayCount=open.filter(t=>days.get(t.id)===0).length
-;const overdueCount=open.filter(t=>t.due&&days.get(t.id)<0).length;if(parsedQ.wantDone){
-renderDoneList(root,domain.slice().sort(rankCmp((a,b)=>(a.doneAt||"")<(b.doneAt||"")?1:(a.doneAt||"")>(b.doneAt||"")?-1:0)))}else{let any=false
-;for(const[key,label]of SECTIONS){const list=buckets[key];if(!list.length)continue;any=true;const sect=E("section",{class:"sect"});const h=E("h2",{
+;const dueTodayCount=open.filter(t=>{const r=recs.get(t.id);return!!r&&r.eff===0}).length
+;const overdueCount=open.filter(t=>{const r=recs.get(t.id);return!!r&&r.overdue}).length
+;return{recs:recs,parsedQ:parsedQ,searching:searching,ranks:ranks,rankCmp:rankCmp,open:open,domain:domain,buckets:buckets,
+totalOpen:open.length,dueTodayCount:dueTodayCount,overdueCount:overdueCount}}
+;const render=()=>{const vc=computeView();els.app.dataset.view=SETTINGS.view;const root=els.listRoot;root.textContent="";state.visible=[]
+;if(vc.parsedQ.wantDone){
+renderDoneList(root,vc.domain.slice().sort(vc.rankCmp((a,b)=>(a.doneAt||"")<(b.doneAt||"")?1:(a.doneAt||"")>(b.doneAt||"")?-1:0)))}
+else if(SETTINGS.view==="board")renderBoard(root,vc);else if(SETTINGS.view==="cal")renderCalendar(root,vc);else{renderTimeline(root,vc)
+;renderList(root,vc)}
+if(state.sel&&!state.visible.includes(state.sel))state.sel=null;if(state.sel){const li=root.querySelector('[data-id="'+state.sel+'"]')
+;if(li)li.classList.add("sel")}renderTagKey(vc.open,vc.recs);renderCompletedToggle();renderCompletedSection()
+;renderCountLine(vc.domain.length,vc.totalOpen,vc.searching);renderDigest(vc.overdueCount,vc.dueTodayCount)
+;document.title=(vc.dueTodayCount+vc.overdueCount>0?"("+(vc.dueTodayCount+vc.overdueCount)+") ":"")+APP_NAME;state.lastAdded=null;refreshViewSeg()}
+;const renderList=(root,vc)=>{let any=false
+;for(const[key,label]of sectionsFor()){const list=vc.buckets[key];if(!list.length)continue;any=true;const sect=E("section",{class:"sect"});const h=E("h2",{
 class:"sect-h"},label,E("span",{class:"n",text:"· "+list.length}));sect.append(h);const ul=E("ul",{role:"list"});for(const t of list){
-ul.append(buildRow(t,days.get(t.id)));state.visible.push(t.id)}sect.append(ul);root.append(sect)}
-if(!any)root.append(emptyState(searching,totalOpen));else if(buckets.undated.length&&buckets.undated.length===state.visible.length&&!searching&&!state.filters.size)root.prepend(E("div",{
-class:"empty",style:"padding:16px 0"},E("b",{text:"Nothing scheduled."}),"Tasks without a date are listed below."))}
-if(state.sel&&!state.visible.includes(state.sel))state.sel=null;if(state.sel){const li=root.querySelector('li[data-id="'+state.sel+'"]')
-;if(li)li.classList.add("sel")}renderTagKey(open,days);renderCompletedToggle();renderCompletedSection(days);renderCountLine(domain.length,totalOpen,searching)
-;renderDigest(overdueCount,dueTodayCount);document.title=(dueTodayCount+overdueCount>0?"("+(dueTodayCount+overdueCount)+") ":"")+APP_NAME;state.lastAdded=null}
+ul.append(buildRow(t,vc.recs.get(t.id)));state.visible.push(t.id)}sect.append(ul);root.append(sect)}
+if(!any)root.append(emptyState(vc.searching,vc.totalOpen))
+;else if(vc.buckets.undated.length&&vc.buckets.undated.length===state.visible.length&&!vc.searching&&!state.filters.size)root.insertBefore(E("div",{
+class:"empty",style:"padding:16px 0"},E("b",{text:"Nothing scheduled."}),"Tasks without a date are listed below."),root.querySelector(".sect"))}
+;const renderTimeline=(root,vc)=>{const dated=vc.domain.filter(t=>t.due&&!t.done);if(!dated.length)return
+;const cells=Array.from({length:30},()=>[]);let beyond=0
+;for(const t of dated){const idx=Views.tlIndex(vc.recs.get(t.id));if(idx===null)beyond++;else cells[idx].push(t)}
+;const sect=E("section",{class:"tl"});const head=E("div",{class:"tl-h"})
+;const tog=E("button",{class:"tl-toggle","aria-expanded":SETTINGS.timelineOpen?"true":"false",
+text:"Runway "+(SETTINGS.timelineOpen?"⌃":"⌄")});on(tog,"click",()=>Settings.set("timelineOpen",!SETTINGS.timelineOpen))
+;head.append(tog,E("span",{class:"tl-sum",
+text:cells[0].length+" late · "+(dated.length-cells[0].length-beyond)+" in 4w"+(beyond?" · "+beyond+" beyond":"")}));sect.append(head)
+;if(SETTINGS.timelineOpen){const body=E("div",{class:"tl-body"});const scale=E("div",{class:"tl-scale"});const today=Util.midnight(new Date)
+;for(let i=0;i<30;i++){const day=i===0?null:new Date(today.getFullYear(),today.getMonth(),today.getDate()+(i-1));const cls=["tl-day"]
+;if(i===0)cls.push("late");else{if(i===1)cls.push("today");if(!Days.isWorkDay(day))cls.push("nonwork");if(day.getDay()===1&&i>1)cls.push("wk")}
+const col=E("div",{class:cls.join(" "),title:i===0?"Overdue":Util.fmtLong(Util.isoOf(day))});const stack=cells[i]
+;stack.slice(0,4).forEach(t=>{const r=vc.recs.get(t.id);const dot=E("button",{class:"tl-dot u-"+Days.urgencyOf(r.eff),
+title:t.title+" — "+Util.fmtShort(t.due,new Date),"aria-label":t.title+", due "+Util.fmtLong(t.due)})
+;on(dot,"click",()=>select(t.id,true));col.append(dot)})
+;if(stack.length>4)col.append(E("span",{class:"tl-more",text:"+"+(stack.length-4)}));scale.append(col)}body.append(scale)
+;const ax=E("div",{class:"tl-ax"});for(const s of["late","today","+1w","+2w","+3w","+4w"])ax.append(E("span",{text:s}));body.append(ax)
+;sect.append(body)}root.append(sect)}
+;const renderBoard=(root,vc)=>{const board=E("div",{class:"board"});const today=new Date
+;for(const[key,label]of sectionsFor()){const col=E("section",{class:"bcol",dataset:{col:key}})
+;col.append(E("h2",{class:"sect-h"},label,E("span",{class:"n",text:"· "+vc.buckets[key].length})))
+;const ul=E("ul",{class:"bcol-list",role:"list"});for(const t of vc.buckets[key]){ul.append(buildCard(t,vc.recs.get(t.id)))
+;state.visible.push(t.id)}if(!vc.buckets[key].length)ul.append(E("li",{class:"bcol-empty",text:"—"}));col.append(ul)
+;on(col,"dragover",e=>{if(dragId&&key!=="overdue"){e.preventDefault();e.dataTransfer.dropEffect="move";col.classList.add("dropover")}})
+;on(col,"dragleave",e=>{if(!col.contains(e.relatedTarget))col.classList.remove("dropover")})
+;on(col,"drop",e=>{e.preventDefault();const id=dragId;dragId=null
+;for(const x of board.querySelectorAll(".dropover"))x.classList.remove("dropover");if(!id||key==="overdue")return
+;const t=Model.byId.get(id);if(!t)return;const due=Views.dueForCol(key,today);if(due!==undefined&&due!==t.due)Actions.snooze(id,due)})
+;board.append(col)}root.append(board);if(!vc.domain.length)root.append(emptyState(vc.searching,vc.totalOpen))}
+;const buildCard=(t,rec)=>{const colourIso=Days.effectiveColourIso(t)
+;const colourRec=colourIso?colourIso===t.due?rec||Days.recFor(colourIso):Days.recFor(colourIso):null
+;const urg=t.done?"none":urgencyOf(colourRec?colourRec.eff:null)
+;const li=E("li",{class:"bcard u-"+urg,dataset:{id:t.id},draggable:"true",tabindex:"0",
+"aria-label":t.title+(t.due?", due "+Util.fmtLong(t.due):", no date")})
+;const top=E("div",{class:"bcard-top"});const cb=E("input",{class:"cb",type:"checkbox","aria-label":"Complete: "+t.title});cb.checked=t.done
+;on(cb,"change",()=>{if(cb.checked)Actions.complete(t.id);else Actions.uncomplete(t.id)});top.append(cb)
+;if(state.editingId===t.id)top.append(buildTitleEditor(t));else{const ttl=E("span",{class:"title",text:t.title})
+;on(ttl,"click",()=>startEdit(t.id));top.append(ttl)}li.append(top);const meta=E("div",{class:"bcard-meta"})
+;for(const tag of t.tags)meta.append(E("span",{class:"tag",text:tag}))
+;if(t.priority)meta.append(E("span",{class:"pri p"+t.priority,text:"!".repeat(t.priority)}))
+;if(t.subtasks.length)meta.append(E("span",{class:"donechip",text:t.subtasks.filter(s=>s.done).length+"/"+t.subtasks.length}))
+;if(state.dateEditId===t.id)meta.append(buildDateEditor(t));else{
+const chip=E("button",{class:"datechip"+(t.due?"":" undated"),text:t.due?dateChipText(t,rec):"no date",
+"aria-label":"Due date: "+(t.due?Util.fmtLong(t.due)+lateAria(rec):"none")});on(chip,"click",e=>{e.stopPropagation();openSnooze(t.id,chip)})
+;meta.append(chip)}li.append(meta)
+;on(li,"dragstart",e=>{dragId=t.id;e.dataTransfer.setData("text/plain",t.id);e.dataTransfer.effectAllowed="move";li.classList.add("dragging")})
+;on(li,"dragend",()=>{dragId=null;li.classList.remove("dragging")
+;for(const x of els.listRoot.querySelectorAll(".dropover"))x.classList.remove("dropover")})
+;on(li,"mousedown",()=>select(t.id,false));return li}
+;const renderCalendar=(root,vc)=>{const today=Util.midnight(new Date);const cur=state.calCursor||Util.isoOf(today).slice(0,7)
+;const y=+cur.slice(0,4),m=+cur.slice(5,7);const cal=E("div",{class:"cal"});const head=E("div",{class:"cal-h"})
+;const nav=(txt,label,dm)=>{const b=E("button",{class:"cal-nav",text:txt,"aria-label":label});on(b,"click",()=>{
+let ny=y,nm=m+dm;if(nm<1){nm=12;ny--}if(nm>12){nm=1;ny++}state.calCursor=ny+"-"+Util.pad2(nm);render()});return b}
+;head.append(nav("‹","Previous month",-1),E("h2",{class:"cal-title","aria-live":"polite",text:Util.MONTHS[m-1]+" "+y}),nav("›","Next month",1))
+;const tdy=E("button",{class:"mini-btn",text:"Today"});on(tdy,"click",()=>{state.calCursor=null;render()});head.append(tdy);cal.append(head)
+;const byDue=new Map;for(const t of vc.domain){if(!t.due)continue;if(!byDue.has(t.due))byDue.set(t.due,[]);byDue.get(t.due).push(t)}
+;const grid=E("div",{class:"cal-grid",role:"grid"})
+;for(const d3 of["Mon","Tue","Wed","Thu","Fri","Sat","Sun"])grid.append(E("div",{class:"cal-dow",role:"columnheader",text:d3}))
+;const todayISO=Util.isoOf(today);for(const week of Views.calWeeks(y,m))for(const iso of week){const d=Util.parseISO(iso);const cls=["cal-day"]
+;if(d.getMonth()!==m-1)cls.push("out");if(iso===todayISO)cls.push("today");if(!Days.isWorkDay(d))cls.push("nonwork")
+;const dayTasks=byDue.get(iso)||[];const cell=E("div",{class:cls.join(" "),role:"gridcell",dataset:{iso:iso},
+"aria-label":Util.fmtLong(iso)+", "+(dayTasks.length?dayTasks.length+" task"+(dayTasks.length>1?"s":"")+" due":"no tasks due")})
+;const num=E("button",{class:"cal-num",text:String(d.getDate()),"aria-label":"Add task due "+Util.fmtLong(iso)})
+;on(num,"click",()=>Entry.prefillDate(iso));cell.append(num);const chips=E("div",{class:"cal-chips"})
+;dayTasks.slice(0,3).forEach(t=>{const r=vc.recs.get(t.id);const chip=E("button",{class:"cchip u-"+(t.done?"none":urgencyOf(r?r.eff:null)),
+title:t.title+" — due "+Util.fmtLong(iso)},E("span",{class:"t",text:t.title}))
+;on(chip,"click",e=>{e.stopPropagation();openCalTask(t.id,chip)});chips.append(chip)})
+;if(dayTasks.length>3){const more=E("button",{class:"cchip-more",text:"+"+(dayTasks.length-3)+" more"})
+;on(more,"click",e=>{e.stopPropagation();openCalDay(iso,dayTasks,more)});chips.append(more)}cell.append(chips)
+;on(cell,"click",e=>{if(e.target===cell||e.target===chips)Entry.prefillDate(iso)});grid.append(cell)}cal.append(grid);root.append(cal)}
 ;const emptyState=(searching,totalOpen)=>{const wrap=E("div",{class:"empty"});if(searching||state.filters.size){wrap.append(E("b",{
 text:"No matches for “"+(state.query.trim()||"this filter")+"”."}),"Press Esc to clear.")}else if(Model.tasks.length===0){
 if(document.documentElement.getAttribute("data-theme")==="geocities")wrap.append(E("b",{text:"~ Welcome to my To-Do Page ~"
 }),"This page is best viewed at 800×600.");else wrap.append(E("b",{text:"Nothing here yet."}),"Type a task above and press Enter.")}else if(totalOpen===0){
 wrap.append(E("b",{text:"All clear."}),"Nothing due.")}else{wrap.append(E("b",{text:"No matches."}),"Press Esc to clear.")}return wrap}
-;const dateChipText=(t,d)=>{const today=new Date;if(!t.due)return"";const short=Util.fmtShort(t.due,today);if(d<0)return short+" · "+-d+"d late"
-;if(d===0)return short+" · today";if(d===1)return short+" · tomorrow";return short+" · in "+d+"d"};const buildRow=(t,d)=>{const urg=t.done?"none":urgencyOf(d)
+;const dateChipText=(t,rec)=>t.due?Util.fmtShort(t.due,new Date)+" · "+Days.fmtRel(rec):""
+;const lateAria=rec=>{if(!rec||!rec.overdue)return""
+;if(Days.business())return rec.wd<0?", "+-rec.wd+" work days late":", overdue";return", "+-rec.cal+" days late"};const buildRow=(t,rec)=>{
+const colourIso=Days.effectiveColourIso(t);const colourRec=colourIso?colourIso===t.due?rec||Days.recFor(colourIso):Days.recFor(colourIso):null
+;const subDrives=!t.done&&colourIso!==null&&colourIso!==t.due;const urg=t.done?"none":urgencyOf(colourRec?colourRec.eff:null)
 ;const li=E("li",{class:"task u-"+urg+(t.done?" done":""),dataset:{id:t.id}});if(t.id===state.lastAdded)li.classList.add("adding");const gauge=E("div",{
 class:"gauge","aria-hidden":"true"});for(let i=0;i<4;i++)gauge.append(E("i",{class:i<SEGS[urg]?"f":null}));li.append(gauge);const cb=E("input",{class:"cb",
 type:"checkbox","aria-label":"Complete: "+t.title});cb.checked=t.done;on(cb,"change",()=>{
 if(cb.checked)collapseThen(li,()=>Actions.complete(t.id));else Actions.uncomplete(t.id)});li.append(cb);const tmain=E("div",{class:"tmain"})
 ;if(state.editingId===t.id){tmain.append(buildTitleEditor(t))}else{const title=E("span",{class:"title",text:t.title,tabindex:"-1"})
 ;on(title,"click",()=>startEdit(t.id));tmain.append(title)}if(t.note||t.subtasks.length){const done=t.subtasks.filter(s=>s.done).length
-;const label=(t.subtasks.length?done+"/"+t.subtasks.length:"note")+(state.expanded.has(t.id)?" ⌃":" ⌄");const tg=E("button",{class:"note-toggle",text:label,
-"aria-expanded":state.expanded.has(t.id)?"true":"false"});on(tg,"click",()=>{
+;const label=(t.subtasks.length?done+"/"+t.subtasks.length:"note")+(state.expanded.has(t.id)?" ⌃":" ⌄")
+;const tg=E("button",{class:"note-toggle"+(subDrives?" sub-drives":""),text:label,
+title:subDrives?"Colour driven by a sub-task due date ("+Util.fmtShort(colourIso,new Date)+")":null,
+"aria-expanded":state.expanded.has(t.id)?"true":"false"});if(subDrives)tg.append(E("span",{class:"sr",text:" urgency from sub-task"}))
+;on(tg,"click",()=>{
 if(state.expanded.has(t.id))state.expanded.delete(t.id);else state.expanded.add(t.id);render()});tmain.append(tg)}li.append(tmain);const meta=E("div",{
-class:"tmeta"});const actions=E("span",{class:"rowactions"});const snz=E("button",{title:"Snooze","aria-label":"Snooze: "+t.title})
+class:"tmeta"});const actions=E("span",{class:"rowactions"});const ren=E("button",{title:"Rename","aria-label":"Rename: "+t.title})
+;ren.append(Util.svgIcon(["M4 20l4-1L19 8l-3-3L5 16l-1 4z"]));on(ren,"click",e=>{e.stopPropagation();startEdit(t.id)})
+;const sadd=E("button",{title:"Add sub-task","aria-label":"Add sub-task: "+t.title})
+;sadd.append(Util.svgIcon(["M4 6h16","M4 12h9","M4 18h9","M18 14v6","M15 17h6"]));on(sadd,"click",e=>{e.stopPropagation()
+;state.expanded.add(t.id);state.subAdding=t.id;state.subFocus=t.id;render()})
+;const snz=E("button",{title:"Snooze","aria-label":"Snooze: "+t.title})
 ;snz.append(Util.svgIcon(["M12 7v5l3 2","M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z"]));on(snz,"click",e=>{e.stopPropagation();openSnooze(t.id,snz)})
 ;const delb=E("button",{title:"Delete","aria-label":"Delete: "+t.title})
 ;delb.append(Util.svgIcon(["M4 7h16","M9 7V5h6v2","M6 7l1 13h10l1-13","M10 11v6M14 11v6"]));on(delb,"click",e=>{e.stopPropagation();Actions.del(t.id)})
-;actions.append(snz,delb);meta.append(actions);for(const tag of t.tags){const known=Object.values(SETTINGS.tagMap).includes(tag);meta.append(E("span",{
+;actions.append(ren,sadd,snz,delb);meta.append(actions);for(const tag of t.tags){const known=Object.values(SETTINGS.tagMap).includes(tag);meta.append(E("span",{
 class:"tag"+(known?"":" unknown"),text:tag}))}if(t.priority)meta.append(E("span",{class:"pri p"+t.priority,text:"!".repeat(t.priority),
 title:["","low priority","medium priority","high priority"][t.priority]}));if(t.done){meta.append(E("span",{class:"donechip",
 text:"done "+Util.fmtShort(t.doneAt,new Date)}))}else if(state.dateEditId===t.id){meta.append(buildDateEditor(t))}else{
-const chipTxt=t.due?dateChipText(t,d):"no date";const chip=E("button",{class:"datechip"+(t.due?"":" undated"),text:chipTxt,
-"aria-label":"Due date: "+(t.due?Util.fmtLong(t.due)+(d<0?", "+-d+" days late":""):"none")});on(chip,"click",()=>startDateEdit(t.id));meta.append(chip)}
-li.append(meta);if(state.expanded.has(t.id)&&(t.note||t.subtasks.length)){const sub=E("div",{class:"subwrap"});if(t.note)sub.append(E("div",{class:"notetext",
-text:t.note}));if(t.subtasks.length){const ul=E("ul",{class:"subtasks",role:"list"});t.subtasks.forEach((s,i)=>{const scb=E("input",{type:"checkbox",
-id:"st-"+t.id+"-"+i});scb.checked=s.done;on(scb,"change",()=>Actions.toggleSubtask(t.id,i));ul.append(E("li",null,scb,E("label",{class:s.done?"sdone":null,
-for:"st-"+t.id+"-"+i,text:s.text})))});sub.append(ul)}li.append(sub)}else if(t.note&&!state.expanded.has(t.id)){}on(li,"mousedown",()=>select(t.id,false))
-;return li};const collapseThen=(li,fn)=>{const h=li.getBoundingClientRect().height;li.style.height=h+"px";li.getBoundingClientRect()
+const chipTxt=t.due?dateChipText(t,rec):"no date";const chip=E("button",{class:"datechip"+(t.due?"":" undated"),text:chipTxt,
+"aria-label":"Due date: "+(t.due?Util.fmtLong(t.due)+lateAria(rec):"none")});on(chip,"click",()=>startDateEdit(t.id));meta.append(chip)}
+li.append(meta);if(state.expanded.has(t.id)&&(t.note||t.subtasks.length||state.subAdding===t.id)){const sub=E("div",{class:"subwrap"})
+;if(t.note)sub.append(E("div",{class:"notetext",text:t.note}));sub.append(buildSubtasks(t));li.append(sub)}on(li,"mousedown",()=>select(t.id,false))
+;return li};const buildSubtasks=t=>{const wrap=E("div",null);const ul=E("ul",{class:"subtasks",role:"list"});t.subtasks.forEach((s,i)=>{
+const li=E("li",null);const scb=E("input",{type:"checkbox","aria-label":"Done: "+s.text});scb.checked=s.done
+;on(scb,"change",()=>Actions.toggleSubtask(t.id,i));li.append(scb)
+;if(state.subEditing&&state.subEditing.id===t.id&&state.subEditing.idx===i){
+const inp=E("input",{class:"sub-edit",type:"text","aria-label":"Edit sub-task"});inp.value=s.text;let closed=false
+;const commit=()=>{const v=inp.value.trim();closed=true;state.subEditing=null;if(v&&v!==s.text)Actions.subtaskRename(t.id,i,v);else render()}
+;on(inp,"keydown",e=>{if(e.key==="Enter"){e.preventDefault();commit()}else if(e.key==="Escape"){e.stopPropagation();closed=true;state.subEditing=null
+;render()}});on(inp,"blur",()=>{if(!closed){closed=true;state.subEditing=null;render()}});li.append(inp);setTimeout(()=>{inp.focus();inp.select()},0)
+}else{const lab=E("span",{class:"stext"+(s.done?" sdone":""),text:s.text})
+;on(lab,"click",()=>{state.subEditing={id:t.id,idx:i};state.subDateEdit=null;render()});li.append(lab)}
+if(state.subDateEdit&&state.subDateEdit.id===t.id&&state.subDateEdit.idx===i){
+const ed=buildDateEditorFor(s.due,async iso=>{state.subDateEdit=null;await Actions.subtaskDue(t.id,i,iso)},()=>{state.subDateEdit=null;render()})
+;li.append(ed);setTimeout(()=>{const di=ed.querySelector(".date-edit");if(di){di.focus();di.select()}},0)}else{
+const sRec=s.due?Days.recFor(s.due):null;const sUrg=s.done?"none":urgencyOf(sRec?sRec.eff:null)
+;const chip=E("button",{class:"datechip"+(s.due?"":" undated"),
+style:s.due&&!s.done?"color:var(--"+(sUrg==="overdue"?"due":sUrg)+"-text)":null,
+text:s.due?Util.fmtShort(s.due,new Date)+" · "+Days.fmtRel(sRec):"+ date",
+"aria-label":"Sub-task due date: "+(s.due?Util.fmtLong(s.due)+lateAria(sRec):"none")})
+;on(chip,"click",()=>{state.subDateEdit={id:t.id,idx:i};state.subEditing=null;render()});li.append(chip)}
+const sact=E("span",{class:"subactions"});const mkb=(title,paths,fn,dis)=>{const b=E("button",{title:title,"aria-label":title+": "+s.text,
+disabled:dis||null});b.append(Util.svgIcon(paths));on(b,"click",e=>{e.stopPropagation();fn()});return b}
+;sact.append(mkb("Move up",["M12 19V5","M5 12l7-7 7 7"],()=>Actions.subtaskMove(t.id,i,-1),i===0),
+mkb("Move down",["M12 5v14","M19 12l-7 7-7-7"],()=>Actions.subtaskMove(t.id,i,1),i===t.subtasks.length-1),
+mkb("Delete sub-task",["M4 7h16","M9 7V5h6v2","M6 7l1 13h10l1-13"],()=>Actions.subtaskDelete(t.id,i)));li.append(sact);ul.append(li)})
+;wrap.append(ul);const addInp=E("input",{class:"sub-add",type:"text",placeholder:"Add sub-task…","aria-label":"Add sub-task"})
+;on(addInp,"keydown",async e=>{if(e.key==="Enter"){e.preventDefault();const v=addInp.value.trim();if(!v)return;state.subAdding=t.id
+;state.subFocus=t.id;await Actions.subtaskAdd(t.id,v)}else if(e.key==="Escape"){e.stopPropagation();addInp.value="";state.subAdding=null;addInp.blur()
+;render()}});wrap.append(addInp);if(state.subFocus===t.id){state.subFocus=null;setTimeout(()=>addInp.focus(),0)}return wrap};const collapseThen=(li,fn)=>{const h=li.getBoundingClientRect().height;li.style.height=h+"px";li.getBoundingClientRect()
 ;li.classList.add("collapsing");li.style.height="0px";let doneCalled=false;const go=()=>{if(!doneCalled){doneCalled=true;fn()}};on(li,"transitionend",go,{
 once:true});setTimeout(go,300)};const startEdit=id=>{state.editingId=id;state.dateEditId=null;render();focusEditor()};const startDateEdit=id=>{
 state.dateEditId=id;state.editingId=null;render();focusEditor()};const focusEditor=()=>{const inp=els.listRoot.querySelector(".title-edit, .date-edit");if(inp){
@@ -610,21 +956,26 @@ inp.focus();inp.select()}};const buildTitleEditor=t=>{const inp=E("input",{class
 ;inp.value=t.title;const commit=async()=>{state.editingId=null;const parsed=EntryParse.parse(inp.value,SETTINGS.tagMap);if(!parsed.title){render();return}
 const tags=[...new Set([...t.tags,...parsed.tags])];await Actions.patch(t.id,{title:parsed.title,tags:tags,priority:parsed.priority||t.priority},"edit")}
 ;on(inp,"keydown",e=>{if(e.key==="Enter"){e.preventDefault();commit()}else if(e.key==="Escape"){e.stopPropagation();state.editingId=null;render()}})
-;on(inp,"blur",()=>{if(state.editingId===t.id){state.editingId=null;render()}});return inp};const buildDateEditor=t=>{const wrap=E("span",null)
-;const inp=E("input",{class:"date-edit",type:"text","aria-label":"Edit due date",placeholder:"12 5 · tom · +2w · empty"});inp.value=t.due?t.due:""
-;const pv=E("span",{class:"donechip",style:"margin-left:6px"});const preview=()=>{const r=DateParse.parse(inp.value,{rollForward:SETTINGS.rollForward})
+;on(inp,"blur",()=>{if(state.editingId===t.id){state.editingId=null;render()}});return inp}
+;const buildDateEditorFor=(curIso,onCommit,onCancel)=>{const wrap=E("span",null)
+;const inp=E("input",{class:"date-edit",type:"text","aria-label":"Edit due date",
+placeholder:Days.business()?"12 5 · tom · +3b · empty":"12 5 · tom · +2w · empty"});inp.value=curIso||""
+;const pv=E("span",{class:"donechip",style:"margin-left:6px"});const preview=()=>{const r=DateParse.parse(inp.value,Days.parseOpts())
 ;pv.textContent=r.kind==="invalid"?r.reason:r.kind==="empty"?"no date":Util.fmtLong(r.iso)};on(inp,"input",Util.debounce(preview,120))
-;const commit=async literal=>{const r=DateParse.parse(inp.value,{literal:literal,rollForward:SETTINGS.rollForward});if(r.kind==="invalid"){
-inp.classList.add("bad");pv.textContent=r.reason;return}state.dateEditId=null;await Actions.patch(t.id,{due:r.iso},"edit")};on(inp,"keydown",e=>{
-if(e.key==="Enter"){e.preventDefault();commit(e.shiftKey)}else if(e.key==="Escape"){e.stopPropagation();state.dateEditId=null;render()}});on(inp,"blur",()=>{
-if(state.dateEditId===t.id){state.dateEditId=null;render()}});wrap.append(inp,pv);return wrap};const renderTagKey=(open,days)=>{const tk=els.tagKey
+;let closed=false;const commit=literal=>{const r=DateParse.parse(inp.value,Days.parseOpts({literal:literal}));if(r.kind==="invalid"){
+inp.classList.add("bad");pv.textContent=r.reason;return}closed=true;onCommit(r.iso)};on(inp,"keydown",e=>{
+if(e.key==="Enter"){e.preventDefault();commit(e.shiftKey)}else if(e.key==="Escape"){e.stopPropagation();closed=true;onCancel()}});on(inp,"blur",()=>{
+if(!closed){closed=true;onCancel()}});wrap.append(inp,pv);return wrap}
+;const buildDateEditor=t=>buildDateEditorFor(t.due,async iso=>{state.dateEditId=null;await Actions.patch(t.id,{due:iso},"edit")},()=>{
+if(state.dateEditId===t.id){state.dateEditId=null;render()}});const renderTagKey=(open,recs)=>{const tk=els.tagKey
 ;tk.textContent="";const entries=Object.entries(SETTINGS.tagMap);entries.forEach(([key,label],i)=>{const count=open.filter(t=>t.tags.includes(label)).length
 ;const chip=E("button",{class:"tkchip","aria-pressed":state.filters.has(label)?"true":"false",disabled:count===0&&!state.filters.has(label),
 title:label+" — press "+(i+1)+" to filter"});chip.append(E("span",{class:"k",text:key}),E("span",{class:"lbl",text:label}))
 ;on(chip,"click",()=>toggleFilter(label));tk.append(chip)});const noneCount=open.filter(t=>t.tags.length===0).length;const noneChip=E("button",{class:"tkchip",
 "aria-pressed":state.filters.has(NONE)?"true":"false",disabled:noneCount===0&&!state.filters.has(NONE),title:"Untagged tasks — 0 clears filters"})
 ;noneChip.append(E("span",{class:"k",text:"·"}),E("span",{class:"lbl",text:"none"}));on(noneChip,"click",()=>toggleFilter(NONE));tk.append(noneChip)
-;const dueToday=open.filter(t=>days.get(t.id)===0).length;tk.append(E("span",{class:"counts",text:open.length+" open · "+dueToday+" today"}))}
+;const dueToday=open.filter(t=>{const r=recs.get(t.id);return!!r&&r.eff===0}).length
+;tk.append(E("span",{class:"counts",text:open.length+" open · "+dueToday+" today"}))}
 ;const toggleFilter=label=>{if(state.filters.has(label))state.filters.delete(label);else state.filters.add(label);render()};const clearFilters=()=>{
 state.filters.clear();render()};const renderCountLine=(shown,totalOpen,searching)=>{if(searching){els.countLine.hidden=false
 ;els.countLine.textContent="showing "+shown+" of "+totalOpen}else els.countLine.hidden=true};const renderDigest=(overdue,today)=>{const w=els.digestWrap
@@ -641,21 +992,22 @@ state.filters.clear();render()};const renderCountLine=(shown,totalOpen,searching
 ;sect.append(E("h2",{class:"sect-h"},"Completed",E("span",{class:"n",text:"· "+done.length})));if(!done.length)sect.append(E("div",{class:"empty",
 text:"Nothing completed yet."}));let curDate=null,ul=null;for(const t of done){if(t.doneAt!==curDate){curDate=t.doneAt;sect.append(E("h4",{
 class:"sect-h comp-group",text:Util.fmtLong(curDate)}));ul=E("ul",{role:"list"});sect.append(ul)}ul.append(buildRow(t,null))}root.append(sect)}
-;const renderDoneList=list=>{const root=els.listRoot;const sect=E("section",{class:"sect"});sect.append(E("h2",{class:"sect-h"},"Completed",E("span",{class:"n",
+;const renderDoneList=(root,list)=>{const sect=E("section",{class:"sect"});sect.append(E("h2",{class:"sect-h"},"Completed",E("span",{class:"n",
 text:"· "+list.length})));const ul=E("ul",{role:"list"});for(const t of list){ul.append(buildRow(t,null));state.visible.push(t.id)}sect.append(ul)
 ;if(!list.length)sect.append(emptyState(true,0));root.append(sect)};const select=(id,scroll)=>{state.sel=id
-;for(const li of els.listRoot.querySelectorAll("li.task.sel"))li.classList.remove("sel");if(!id)return
-;const li=els.listRoot.querySelector('li[data-id="'+id+'"]');if(li){li.classList.add("sel");if(scroll)li.scrollIntoView({block:"nearest"})}}
+;for(const li of els.listRoot.querySelectorAll(".task.sel,.bcard.sel"))li.classList.remove("sel");if(!id)return
+;const li=els.listRoot.querySelector('[data-id="'+id+'"]');if(li){li.classList.add("sel");if(scroll)li.scrollIntoView({block:"nearest"})}}
 ;const selectMove=delta=>{if(!state.visible.length)return;let i=state.visible.indexOf(state.sel)
 ;i=i===-1?delta>0?0:state.visible.length-1:Math.min(state.visible.length-1,Math.max(0,i+delta));select(state.visible[i],true)}
 ;const selected=()=>state.sel&&Model.byId.get(state.sel)?state.sel:null;const showBanner=(id,opts)=>{hideBanner(id);const b=E("div",{
 class:"banner "+(opts.cls||""),dataset:{bid:id},role:opts.cls==="alert"?"alert":"status"});b.append(E("span",{class:"msg",text:opts.msg}))
 ;for(const a of opts.actions||[]){const btn=E("button",{text:a.label});on(btn,"click",()=>a.fn(b));b.append(btn)}if(opts.closable){const x=E("button",{
-class:"bx","aria-label":"Dismiss",text:"✕"});on(x,"click",()=>b.remove());b.append(x)}els.banners.append(b);return b};const hideBanner=id=>{
+class:"bx","aria-label":"Dismiss",text:"✕"});on(x,"click",()=>{b.remove();if(opts.onClose)opts.onClose()});b.append(x)}els.banners.append(b);return b};const hideBanner=id=>{
 const cur=els.banners.querySelector('[data-bid="'+id+'"]');if(cur)cur.remove()};const showParseProblems=problems=>{const b=showBanner("parse",{cls:"warn",
 closable:true,msg:problems.length+(problems.length===1?" line":" lines")+" in the file couldn't be read as tasks. They've been left untouched."})
 ;const btn=E("button",{text:"Show lines"});const pre=E("pre",{hidden:true});pre.textContent=problems.map(p=>"line "+p.line+" · "+p.msg+"\n  "+p.text).join("\n")
-;on(btn,"click",()=>{pre.hidden=!pre.hidden});b.insertBefore(btn,b.querySelector(".bx"));b.append(pre)};const showFileGone=()=>{showBanner("filegone",{
+;on(btn,"click",()=>{pre.hidden=!pre.hidden});b.insertBefore(btn,b.querySelector(".bx"));b.append(pre)};const showFileGone=()=>{hideBanner("nosave")
+;curSaveKind=null;showBanner("filegone",{
 cls:"alert",closable:true,msg:"todo.md is no longer at that location.",actions:[{label:"Choose file",fn:b=>{b.remove();Persist.chooseFile()}},{
 label:"Save as new file",fn:b=>{b.remove();Persist.createFile()}}]})};const diffLines=(aText,bText)=>{
 const a=aText.split(/\r\n|\n|\r/),b=bText.split(/\r\n|\n|\r/);if(a.length*b.length>4e6){return[{t:"-",
@@ -663,18 +1015,42 @@ l:"(files too large to diff — "+a.length+" vs "+b.length+" lines)"}]}const n=a
 ;for(let i=n-1;i>=0;i--)for(let j=m-1;j>=0;j--)dp[i][j]=a[i]===b[j]?dp[i+1][j+1]+1:Math.max(dp[i+1][j],dp[i][j+1]);const out=[];let i=0,j=0;while(i<n&&j<m){
 if(a[i]===b[j]){out.push({t:" ",l:a[i]});i++;j++}else if(dp[i+1][j]>=dp[i][j+1]){out.push({t:"-",l:a[i]});i++}else{out.push({t:"+",l:b[j]});j++}}
 while(i<n)out.push({t:"-",l:a[i++]});while(j<m)out.push({t:"+",l:b[j++]});return out};const showConflict=(fileText,opts)=>{hideBanner("conflict")
+;hideBanner("nosave");curSaveKind=null
 ;const src=opts&&opts.source?"Backup "+opts.source:"todo.md";const b=showBanner("conflict",{cls:"alert",
 msg:src+" changed outside this app. Choose which version to keep — nothing is merged automatically.",actions:[{label:"Reload from disk",fn:async bn=>{
 if(Persist.state().dirty&&!window.confirm("Discard unsaved changes in the app and load the file version?"))return;bn.remove()
 ;await Persist.resolveReload(fileText)}},{label:"Keep my version",fn:async bn=>{if(!window.confirm("Overwrite the file with the app's current tasks?"))return
 ;bn.remove();await Persist.resolveKeepMine()}},{label:"Show what changed",fn:bn=>{let pre=bn.querySelector("pre");if(pre){pre.hidden=!pre.hidden;return}
 pre=E("pre",null);for(const d of diffLines(Persist.currentText(),fileText)){const line=E("span",{class:d.t==="+"?"da":d.t==="-"?"dr":null,text:d.t+" "+d.l})
-;pre.append(line,"\n")}bn.append(pre)}}]});return b};const updateFileUI=mode=>{const p=Persist.state();els.choosePill.hidden=!(p.tier===1&&!p.handle)
-;els.reconnectPill.hidden=!(p.handle&&p.permission==="prompt");if(p.handle&&(p.permission==="granted"||p.permission==="prompt")){
-els.saveInd.hidden=p.permission!=="granted";els.saveInd.className="save-ind "+(mode==="saving"?"saving":p.lastError?"error":p.dirty?"dirty":"")
-;const txt=els.saveInd.querySelector(".txt");txt.textContent=mode==="saving"?"SAVING…":"· "+(p.fileName||"todo.md")
-;els.saveInd.title=p.lastError?"Couldn't write the file: "+(p.lastError.message||p.lastError.name)+". Your tasks are safe in this browser; the file copy is stale.":p.dirty?"Unsaved changes will be written shortly":"Saved to "+(p.fileName||"todo.md")
-}else{els.saveInd.hidden=true}};const toasts=[];const dropToast=t=>{const i=toasts.indexOf(t);if(i>=0)toasts.splice(i,1);t.el.remove();clearInterval(t.timer)}
+;pre.append(line,"\n")}bn.append(pre)}}]});return b};
+/* save-state prominence */const fileStatus=p=>{if(p.tier===3)return"tier3";if(p.tier===2)return"tier2";if(!p.handle)return"nofile"
+;if(p.permission==="none")return"pending";if(p.permission!=="granted")return"perm";if(p.lastError)return"error";return"ok"}
+;const saveDismissed=new Set;let curSaveKind=null;let chipAct=null;const unDismiss=kind=>{saveDismissed.delete(kind);curSaveKind=null;updateFileUI()}
+;const syncSaveBanner=st=>{let kind=Model.tasks.length>0?{nofile:"nofile",perm:"perm",error:"error",tier2:"tier2"}[st]||null:null
+;if(kind&&["conflict","filegone","secerr"].some(id=>els.banners.querySelector('[data-bid="'+id+'"]')))kind=null
+;if(kind&&saveDismissed.has(kind))kind=null;if(kind===curSaveKind)return;curSaveKind=kind;if(!kind){hideBanner("nosave");return}const p=Persist.state()
+;const file=p.fileName||"todo.md";const spec={nofile:{cls:"warn",msg:"These tasks aren't saved to a markdown file — they live only in this browser.",
+actions:[{label:"Choose todo.md",fn:()=>Persist.chooseFile()},{label:"Create new",fn:()=>Persist.createFile()}]},perm:{cls:"warn",
+msg:"Runway needs permission again to keep writing "+file+".",actions:[{label:"Reconnect",fn:()=>Persist.reconnect()}]},error:{cls:"alert",
+msg:"Couldn't write "+file+": "+(p.lastError&&(p.lastError.message||p.lastError.name)||"unknown error")+". Your tasks are safe in this browser; the file copy is stale.",
+actions:[{label:"Retry",fn:()=>Persist.flush(true)}]},tier2:{cls:"warn",
+msg:"This browser can't save directly to a file. Tasks are stored in the browser — export a copy to keep todo.md up to date.",
+actions:[{label:"Export .md",fn:()=>Persist.exportMd()}]}}[kind]
+;showBanner("nosave",{cls:spec.cls,closable:true,msg:spec.msg,actions:spec.actions,onClose:()=>{saveDismissed.add(kind);curSaveKind=null}})}
+;const CHIP={nofile0:{lbl:"Choose todo.md",g:"⊕",cls:"",tip:"Save this list to a markdown file",act:()=>Persist.chooseFile()},
+nofile:{lbl:"not saved to file",g:"⚠",cls:"warn",tip:"Tasks live only in this browser — click for options",act:()=>unDismiss("nofile")},
+perm:{lbl:"reconnect todo.md",g:"⚠",cls:"warn",tip:"Permission needed to keep writing the file",act:()=>{unDismiss("perm");Persist.reconnect()}},
+error:{lbl:"save failing",g:"⚠",cls:"err",tip:"Couldn't write the file — click to retry",act:()=>{unDismiss("error");Persist.flush(true)}},
+tier2:{lbl:"in-browser only",g:"⚠",cls:"warn",tip:"This browser can't save to a file — click for options",act:()=>unDismiss("tier2")}}
+;const updateFileUI=mode=>{const p=Persist.state();const st=mode==="saving"?"ok":fileStatus(p);const hasTasks=Model.tasks.length>0;let chip=null
+;if(st==="nofile")chip=hasTasks?CHIP.nofile:CHIP.nofile0;else if(st==="perm")chip=CHIP.perm;else if(st==="error")chip=CHIP.error
+;else if(st==="tier2"&&hasTasks)chip=CHIP.tier2;els.fileChip.hidden=!chip;chipAct=chip?chip.act:null;if(chip){
+els.fileChip.className="pill"+(chip.cls?" "+chip.cls:"");els.fileChip.querySelector(".g").textContent=chip.g
+;els.fileChip.querySelector(".lbl").textContent=chip.lbl;els.fileChip.title=chip.tip;els.fileChip.setAttribute("aria-label",chip.tip)}
+if(st==="ok"){els.saveInd.hidden=false;els.saveInd.className="save-ind "+(mode==="saving"?"saving":p.dirty?"dirty":"")
+;els.saveInd.querySelector(".txt").textContent=mode==="saving"?"SAVING…":"· "+(p.fileName||"todo.md")
+;els.saveInd.title=p.dirty?"Unsaved changes will be written shortly":"Saved to "+(p.fileName||"todo.md")}else els.saveInd.hidden=true
+;syncSaveBanner(st)};const toasts=[];const dropToast=t=>{const i=toasts.indexOf(t);if(i>=0)toasts.splice(i,1);t.el.remove();clearInterval(t.timer)}
 ;const makeToast=(msg,undoCount)=>{const t={remaining:SETTINGS.undoWindowSec*1e3,undoCount:undoCount,paused:false,kind:"undo"};const el=E("div",{class:"toast",
 role:"status","aria-live":"polite"});el.append(E("span",{class:"tmsg",text:msg}));const ub=E("button",{class:"tundo",text:undoCount>1?"Undo all":"Undo"})
 ;on(ub,"click",async()=>{dropToast(t);for(let i=0;i<undoCount;i++)await Undo.undo();Render.render();Persist.markDirty()});el.append(ub,E("span",{class:"tk",
@@ -684,18 +1060,34 @@ text:"⌘Z"}));const drain=E("div",{class:"drain"});el.append(drain);on(el,"mous
 const undoToasts=toasts.filter(x=>x.kind==="undo");if(undoToasts.length>=3){const total=undoToasts.reduce((s,x)=>s+x.undoCount,0)+1
 ;for(const x of[...undoToasts])dropToast(x);makeToast(total+" tasks completed",total);return}makeToast("Completed “"+task.title+"”",1)}
 ;const toastDeleted=task=>makeToast("Deleted “"+task.title+"”",1);let popCleanup=null;const closePop=()=>{if(popCleanup){popCleanup();popCleanup=null}}
-;const openSnooze=(id,anchor)=>{closePop();const t=Model.byId.get(id);if(!t)return;const today=new Date;const opt=(n,label,iso)=>({n:n,label:label,iso:iso})
-;const plus=days=>Util.isoOf(new Date(today.getFullYear(),today.getMonth(),today.getDate()+days));const pm=DateParse.parse("+1m",{today:today})
-;const options=[opt(1,"Tomorrow",plus(1)),opt(2,"In 3 days",plus(3)),opt(3,"Next week",plus(7)),opt(4,"Next month",pm.iso),opt(5,"Remove date",null)]
-;const pop=E("div",{class:"pop",role:"menu","aria-label":"Snooze"});pop.append(E("h3",{text:"Snooze to…"}));const btns=options.map(o=>{const b=E("button",{
-role:"menuitem"},E("span",{class:"kk",text:String(o.n)}),E("span",{text:o.label}),E("span",{class:"dd",text:o.iso?Util.fmtShort(o.iso,today):"(undated)"}))
-;on(b,"click",()=>{closePop();Actions.snooze(id,o.iso)});pop.append(b);return b});els.popRoot.append(pop)
-;const r=(anchor||els.listRoot.querySelector('li[data-id="'+id+'"]')||els.listRoot).getBoundingClientRect()
+;const openPop=(label,build,anchor,onKey)=>{closePop();const pop=E("div",{class:"pop",role:"menu","aria-label":label});build(pop)
+;els.popRoot.append(pop);const r=(anchor||els.listRoot).getBoundingClientRect()
 ;pop.style.left=Math.max(8,Math.min(window.innerWidth-pop.offsetWidth-8,r.left))+"px"
-;pop.style.top=Math.min(window.innerHeight-pop.offsetHeight-8,r.bottom+4+window.scrollY)+"px";pop.style.position="absolute";const key=e=>{if(e.key==="Escape"){
-e.stopPropagation();closePop()}const n=parseInt(e.key,10);if(n>=1&&n<=5){e.preventDefault();e.stopPropagation();closePop();Actions.snooze(id,options[n-1].iso)}}
-;const away=e=>{if(!pop.contains(e.target))closePop()};on(window,"keydown",key,true);setTimeout(()=>on(window,"mousedown",away),0);popCleanup=()=>{pop.remove()
-;window.removeEventListener("keydown",key,true);window.removeEventListener("mousedown",away)};btns[0].focus()};const popOpen=()=>!!popCleanup
+;pop.style.top=Math.min(window.innerHeight-pop.offsetHeight-8,r.bottom+4+window.scrollY)+"px";pop.style.position="absolute"
+;const key=e=>{if(e.key==="Escape"){e.stopPropagation();closePop();return}if(onKey)onKey(e)}
+;const away=e=>{if(!pop.contains(e.target))closePop()};on(window,"keydown",key,true);setTimeout(()=>on(window,"mousedown",away),0)
+;popCleanup=()=>{pop.remove();window.removeEventListener("keydown",key,true);window.removeEventListener("mousedown",away)}
+;const f=pop.querySelector("button,input");if(f)f.focus();return pop}
+;const openSnooze=(id,anchor)=>{const t=Model.byId.get(id);if(!t)return;const today=new Date;const opt=(n,label,iso)=>({n:n,label:label,iso:iso})
+;const plus=days=>Util.isoOf(new Date(today.getFullYear(),today.getMonth(),today.getDate()+days));const pm=DateParse.parse("+1m",{today:today})
+;const wplus=n=>Util.isoOf(Days.addWorkDays(today,n));const options=Days.business()
+?[opt(1,"Next work day",wplus(1)),opt(2,"In 3 work days",wplus(3)),opt(3,"In 7 work days",wplus(7)),opt(4,"Next month",pm.iso),opt(5,"Remove date",null)]
+:[opt(1,"Tomorrow",plus(1)),opt(2,"In 3 days",plus(3)),opt(3,"Next week",plus(7)),opt(4,"Next month",pm.iso),opt(5,"Remove date",null)]
+;openPop("Snooze",pop=>{pop.append(E("h3",{text:"Snooze to…"}));for(const o of options){const b=E("button",{
+role:"menuitem"},E("span",{class:"kk",text:String(o.n)}),E("span",{text:o.label}),E("span",{class:"dd",text:o.iso?Util.fmtShort(o.iso,today):"(undated)"}))
+;on(b,"click",()=>{closePop();Actions.snooze(id,o.iso)});pop.append(b)}},anchor||els.listRoot.querySelector('[data-id="'+id+'"]'),
+e=>{const n=parseInt(e.key,10);if(n>=1&&n<=5){e.preventDefault();e.stopPropagation();closePop();Actions.snooze(id,options[n-1].iso)}})}
+;const openCalTask=(id,anchor)=>{const t=Model.byId.get(id);if(!t)return
+;openPop("Task actions",pop=>{pop.append(E("h3",{text:t.title}))
+;const mk=(label,fn)=>{const b=E("button",{role:"menuitem"},E("span",{text:label}));on(b,"click",fn);pop.append(b)}
+;mk(t.done?"↩ Reopen":"✓ Complete",()=>{closePop();if(t.done)Actions.uncomplete(id);else Actions.complete(id)})
+;mk("Edit date…",()=>{pop.textContent="";pop.append(E("h3",{text:t.title}))
+;const ed=buildDateEditorFor(t.due,async iso=>{closePop();await Actions.patch(id,{due:iso},"edit")},()=>closePop());pop.append(ed)
+;const di=ed.querySelector(".date-edit");if(di){di.focus();di.select()}})
+;mk("Open in list",()=>{closePop();state.sel=id;Settings.set("view","list").then(()=>select(id,true))})},anchor)}
+;const openCalDay=(iso,tasks,anchor)=>{openPop("Tasks due "+iso,pop=>{pop.append(E("h3",{text:Util.fmtLong(iso)}))
+;for(const t of tasks){const b=E("button",{role:"menuitem"},E("span",{text:t.title}));on(b,"click",()=>openCalTask(t.id,anchor));pop.append(b)}},anchor)}
+;const popOpen=()=>!!popCleanup
 ;const animateAdd=id=>{state.lastAdded=id};const setQuery=q=>{state.query=q;els.searchWrap.classList.toggle("hasq",!!q.trim());render()}
 ;const toggleCompleted=()=>{state.showCompleted=!state.showCompleted;render()};return{init:init,render:render,state:state,select:select,selectMove:selectMove,
 selected:selected,showBanner:showBanner,hideBanner:hideBanner,showConflict:showConflict,showParseProblems:showParseProblems,showFileGone:showFileGone,
@@ -712,14 +1104,18 @@ e.preventDefault();if(Persist.state().tier===1&&Persist.state().handle)Persist.f
 e.preventDefault();Render.selectMove(1);break;case"k":case"ArrowUp":e.preventDefault();Render.selectMove(-1);break;case"x":case" ":e.preventDefault();if(sel){
 const t=Model.byId.get(sel);if(t.done)Actions.uncomplete(sel);else{const li=document.querySelector('li[data-id="'+sel+'"]')
 ;if(li)Render.collapseThen(li,()=>Actions.complete(sel));else Actions.complete(sel)}}break;case"e":if(sel){e.preventDefault();Render.startEdit(sel)}break
-;case"d":if(sel){e.preventDefault();Render.startDateEdit(sel)}break;case".":if(sel){e.preventDefault();Render.openSnooze(sel,null)}break;case"!":if(sel){
+;case"d":if(sel){e.preventDefault();Render.startDateEdit(sel)}break
+;case"s":if(sel){e.preventDefault();Render.state.expanded.add(sel);Render.state.subAdding=sel;Render.state.subFocus=sel;Render.render()}break
+;case".":if(sel){e.preventDefault();Render.openSnooze(sel,null)}break;case"!":if(sel){
 e.preventDefault();const t=Model.byId.get(sel);Actions.setPriority(sel,(t.priority+1)%4)}break;case"1":case"2":case"3":{e.preventDefault()
 ;const labels=Object.values(SETTINGS.tagMap);const label=labels[+e.key-1];if(label)Render.toggleFilter(label);break}case"0":e.preventDefault()
-;Render.clearFilters();break;case"?":e.preventDefault();Shortcuts.toggle();break;case"Escape":{const si=document.getElementById("searchInput");if(si.value){
+;Render.clearFilters();break;case"v":{e.preventDefault();const order=["list","board","cal"]
+;Settings.set("view",order[(order.indexOf(SETTINGS.view)+1)%order.length]);break}
+case"?":e.preventDefault();Shortcuts.toggle();break;case"Escape":{const si=document.getElementById("searchInput");if(si.value){
 Render.setQuery("");si.value=""}else Render.select(null,false);break}}};const init=fnOverlayOpen=>{overlayOpen=fnOverlayOpen;on(window,"keydown",handler)}
 ;return{init:init}})();
 /* ================================================================ Shortcuts overlay */const Shortcuts=(()=>{let open=false,elRef=null,prevFocus=null
-;const GROUPS=[["Navigate",[["j / ↓","Select next task"],["k / ↑","Select previous task"],["Esc","Close overlay · clear search · deselect"]]],["Act",[["x / Space","Toggle complete"],["e","Edit title"],["d","Edit date"],[".","Snooze menu"],["!","Cycle priority"],["n","New task (focus entry)"]]],["Filter",[["/","Focus search"],["1 2 3","Toggle tag filter"],["0","Clear all filters"]]],["Entry",[["Enter","Add task"],["Shift+Enter","Add with literal date (no roll-forward)"],["Tab","Title → date field"]]],["System",[["Ctrl/⌘ Z","Undo"],["Ctrl/⌘ ⇧ Z","Redo"],["Ctrl/⌘ S","Save to disk"],["?","This overlay"]]]]
+;const GROUPS=[["Navigate",[["j / ↓","Select next task"],["k / ↑","Select previous task"],["v","Cycle list · board · calendar"],["Esc","Close overlay · clear search · deselect"]]],["Act",[["x / Space","Toggle complete"],["e","Rename task"],["d","Edit date"],["s","Add sub-task"],[".","Snooze menu"],["!","Cycle priority"],["n","New task (focus entry)"]]],["Filter",[["/","Focus search"],["1 2 3","Toggle tag filter"],["0","Clear all filters"]]],["Entry",[["Enter","Add task"],["Shift+Enter","Add with literal date (no roll-forward)"],["Tab","Title → date field"],["+3b","Date fields: in 3 work days"]]],["System",[["Ctrl/⌘ Z","Undo"],["Ctrl/⌘ ⇧ Z","Redo"],["Ctrl/⌘ S","Save to disk"],["?","This overlay"]]]]
 ;const close=()=>{if(!open)return;open=false;document.getElementById("overlayRoot").textContent="";if(prevFocus&&prevFocus.focus)prevFocus.focus()}
 ;const show=()=>{if(open)return;prevFocus=document.activeElement;open=true;const root=document.getElementById("overlayRoot");const scrim=E("div",{class:"scrim"
 });on(scrim,"mousedown",close);const box=E("div",{class:"shortcuts",role:"dialog","aria-modal":"true","aria-label":"Keyboard shortcuts",tabindex:"-1"})
@@ -737,6 +1133,9 @@ const root=document.documentElement;if(SETTINGS.theme==="system")root.removeAttr
 ;if(!raw||typeof raw!=="object")return{s:d,corrupt:raw!==undefined&&raw!==null};let corrupt=false;const s=defaultSettings();const take=(k,ok)=>{
 if(raw[k]!==undefined&&ok(raw[k]))s[k]=raw[k];else if(raw[k]!==undefined)corrupt=true};take("theme",v=>["system","light","dark","geocities"].includes(v))
 ;take("accent",v=>v in ACCENTS);take("density",v=>["comfortable","compact"].includes(v));take("rollForward",v=>typeof v==="boolean")
+;take("dayMode",v=>["calendar","business"].includes(v));if(raw.workWeek!==undefined){if(Array.isArray(raw.workWeek)){
+const ww=[...new Set(raw.workWeek.filter(v=>Number.isInteger(v)&&v>=0&&v<=6))].sort((a,b)=>a-b);if(ww.length)s.workWeek=ww;else corrupt=true}else corrupt=true}
+;take("view",v=>["list","board","cal"].includes(v));take("timelineOpen",v=>typeof v==="boolean")
 ;take("mdStyle",v=>["emoji","bracket"].includes(v));take("writeBlockIds",v=>typeof v==="boolean");take("showCompletedDays",v=>Number.isInteger(v)&&v>=1&&v<=365)
 ;take("autosaveDebounceMs",v=>Number.isInteger(v)&&v>=100&&v<=6e4);take("undoWindowSec",v=>Number.isInteger(v)&&v>=2&&v<=120)
 ;take("folderMode",v=>typeof v==="boolean");take("backupRetain",v=>Number.isInteger(v)&&v>=5&&v<=100);if(raw.urgency&&typeof raw.urgency==="object"){
@@ -747,7 +1146,8 @@ corrupt:corrupt}};const load=async()=>{let raw;try{raw=await DB.metaGet("setting
 ;Object.assign(SETTINGS,s);if(corrupt)setTimeout(()=>Render.showBanner("badset",{cls:"warn",closable:true,
 msg:"Some saved settings couldn't be read and were reset to defaults. Your tasks are untouched."}),0);applyTheme();applyDensity()};const set=async(key,value)=>{
 SETTINGS[key]=value;await persist();switch(key){case"theme":applyTheme();Render.render();break;case"accent":applyAccent();break;case"density":applyDensity()
-;break;case"urgency":case"showCompletedDays":case"tagMap":Render.render();break;case"mdStyle":case"writeBlockIds":Persist.markDirty();break}}
+;break;case"urgency":case"showCompletedDays":case"tagMap":case"dayMode":case"workWeek":case"view":case"timelineOpen":Render.render();break
+;case"mdStyle":case"writeBlockIds":Persist.markDirty();break}}
 ;const isOpen=()=>panelOpen;const closePanel=()=>{if(!panelOpen)return;panelOpen=false;document.getElementById("overlayRoot").textContent=""
 ;const gear=$("settingsBtn");gear.setAttribute("aria-expanded","false");gear.focus()};const row=(label,control,hint)=>{const r=E("div",{class:"set-row"})
 ;if(typeof label==="string")r.append(E("span",{class:"slbl",text:label}));else if(label)r.append(label);if(control)r.append(control);if(hint)r.append(E("span",{
@@ -772,13 +1172,25 @@ text:"Each threshold must be smaller than the one above it."});const soonIn=E("i
 ;soonIn.value=SETTINGS.urgency.soon;const nearIn=E("input",{type:"number",min:"1",max:"365","aria-label":"Near threshold (days)"})
 ;nearIn.value=SETTINGS.urgency.near;const dueIn=E("input",{type:"number",disabled:true,"aria-label":"Due threshold (fixed: today)"});dueIn.value=0
 ;const ramp=E("div",{class:"ramp-preview"});const drawRamp=()=>{ramp.textContent="";const soon=+soonIn.value,near=+nearIn.value
-;const items=[["calm",1,"> "+soon+"d"],["soon",2,near+1+"–"+soon+"d"],["near",3,"1–"+near+"d"],["due",4,"today"]];for(const[name,fill,lab]of items){
+;const u=Days.business()?" wd":"d";const items=[["calm",1,"> "+soon+u],["soon",2,near+1+"–"+soon+u],["near",3,"1–"+near+u],["due",4,"today"]]
+;for(const[name,fill,lab]of items){
 const g=E("span",{class:"g"});for(let i=0;i<4;i++){const seg=E("i",null);if(i<fill)seg.style.background="var(--"+name+"-bar)";g.append(seg)}
 ramp.append(E("span",{class:"rp"},g,name+" "+lab))}};drawRamp();const commitUrg=()=>{const soon=parseInt(soonIn.value,10),near=parseInt(nearIn.value,10)
 ;const bad=!(Number.isInteger(soon)&&Number.isInteger(near)&&soon>near&&near>0);soonIn.classList.toggle("bad",bad);nearIn.classList.toggle("bad",bad)
 ;err.hidden=!bad;if(!bad){set("urgency",{calm:soon,soon:soon,near:near,due:0});drawRamp()}};on(soonIn,"input",commitUrg);on(nearIn,"input",commitUrg)
-;ug.append(row("Soon within (days)",soonIn),row("Near within (days)",nearIn),row("Due",dueIn,"Overdue is anything before today; undated is never coloured."),err,ramp)
+;const soonLbl=E("span",{class:"slbl"});const nearLbl=E("span",{class:"slbl"});const refreshUnits=()=>{
+const u=Days.business()?"work days":"days";soonLbl.textContent="Soon within ("+u+")";nearLbl.textContent="Near within ("+u+")";drawRamp()};refreshUnits()
+;ug.append(row(soonLbl,soonIn),row(nearLbl,nearIn),row("Due",dueIn,"Overdue is anything before today; undated is never coloured."),err,ramp)
 ;body.append(ug);const dt=E("div",{class:"set-sect"},E("h3",{text:"Dates"}))
+;dt.append(row("Count days as",segButtons([["calendar","Calendar"],["business","Work days"]],SETTINGS.dayMode,v=>{set("dayMode",v);refreshUnits()})))
+;const wwWrap=E("div",{class:"seg-btns",role:"group","aria-label":"Work week days"})
+;const wwErr=E("span",{class:"set-err",hidden:true,text:"Keep at least one work day."})
+;for(const[lbl,num]of[["Mon",1],["Tue",2],["Wed",3],["Thu",4],["Fri",5],["Sat",6],["Sun",0]]){
+const b=E("button",{text:lbl,"aria-pressed":SETTINGS.workWeek.includes(num)?"true":"false","aria-label":lbl+" is a work day"});on(b,"click",()=>{
+const cur=new Set(SETTINGS.workWeek);if(cur.has(num)){if(cur.size===1){wwErr.hidden=false;return}cur.delete(num)}else cur.add(num);wwErr.hidden=true
+;b.setAttribute("aria-pressed",cur.has(num)?"true":"false");set("workWeek",[...cur].sort((x,y)=>x-y))});wwWrap.append(b)}
+dt.append(row("Work week",wwWrap),wwErr,
+row(null,null,"Work-days mode counts only these days for chips, urgency and sections. The +Nb date input (e.g. +3b) uses them in both modes."))
 ;dt.append(checkbox("Roll past dates forward",SETTINGS.rollForward,v=>set("rollForward",v)))
 ;dt.append(row(null,null,"Example: typing “12 5” after 12 May resolves to 12 May next year. Shift+Enter always keeps the literal date."));body.append(dt)
 ;const fl=E("div",{class:"set-sect"},E("h3",{text:"File"}));const p=Persist.state();fl.append(row("Current file",E("span",{class:"hint",style:"flex:none",
@@ -846,15 +1258,18 @@ applyAccent:applyAccent,applyDensity:applyDensity,openPanel:openPanel,closePanel
 ;const renderChips=()=>{const parsed=EntryParse.parse($("titleInput").value,SETTINGS.tagMap);if(!chipsEl){chipsEl=E("div",{class:"entry-chips",
 "aria-hidden":"true"});$("datePreview").before(chipsEl)}chipsEl.textContent="";for(const t of parsed.tags)chipsEl.append(E("span",{class:"tag",text:t}))
 ;if(parsed.priority)chipsEl.append(E("span",{class:"pri p"+parsed.priority,text:"!".repeat(parsed.priority)}))};const previewText=r=>{
-if(r.kind==="invalid")return{text:r.reason,cls:"invalid"};if(r.kind==="empty")return{text:"no date",cls:""};const today=Util.midnight(new Date)
-;const d=Util.daysBetween(today,Util.parseISO(r.iso));let suffix
-;if(r.rolled)suffix="rolled forward";else if(d<0)suffix=-d+" days ago";else if(d===0)suffix="today";else if(d===1)suffix="in 1 day";else suffix="in "+d+" days"
-;return{text:Util.fmtLong(r.iso)+" · "+suffix,cls:r.rolled?"rolled":d<0?"past":""}};const updatePreview=()=>{const el=$("datePreview")
-;const r=DateParse.parse($("dateInput").value,{rollForward:SETTINGS.rollForward});const p=previewText(r);el.textContent=p.text
+if(r.kind==="invalid")return{text:r.reason,cls:"invalid"};if(r.kind==="empty")return{text:"no date",cls:""};const rec=Days.recFor(r.iso);let suffix
+;if(r.rolled)suffix="rolled forward";else if(Days.business()){
+if(rec.overdue)suffix=rec.wd<0?-rec.wd+" wd ago":"past";else if(rec.cal===0)suffix="today";else suffix=rec.eff===0?"0 wd":"in "+rec.eff+" wd"}
+else if(rec.cal<0)suffix=-rec.cal+" days ago";else if(rec.cal===0)suffix="today";else if(rec.cal===1)suffix="in 1 day";else suffix="in "+rec.cal+" days"
+;return{text:Util.fmtLong(r.iso)+" · "+suffix,cls:r.rolled?"rolled":rec.cal<0?"past":""}};const updatePreview=()=>{const el=$("datePreview")
+;const r=DateParse.parse($("dateInput").value,Days.parseOpts());const p=previewText(r);el.textContent=p.text
 ;el.className="date-preview "+p.cls;$("dateInput").classList.toggle("bad",r.kind==="invalid")};const clear=()=>{$("titleInput").value="";$("dateInput").value=""
 ;$("dateInput").classList.remove("bad");$("datePreview").textContent="";$("datePreview").className="date-preview";if(chipsEl)chipsEl.textContent=""}
+;const prefillDate=iso=>{$("dateInput").value=iso||"";updatePreview();$("titleInput").focus()
+;$("titleInput").scrollIntoView({block:"nearest"})}
 ;const commit=async literal=>{const raw=$("titleInput").value;const parsed=EntryParse.parse(raw,SETTINGS.tagMap);if(!parsed.title){$("titleInput").focus()
-;return}const r=DateParse.parse($("dateInput").value,{literal:literal,rollForward:SETTINGS.rollForward});if(r.kind==="invalid"){
+;return}const r=DateParse.parse($("dateInput").value,Days.parseOpts({literal:literal}));if(r.kind==="invalid"){
 $("dateInput").classList.add("bad");updatePreview();$("dateInput").focus();return}await Actions.add({title:parsed.title,tags:parsed.tags,
 priority:parsed.priority,due:r.iso});clear();$("titleInput").focus()};const confirmBulk=lines=>{const root=document.getElementById("overlayRoot")
 ;root.textContent="";const scrim=E("div",{class:"scrim"});const box=E("div",{class:"shortcuts",role:"dialog","aria-modal":"true","aria-label":"Confirm paste",
@@ -862,14 +1277,14 @@ style:"width:min(380px,90vw)"});box.append(E("h2",{text:"Add "+lines.length+" ta
 text:"One task per pasted line. Dates in the text are not parsed."}));const rowEl=E("div",{class:"set-row"});const addB=E("button",{class:"mini-btn",
 text:"Add "+lines.length+" tasks"});const cancelB=E("button",{class:"mini-btn",text:"Cancel"});const close=()=>{root.textContent="";$("titleInput").focus()}
 ;on(cancelB,"click",close);on(scrim,"mousedown",close);on(box,"keydown",e=>{if(e.key==="Escape"){e.stopPropagation();close()}});on(addB,"click",async()=>{
-close();const r=DateParse.parse($("dateInput").value,{rollForward:SETTINGS.rollForward});const due=r.kind==="date"?r.iso:null;const fields=lines.map(l=>{
+close();const r=DateParse.parse($("dateInput").value,Days.parseOpts());const due=r.kind==="date"?r.iso:null;const fields=lines.map(l=>{
 const p=EntryParse.parse(l,SETTINGS.tagMap);return{title:p.title||l.trim(),tags:p.tags,priority:p.priority,due:due}}).filter(f=>f.title)
 ;await Actions.bulkAdd(fields);clear()});rowEl.append(addB,cancelB);box.append(rowEl);root.append(scrim,box);addB.focus()};const init=()=>{
 const ti=$("titleInput"),di=$("dateInput");on(ti,"keydown",e=>{if(e.key==="Enter"){e.preventDefault();commit(false)}else if(e.key==="Escape"){clear();ti.blur()}
 });on(ti,"input",renderChips);on(ti,"paste",e=>{const text=(e.clipboardData||window.clipboardData).getData("text");if(!text||!text.includes("\n"))return
 ;const lines=text.split(/\r\n|\n|\r/).map(l=>l.trim()).filter(Boolean);if(lines.length<2)return;e.preventDefault();confirmBulk(lines)});on(di,"keydown",e=>{
 if(e.key==="Enter"){e.preventDefault();commit(e.shiftKey)}else if(e.key==="Escape"){clear();di.blur()}});on(di,"input",Util.debounce(updatePreview,120))}
-;return{init:init,clear:clear}})();
+;return{init:init,clear:clear,prefillDate:prefillDate}})();
 /* ================================================================ App */const App=(()=>{let midnightTimer=null;const armMidnight=()=>{
 clearTimeout(midnightTimer);const now=new Date;const next=new Date(now.getFullYear(),now.getMonth(),now.getDate()+1,0,0,1);midnightTimer=setTimeout(()=>{
 Render.render();armMidnight()},next-now)};const dbWriteError=e=>{const quota=e&&(e.name==="QuotaExceededError"||(e.message||"").includes("uota"))
@@ -878,11 +1293,11 @@ msg:quota?"Browser storage is full ("+Model.tasks.length+" tasks stored). Archiv
 })};const wipe=async()=>{try{await DB.clear("tasks");await DB.clear("journal");await DB.clear("meta")}catch(e){}Model.tasks.length=0;Model.byId.clear()
 ;Object.assign(SETTINGS,defaultSettings());Settings.applyTheme();Settings.applyDensity();await Persist.disconnect();Settings.closePanel();Render.render()
 ;Render.showBanner("wiped",{cls:"warn",closable:true,msg:"Local data wiped. The markdown file on disk was not touched."})}
-;const overlayOpen=()=>Settings.isOpen()||Shortcuts.isOpen()||!!document.querySelector("#overlayRoot .shortcuts[aria-label='Confirm paste']")
+;const overlayOpen=()=>Settings.isOpen()||Shortcuts.isOpen()||Stats.isOpen()||!!document.querySelector("#overlayRoot .shortcuts[aria-label='Confirm paste']")
 ;const boot=async()=>{const dbOk=await DB.open();await Settings.load();await Model.load();await Undo.load();Render.init();Entry.init();Keys.init(overlayOpen)
 ;Render.render();on(document.getElementById("settingsBtn"),"click",()=>{if(Settings.isOpen())Settings.closePanel();else Settings.openPanel()})
-;on(document.getElementById("completedToggle"),"click",Render.toggleCompleted);on(document.getElementById("choosePill"),"click",()=>Persist.chooseFile())
-;on(document.getElementById("reconnectPill"),"click",()=>Persist.reconnect());const si=document.getElementById("searchInput")
+;on(document.getElementById("statsBtn"),"click",()=>{if(Stats.isOpen())Stats.closePanel();else Stats.openPanel()})
+;on(document.getElementById("completedToggle"),"click",Render.toggleCompleted);const si=document.getElementById("searchInput")
 ;on(si,"input",Util.debounce(()=>Render.setQuery(si.value),100));on(si,"keydown",e=>{if(e.key==="Escape"){si.value="";Render.setQuery("");si.blur()}})
 ;on(document.getElementById("searchClear"),"click",()=>{si.value="";Render.setQuery("");si.focus()});if(!dbOk){Persist.setTier(3);Render.showBanner("tier3",{
 cls:"alert",msg:"Storage is unavailable in this browser session. Your tasks will be lost when you close this tab. Export to a file before you leave.",actions:[{
@@ -894,7 +1309,7 @@ if(Persist.state().dirty)Persist.flush(true)}else{Render.render();Persist.checkE
 ;on(window,"hashchange",()=>{if(location.hash==="#test")Tests.runInPage()})};return{boot:boot,wipe:wipe,dbWriteError:dbWriteError}})();
 /* ================================================================ Tests */const Tests=(()=>{const REF=()=>new Date(2026,7,25);const TM={d:"DPN",b:"BSM",
 t:"Highside"};const MS={mdStyle:"emoji",writeBlockIds:true}
-;const VECTORS=[["12 5","2027-05-12"],["12 5 27","2027-05-12"],["1-9-2026","2026-09-01"],["26 8","2026-08-26"],["25 8","2026-08-25"],["24 8","2027-08-24"],["1/9","2026-09-01"],["1 1","2027-01-01"],["29 2 28","2028-02-29"],["29 2","2028-02-29"],["29 2 27",null],["31 4",null],["+3","2026-08-28"],["+1w","2026-09-01"],["+2w","2026-09-08"],["tom","2026-08-26"],["fri","2026-08-28"],["wed","2026-08-26"],["tue","2026-09-01"],["mon","2026-08-31"],["eow","2026-08-28"],["eom","2026-08-31"],["",""],["12 5","2026-05-12",true],["banana",null],["12.5","2027-05-12"],["+1m","2026-09-25"]]
+;const VECTORS=[["12 5","2027-05-12"],["12 5 27","2027-05-12"],["1-9-2026","2026-09-01"],["26 8","2026-08-26"],["25 8","2026-08-25"],["24 8","2027-08-24"],["1/9","2026-09-01"],["1 1","2027-01-01"],["29 2 28","2028-02-29"],["29 2","2028-02-29"],["29 2 27",null],["31 4",null],["+3","2026-08-28"],["+1w","2026-09-01"],["+2w","2026-09-08"],["tom","2026-08-26"],["fri","2026-08-28"],["wed","2026-08-26"],["tue","2026-09-01"],["mon","2026-08-31"],["eow","2026-08-28"],["eom","2026-08-31"],["",""],["12 5","2026-05-12",true],["banana",null],["12.5","2027-05-12"],["+1m","2026-09-25"],["+2b","2026-08-27"],["+4b","2026-08-31"],["+0b","2026-08-25"]]
 ;const SAMPLE=["# To Do","\x3c!-- Runway v1 · edit freely; the app preserves anything it does not recognise --\x3e","","## Open","- [ ] Send an email to frank #DPN 📅 2027-05-12 ^k3f9qm","- [ ] Patch the jump host #Highside ⏫ 📅 2026-08-26 ^a7b2xd","    Needs change approval before the window opens.","    - [ ] raise CR","    - [x] schedule window","","## Reference","Some prose the app must never touch.","","## No date","- [ ] Buy vinyl inner sleeves ^q8w3ez","","## Completed","- [x] Replace the failing SSD #Highside ✅ 2026-08-18 ^z1x4cv",""].join("\n")
 ;const run=()=>{const results=[];const ok=(name,cond,detail)=>results.push({name:name,pass:!!cond,detail:detail||""})
 ;const d=(input,opts)=>DateParse.parse(input,Object.assign({today:REF()},opts));for(const[inp,want,lit]of VECTORS){const r=d(inp,lit?{literal:true}:null)
@@ -923,9 +1338,111 @@ tagMap:TM});ok("md parses 4 tasks",p.tasks.length===4,"got "+p.tasks.length);con
 ;ok("md invalid date → undated + reported",p.tasks[0]&&p.tasks[0].due===null&&p.problems.length===1);ok("md invalid date line preserved",rtOf(p)===BAD)
 ;p=MD.parse("## Completed\n* [X] star bullet done ✅ 2026-08-01 ^cccccc\n",{tagMap:TM});ok("md * and [X] accepted",p.tasks[0]&&p.tasks[0].done===true)
 ;const ft=Model.validate({id:"zzzzzz",title:"Chase vendor",tags:["DPN"],due:"2026-08-20",priority:2,done:false,doneAt:null,note:null,subtasks:[],
-createdAt:"2026-08-01T00:00:00Z",updatedAt:"2026-08-01T00:00:00Z"});const ctx={days:new Map([["zzzzzz",-5]])}
+createdAt:"2026-08-01T00:00:00Z",updatedAt:"2026-08-01T00:00:00Z"})
+;const mkrec=(cal,wd)=>{const w=wd===undefined?cal:wd;return{cal:cal,wd:w,overdue:cal<0,eff:cal<0?Math.min(w,-1):w}}
+;const ctx={recs:new Map([["zzzzzz",mkrec(-5)]])}
 ;const fm=q=>Filter.match(ft,Filter.parseQuery(q),ctx)
 ;for(const[q,hit]of[["#dpn",1],["overdue",1],["!!",1],["!!!",0],["-#dpn",0],["chsvndr",1],["is:undated",0],["today",0],["due:<7d",0],["has:note",0]])ok("filter "+JSON.stringify(q),hit?fm(q)>=0:fm(q)<0,"rank "+fm(q))
+;const fm2=(q,rec)=>Filter.match(ft,Filter.parseQuery(q),{recs:new Map([["zzzzzz",rec]])})
+;ok("filter overdue biz rec",fm2("overdue",mkrec(-1,0))>=0);ok("filter today 0wd rec",fm2("today",mkrec(1,0))>=0)
+;ok("filter week eff boundary",fm2("week",mkrec(9,7))>=0&&fm2("week",mkrec(10,8))<0)
+;ok("filter due:<7d eff",fm2("due:<7d",mkrec(8,6))>=0&&fm2("due:<7d",mkrec(9,7))<0)
+;/* work-day engine */const withDays=(mode,week,fn)=>{const pm=SETTINGS.dayMode,pw=SETTINGS.workWeek;SETTINGS.dayMode=mode;SETTINGS.workWeek=week
+;try{fn()}finally{SETTINGS.dayMode=pm;SETTINGS.workWeek=pw}};const MF=[1,2,3,4,5],ST=[0,1,2,3,4],A7=[0,1,2,3,4,5,6];const wkArr=Days.weekArr
+;const WDV=[["2026-08-25","2026-08-25",MF,0,0,"today","today"],["2026-08-25","2026-08-26",MF,1,1,"tomorrow","in 1 wd"],
+["2026-08-25","2026-08-28",MF,3,3,"week","in 3 wd"],["2026-08-25","2026-08-29",MF,3,3,"week","in 3 wd"],
+["2026-08-25","2026-08-31",MF,4,4,"week","in 4 wd"],["2026-08-25","2026-09-03",MF,7,7,"week","in 7 wd"],
+["2026-08-25","2026-09-08",MF,10,10,"later","in 10 wd"],["2026-08-28","2026-08-29",MF,0,0,"today","0 wd"],
+["2026-08-28","2026-08-30",MF,0,0,"today","0 wd"],["2026-08-28","2026-08-31",MF,1,1,"tomorrow","in 1 wd"],
+["2026-08-30","2026-08-29",MF,0,-1,"overdue","late"],["2026-08-31","2026-08-28",MF,-1,-1,"overdue","1 wd late"],
+["2026-08-31","2026-08-29",MF,-1,-1,"overdue","1 wd late"],["2026-08-25","2026-08-18",MF,-5,-5,"overdue","5 wd late"],
+["2026-08-27","2026-08-28",ST,0,0,"today","0 wd"],["2026-08-27","2026-08-30",ST,1,1,"tomorrow","in 1 wd"],
+["2026-08-29","2026-08-30",ST,1,1,"tomorrow","in 1 wd"],["2026-08-28","2026-08-27",ST,0,-1,"overdue","late"]]
+;for(const[tod,due,week,wd,eff,bucket,chip]of WDV)withDays("business",week,()=>{const rec=Days.recFor(due,Util.parseISO(tod))
+;ok("wd "+tod+"→"+due+" ["+week.join("")+"]",rec.wd===wd&&rec.eff===eff&&Days.bucketOf(rec)===bucket&&Days.fmtRel(rec)===chip,
+JSON.stringify({wd:rec.wd,eff:rec.eff,bucket:Days.bucketOf(rec),chip:Days.fmtRel(rec)}))})
+;withDays("business",A7,()=>{let all=true;for(let off=-10;off<=15;off++){const rec=Days.recFor(Util.isoOf(new Date(2026,7,25+off)),REF())
+;if(rec.wd!==rec.cal)all=false}ok("all-7 week ≡ calendar",all)})
+;withDays("calendar",MF,()=>{const c=(o,s)=>Days.fmtRel(Days.recFor(Util.isoOf(new Date(2026,7,25+o)),REF()))===s
+;ok("calendar chips unchanged",c(0,"today")&&c(1,"tomorrow")&&c(3,"in 3d")&&c(-3,"3d late"))})
+;ok("urgency eff mapping",Days.urgencyOf(-1)==="overdue"&&Days.urgencyOf(0)==="due"&&Days.urgencyOf(5)==="near"&&Days.urgencyOf(6)==="soon"&&Days.urgencyOf(14)==="soon"&&Days.urgencyOf(15)==="calm"&&Days.urgencyOf(null)==="none")
+;ok("addWorkDays Fri+1",Util.isoOf(Util.addWorkDays(new Date(2026,7,28),1,wkArr(MF)))==="2026-08-31")
+;ok("addWorkDays Fri+3",Util.isoOf(Util.addWorkDays(new Date(2026,7,28),3,wkArr(MF)))==="2026-09-02")
+;ok("addWorkDays Sat+1",Util.isoOf(Util.addWorkDays(new Date(2026,7,29),1,wkArr(MF)))==="2026-08-31")
+;ok("addWorkDays ST Thu+1",Util.isoOf(Util.addWorkDays(new Date(2026,7,27),1,wkArr(ST)))==="2026-08-30")
+;{let good=true;for(const wk of[MF,ST])for(const n of[1,3,7]){const to=Util.addWorkDays(REF(),n,wkArr(wk))
+;if(Util.workDaysBetween(REF(),to,wkArr(wk))!==n)good=false}ok("workDaysBetween∘addWorkDays identity",good)}
+ok("wdb antisymmetric",Util.workDaysBetween(new Date(2026,7,25),new Date(2026,7,29),wkArr(MF))===3&&Util.workDaysBetween(new Date(2026,7,29),new Date(2026,7,25),wkArr(MF))===-3)
+;ok("+1b from Fri",DateParse.parse("+1b",{today:new Date(2026,7,28)}).iso==="2026-08-31")
+;ok("+2b sun-thu",DateParse.parse("+2b",{today:new Date(2026,7,27),workDays:wkArr(ST)}).iso==="2026-08-31")
+;const beow=(t,wk)=>DateParse.parse("eow",{today:t,business:true,workDays:wkArr(wk)}).iso
+;ok("eow biz MF",beow(REF(),MF)==="2026-08-28");ok("eow biz MF from Sat",beow(new Date(2026,7,29),MF)==="2026-09-04")
+;ok("eow biz ST",beow(REF(),ST)==="2026-08-27");ok("eow biz ST from Fri",beow(new Date(2026,7,28),ST)==="2026-09-03")
+;ok("eow biz all-7 falls back",beow(REF(),A7)==="2026-08-28")
+;/* sub-task dates */const stv=Model.validate({id:"aaaaaa",title:"x",tags:[],due:null,priority:0,done:false,doneAt:null,note:null,
+subtasks:[{text:"a",done:true},{text:"b",done:false,due:"2026-09-01"},{text:"c",done:false,due:"2026-02-30"}],
+createdAt:"2026-08-01T00:00:00Z",updatedAt:"2026-08-01T00:00:00Z"})
+;ok("validate migrates sub-tasks",stv.subtasks[0].due===null&&stv.subtasks[1].due==="2026-09-01"&&stv.subtasks[2].due===null)
+;ok("sub-task key order fixed",JSON.stringify(stv.subtasks[0])==='{"text":"a","done":true,"due":null}')
+;ok("fingerprint stable across migration",Model.fingerprint(Model.validate({id:"aaaaab",title:"x",subtasks:[{text:"a",done:true}]}))===Model.fingerprint(Model.validate({id:"aaaaab",title:"x",subtasks:[{text:"a",done:true,due:null}]})))
+;const SUB_EMOJI="## Open\n- [ ] Parent task 📅 2026-09-10 ^s10001\n    - [ ] raise CR 📅 2026-09-01\n    - [x] schedule window\n"
+;p=MD.parse(SUB_EMOJI,{tagMap:TM})
+;ok("md sub due parsed",p.tasks[0].subtasks[0].text==="raise CR"&&p.tasks[0].subtasks[0].due==="2026-09-01"&&p.tasks[0].subtasks[1].due===null)
+;ok("md sub due byte round-trip",rtOf(p)===SUB_EMOJI)
+;const SUB_BRACKET="## Open\n- [ ] Parent [due:: 2026-09-10] ^s10002\n    - [ ] raise CR [due:: 2026-09-01]\n"
+;p=MD.parse(SUB_BRACKET,{tagMap:TM});ok("md sub bracket due parsed",p.tasks[0].subtasks[0].due==="2026-09-01")
+;ok("md sub bracket byte round-trip",rtOf(p)===SUB_BRACKET)
+;p=MD.parse(SUB_EMOJI,{tagMap:TM});p.tasks[0].subtasks[0].done=true;const rts=rtOf(p)
+;ok("md sub regenerated with date",rts.includes("    - [x] raise CR 📅 2026-09-01"))
+;ok("md sub serialise twice stable",(()=>{const p2=MD.parse(rts,{tagMap:TM});return rtOf(p2)===rts})())
+;p=MD.parse(SUB_EMOJI,{tagMap:TM});p.tasks[0].subtasks[0].text="raise change"
+;const rtb=MD.serialise(p.tasks,{blocks:p.blocks,eol:p.eol},{mdStyle:"bracket",writeBlockIds:true})
+;ok("md sub bracket render",rtb.includes("    - [ ] raise change [due:: 2026-09-01]"))
+;const SUB_BAD="## Open\n- [ ] Parent ^s10003\n    - [ ] fix by 📅 2026-02-30 maybe\n"
+;p=MD.parse(SUB_BAD,{tagMap:TM})
+;ok("md invalid sub date stays text",p.tasks[0].subtasks[0].due===null&&p.tasks[0].subtasks[0].text==="fix by 📅 2026-02-30 maybe")
+;ok("md invalid sub date byte round-trip",rtOf(p)===SUB_BAD)
+;p=MD.parse("## Open\n- [ ] P ^s10004\n    - [ ] raise 📅 2026-09-01 CR\n",{tagMap:TM})
+;ok("md sub mid-text date",p.tasks[0].subtasks[0].text==="raise CR"&&p.tasks[0].subtasks[0].due==="2026-09-01")
+;const ec=Days.effectiveColourIso;const mkt=(due,subs,done)=>({due:due===undefined?null:due,done:!!done,subtasks:subs||[]})
+;ok("effColour sub earlier",ec(mkt("2026-09-10",[{text:"a",done:false,due:"2026-09-01"}]))==="2026-09-01")
+;ok("effColour done sub ignored",ec(mkt("2026-09-10",[{text:"a",done:true,due:"2026-09-01"}]))==="2026-09-10")
+;ok("effColour undated parent",ec(mkt(null,[{text:"a",done:false,due:"2026-09-01"}]))==="2026-09-01")
+;ok("effColour none dated",ec(mkt(null,[{text:"a",done:false,due:null}]))===null)
+;ok("effColour done task",ec(mkt("2026-09-10",[],true))===null)
+;/* views */withDays("calendar",MF,()=>{const dc=k=>Views.dueForCol(k,REF())
+;ok("dueForCol calendar",dc("today")==="2026-08-25"&&dc("tomorrow")==="2026-08-26"&&dc("week")==="2026-08-27"&&dc("later")==="2026-09-02"&&dc("undated")===null&&dc("overdue")===undefined)})
+;withDays("business",MF,()=>{const dc=k=>Views.dueForCol(k,REF())
+;ok("dueForCol business",dc("tomorrow")==="2026-08-26"&&dc("week")==="2026-08-27"&&dc("later")==="2026-09-04")
+;ok("dueForCol biz Fri→next wd",Views.dueForCol("tomorrow",new Date(2026,7,28))==="2026-08-31")
+;let consistent=true;for(const k of["today","tomorrow","week","later"]){const iso=Views.dueForCol(k,REF())
+;if(Days.bucketOf(Days.recFor(iso,REF()))!==k)consistent=false}ok("dueForCol lands in its bucket",consistent)})
+;const wks=Views.calWeeks(2026,9)
+;ok("calWeeks sept 2026",wks.length===5&&wks[0][0]==="2026-08-31"&&wks[0][6]==="2026-09-06"&&wks[4][6]==="2026-10-04")
+;ok("calWeeks monday columns",wks.every(w=>Util.parseISO(w[0]).getDay()===1))
+;ok("tlIndex",Views.tlIndex({cal:-3})===0&&Views.tlIndex({cal:0})===1&&Views.tlIndex({cal:28})===29&&Views.tlIndex({cal:29})===null&&Views.tlIndex(null)===null)
+;/* stats */const MFb=wkArr(MF);const isW=d=>MFb[d.getDay()]
+;const dn=d=>({done:true,doneAt:d,createdAt:"2026-08-01T00:00:00",updatedAt:"2026-08-01T00:00:00"})
+;ok("stats weekStart",Stats.weekStartISO(REF())==="2026-08-24"&&Stats.weekStartISO(new Date(2026,7,30))==="2026-08-24")
+;const tpT=Stats.throughput([dn("2026-08-25"),dn("2026-08-25"),dn("2026-08-24"),dn("2026-08-21"),dn("2026-08-20"),dn("2026-08-16")],REF(),{isWork:isW})
+;ok("stats throughput",tpT.today===2&&tpT.week===3&&tpT.lastWeek===2&&tpT.delta===1&&tpT.busiest.label==="Tue"&&tpT.weeks.length===8&&tpT.weeks[7].count===3,
+JSON.stringify(tpT))
+;ok("stats streak weekend-skip",tpT.streak===4,"got "+tpT.streak)
+;const tpT2=Stats.throughput([dn("2026-08-24"),dn("2026-08-21"),dn("2026-08-20")],REF(),{isWork:isW})
+;ok("stats streak skips today-with-none",tpT2.streak===3&&tpT2.today===0,"got "+tpT2.streak)
+;const op=d=>({done:false,due:d,createdAt:"2026-08-01T00:00:00",updatedAt:"2026-08-25T00:00:00",title:"t",id:"x"})
+;const fcT=Stats.forecast([op("2026-08-25"),op("2026-08-25"),op("2026-08-25"),op("2026-08-26"),op("2026-08-29"),dn("2026-08-25")],REF(),{isWork:isW})
+;ok("stats forecast",fcT.length===14&&fcT[0].count===3&&fcT[0].heavy===true&&fcT[1].count===1&&fcT[1].heavy===false&&fcT[4].work===false&&fcT[4].count===1,
+JSON.stringify(fcT.slice(0,5)))
+;const hT=Stats.health([
+{done:false,due:"2026-08-20",title:"a",id:"a1",createdAt:"2026-08-01T00:00:00",updatedAt:"2026-08-25T00:00:00"},
+{done:false,due:"2026-08-30",title:"b",id:"b1",createdAt:"2026-07-01T00:00:00",updatedAt:"2026-07-20T00:00:00"},
+{done:false,due:null,title:"c",id:"c1",createdAt:"2026-08-20T00:00:00",updatedAt:"2026-08-24T00:00:00"},
+{done:true,due:"2026-08-01",title:"d",id:"d1",createdAt:"2026-07-01T00:00:00",updatedAt:"2026-08-01T00:00:00"}],REF())
+;ok("stats health",hT.open===3&&hT.overdue===1&&hT.avgAge===28&&hT.oldest.title==="b"&&hT.stale===1&&hT.staleOldest.age===36&&hT.undated===1&&hT.undatedPct===33,
+JSON.stringify(hT))
+;ok("stats stale boundary 30d",Stats.health([{done:false,due:null,title:"e",id:"e1",createdAt:"2026-07-26T00:00:00",updatedAt:"2026-07-26T00:00:00"}],REF()).stale===0)
+;ok("stats stale 31d",Stats.health([{done:false,due:null,title:"e",id:"e1",createdAt:"2026-07-25T00:00:00",updatedAt:"2026-07-25T00:00:00"}],REF()).stale===1)
 ;return results};const runInPage=()=>{const results=run();const old=document.getElementById("testpanel");if(old)old.remove();const panel=E("div",{
 id:"testpanel",role:"log"});const passed=results.filter(r=>r.pass).length;panel.append(E("div",null,E("strong",{text:passed+" / "+results.length+" passed"})))
 ;for(const r of results)panel.append(E("div",{class:r.pass?"pass":"fail",text:(r.pass?"✓ ":"✗ ")+r.name+(r.pass||!r.detail?"":" — "+r.detail)}))
@@ -933,7 +1450,8 @@ id:"testpanel",role:"log"});const passed=results.filter(r=>r.pass).length;panel.
 ;return{run:run,runInPage:runInPage}})();
 /* ================================================================ boot */if(typeof document!=="undefined"&&typeof window!=="undefined"){
 if(document.readyState==="loading")on(document,"DOMContentLoaded",()=>{App.boot()});else App.boot()}if(typeof module!=="undefined"&&module.exports){
-module.exports={Util:Util,DateParse:DateParse,EntryParse:EntryParse,MD:MD,Model:Model,Filter:Filter,Tests:Tests,SETTINGS:SETTINGS}}})();
+module.exports={Util:Util,Days:Days,Views:Views,Stats:Stats,DateParse:DateParse,EntryParse:EntryParse,MD:MD,Model:Model,Filter:Filter,Tests:Tests,
+SETTINGS:SETTINGS}}})();
 /*JS-END*/
 </script>
 </body>
