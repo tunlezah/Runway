@@ -151,8 +151,21 @@ body{background:var(--surface);color:var(--fg);font:14px/1.45 var(--font-sans)}
 .notetext.clip{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .subtasks{margin-top:2px}
 .subtasks li{display:flex;align-items:center;gap:6px;padding:2px 0;font-size:13px;color:var(--fg)}
-.subtasks input{width:13px;height:13px;accent-color:var(--accent)}
+.subtasks input[type=checkbox]{width:13px;height:13px;accent-color:var(--accent);flex:none}
 .subtasks .sdone{color:var(--fg-muted);text-decoration:line-through}
+.subtasks .stext{cursor:text;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.subtasks .datechip{font-size:11px;padding:1px 4px;flex:none}
+.subactions{display:inline-flex;gap:2px;visibility:hidden;margin-left:auto}
+.subtasks li:hover .subactions,.subtasks li:focus-within .subactions{visibility:visible}
+.subactions button{min-width:24px;min-height:24px;display:inline-flex;align-items:center;justify-content:center;border-radius:var(--radius);color:var(--fg-muted)}
+.subactions button:hover{background:var(--surface-raised);color:var(--fg)}
+.subactions button:disabled{opacity:.3;cursor:default}
+.subactions button:disabled:hover{background:none;color:var(--fg-muted)}
+.subactions svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:1.6}
+.sub-edit{flex:1;min-width:0;background:var(--surface-raised);border:1px solid var(--accent);border-radius:var(--radius);padding:2px 6px;font-size:13px}
+.sub-add{display:block;width:100%;max-width:340px;margin-top:4px;padding:4px 8px;background:var(--surface-raised);border:1px solid var(--border);border-radius:var(--radius);font-size:13px;color:var(--fg)}
+.sub-add::placeholder{color:var(--fg-muted);opacity:.7}
+.note-toggle.sub-drives{color:var(--u-text);font-weight:600}
 .task.done .title{color:var(--fg-muted);text-decoration:line-through}
 .donechip{font:400 12px var(--font-mono);color:var(--fg-muted)}
 /* empty states */
@@ -355,7 +368,8 @@ updatedAt:nowISO()},f||{});const validate=t=>{if(!t||typeof t!=="object")return 
 ;if(t.due===undefined)t.due=null;t.priority=[0,1,2,3].includes(t.priority)?t.priority:0;t.done=!!t.done;if(t.done&&!t.doneAt)t.doneAt=Util.isoOf(new Date)
 ;if(!t.done)t.doneAt=null;t.tags=Array.isArray(t.tags)?[...new Set(t.tags.filter(x=>typeof x==="string"&&x.trim()))]:[]
 ;if(typeof t.note!=="string"||!t.note)t.note=null
-;t.subtasks=Array.isArray(t.subtasks)?t.subtasks.filter(s=>s&&typeof s.text==="string"&&s.text.trim()).map(s=>({text:s.text,done:!!s.done})):[]
+;t.subtasks=Array.isArray(t.subtasks)?t.subtasks.filter(s=>s&&typeof s.text==="string"&&s.text.trim()).map(s=>({text:s.text,done:!!s.done,
+due:s.due!=null&&Util.validISO(s.due)?s.due:null})):[]
 ;if(!t.createdAt)t.createdAt=nowISO();if(!t.updatedAt||t.updatedAt<t.createdAt)t.updatedAt=t.createdAt;return t};const add=t=>{tasks.push(t);byId.set(t.id,t)}
 ;const removeMem=id=>{const i=tasks.findIndex(t=>t.id===id);if(i>=0)tasks.splice(i,1);byId.delete(id)};const load=async()=>{const recs=await DB.all("tasks")
 ;tasks.length=0;byId.clear();for(const r of recs){const t=validate(r);if(t)add(t);else quarantine.push(r)}};const commit=async t=>{t.updatedAt=nowISO()
@@ -398,7 +412,11 @@ priority:pri}};return{parse:parse}})();
 /* ================================================================ MD */const MD=(()=>{const MANAGED=new Set(["Open","No date","Completed"])
 ;const CANON=["Open","No date","Completed"];const targetSection=t=>t.done?"Completed":t.due?"Open":"No date";const DATE_RE=/\b(\d{4})-(\d{1,2})-(\d{1,2})\b/
 ;const normDate=raw=>{const m=DATE_RE.exec(raw);if(!m)return{iso:null,bad:true};const iso=m[1]+"-"+Util.pad2(+m[2])+"-"+Util.pad2(+m[3])
-;return Util.validISO(iso)?{iso:iso,bad:false}:{iso:null,bad:true}};const extractBody=(body,tagMap)=>{tagMap=tagMap||{}
+;return Util.validISO(iso)?{iso:iso,bad:false}:{iso:null,bad:true}}
+;const subDue=body=>{let due=null
+;body=body.replace(/ ?📅\s*([0-9]{4}-[0-9]{1,2}-[0-9]{1,2})/,(all,g)=>{const r=normDate(g);if(r.bad)return all;due=r.iso;return""})
+;if(!due)body=body.replace(/ ?\[\s*due::\s*([^\]]*)\]/i,(all,g)=>{const r=normDate(g.trim());if(r.bad)return all;due=r.iso;return""})
+;return{text:body.trim(),due:due}};const extractBody=(body,tagMap)=>{tagMap=tagMap||{}
 ;let due=null,doneAt=null,priority=0,id=null,badDate=false;const tags=[];let s=" "+body+" ";s=s.replace(/\s\^([0-9a-zA-Z_-]+)(?=\s)/,(all,g)=>{
 id=g.toLowerCase();return" "});s=s.replace(/📅\s*([0-9]{4}-[0-9]{1,2}-[0-9]{1,2})/,(all,g)=>{const r=normDate(g);if(r.bad){badDate=true;return" "}due=r.iso
 ;return" "});s=s.replace(/\[\s*due::\s*([^\]]*)\]/i,(all,g)=>{const r=normDate(g.trim());if(r.bad){badDate=true;return" "}due=r.iso;return" "})
@@ -418,8 +436,8 @@ hadBOM=true;text=text.slice(1)}const crlf=(text.match(/\r\n/g)||[]).length;const
 section=null;blocks.push({kind:"raw",raw:line,section:null});continue}const tm=TASK_RE.exec(line);if(tm&&!/^\s/.test(line)){
 const parsed=extractBody(tm[3],tagMap);if(!parsed){problems.push({line:i+1,text:line,msg:"empty title"});blocks.push({kind:"raw",raw:line,section:section})
 ;continue}const rawLines=[line];const noteLines=[];const subtasks=[];while(i+1<lines.length){const cm=CONT_RE.exec(lines[i+1]);if(!cm||!cm[1].trim())break;i++
-;rawLines.push(lines[i]);const sm=/^([-*])\s*\[( |x|X)\]\s+(.*\S.*)$/.exec(cm[1].trim());if(sm)subtasks.push({text:sm[3].trim(),done:sm[2]!==" "
-});else noteLines.push(cm[1].trimEnd())}if(parsed.badDate)problems.push({line:i+1-rawLines.length+1,text:line,msg:"unreadable date — treated as undated"})
+;rawLines.push(lines[i]);const sm=/^([-*])\s*\[( |x|X)\]\s+(.*\S.*)$/.exec(cm[1].trim());if(sm){const sd=subDue(sm[3].trim())
+;subtasks.push({text:sd.text,done:sm[2]!==" ",due:sd.due})}else noteLines.push(cm[1].trimEnd())}if(parsed.badDate)problems.push({line:i+1-rawLines.length+1,text:line,msg:"unreadable date — treated as undated"})
 ;let id=parsed.id,hadId=!!parsed.id;if(id&&(!/^[0-9a-z]{6}$/.test(id)||seenIds.has(id))){
 if(seenIds.has(id))console.warn(APP_NAME+": duplicate id ^"+id+" — assigning a fresh one");id=null;hadId=false}if(!id)id=Model.newId();seenIds.add(id)
 ;const done=tm[2]!==" ";const task=Model.validate({id:id,title:parsed.title,tags:parsed.tags,due:parsed.due,priority:parsed.priority,done:done,
@@ -430,7 +448,8 @@ problems:problems,eol:eol,hadBOM:hadBOM}};const PRI_EMOJI=["","🔽","🔼","⏫
 let l="- ["+(t.done?"x":" ")+"] "+t.title;for(const tag of t.tags)l+=" #"+tag.replace(/ /g,"_");if(settings.mdStyle==="bracket"){
 if(t.priority)l+=" [priority:: "+PRI_WORD[t.priority]+"]";if(t.due)l+=" [due:: "+t.due+"]";if(t.done&&t.doneAt)l+=" [completion:: "+t.doneAt+"]"}else{
 if(t.priority)l+=" "+PRI_EMOJI[t.priority];if(t.due)l+=" 📅 "+t.due;if(t.done&&t.doneAt)l+=" ✅ "+t.doneAt}if(settings.writeBlockIds!==false)l+=" ^"+t.id
-;const out=[l];if(t.note)for(const n of t.note.split("\n"))out.push("    "+n);for(const s of t.subtasks)out.push("    - ["+(s.done?"x":" ")+"] "+s.text)
+;const out=[l];if(t.note)for(const n of t.note.split("\n"))out.push("    "+n)
+;for(const s of t.subtasks)out.push("    - ["+(s.done?"x":" ")+"] "+s.text+(s.due?settings.mdStyle==="bracket"?" [due:: "+s.due+"]":" 📅 "+s.due:""))
 ;return out};const serialise=(tasks,state,settings)=>{state=state||{};const eol=state.eol||"\n";const blocks=state.blocks||[]
 ;const byId=new Map(tasks.map(t=>[t.id,t]));const entries=[];const placed=new Set;let cur=null;if(!blocks.length){entries.push({lines:["# To Do"],section:null})
 ;entries.push({lines:["\x3c!-- "+APP_NAME+" v1 · edit freely; the app preserves anything it does not recognise --\x3e"],section:null})}for(const b of blocks){
@@ -576,12 +595,23 @@ const t=Model.byId.get(id);if(!t)return;const before=Util.snap(t);Object.assign(
 ;const before=Util.snap(t);await Model.remove(id);await Undo.record("delete",id,before,null);afterMutate();Render.toastDeleted(before)}
 ;const snooze=(id,due)=>patch(id,{due:due},"snooze");const setPriority=(id,p)=>patch(id,{priority:p},"priority");const toggleSubtask=async(id,idx)=>{
 const t=Model.byId.get(id);if(!t||!t.subtasks[idx])return;const before=Util.snap(t);t.subtasks[idx].done=!t.subtasks[idx].done;await Model.commit(t)
-;await Undo.record("edit",id,before,Util.snap(t));afterMutate()};const undo=async()=>{if(await Undo.undo())afterMutate()};const redo=async()=>{
+;await Undo.record("edit",id,before,Util.snap(t));afterMutate()}
+;const subPatch=async(id,op,fn)=>{const t=Model.byId.get(id);if(!t)return;const subs=Util.snap(t.subtasks);fn(subs);await patch(id,{subtasks:subs},op)}
+;const subtaskAdd=(id,text)=>{text=String(text||"").trim();if(!text)return Promise.resolve()
+;return subPatch(id,"subtask-add",s=>s.push({text:text,done:false,due:null}))}
+;const subtaskRename=(id,idx,text)=>{text=String(text||"").trim();if(!text)return Promise.resolve()
+;return subPatch(id,"subtask-edit",s=>{if(s[idx])s[idx].text=text})}
+;const subtaskDelete=(id,idx)=>subPatch(id,"subtask-del",s=>{if(idx>=0&&idx<s.length)s.splice(idx,1)})
+;const subtaskMove=(id,idx,delta)=>subPatch(id,"subtask-move",s=>{const j=idx+delta;if(idx<0||idx>=s.length||j<0||j>=s.length)return
+;const[x]=s.splice(idx,1);s.splice(j,0,x)})
+;const subtaskDue=(id,idx,iso)=>subPatch(id,"subtask-date",s=>{if(s[idx])s[idx].due=iso})
+;const undo=async()=>{if(await Undo.undo())afterMutate()};const redo=async()=>{
 if(await Undo.redo())afterMutate()};return{add:add,bulkAdd:bulkAdd,patch:patch,complete:complete,uncomplete:uncomplete,del:del,snooze:snooze,
-setPriority:setPriority,toggleSubtask:toggleSubtask,undo:undo,redo:redo}})();
+setPriority:setPriority,toggleSubtask:toggleSubtask,subtaskAdd:subtaskAdd,subtaskRename:subtaskRename,subtaskDelete:subtaskDelete,
+subtaskMove:subtaskMove,subtaskDue:subtaskDue,undo:undo,redo:redo}})();
 /* ================================================================ Render */const Render=(()=>{const $=id=>document.getElementById(id);const els={}
 ;const state={sel:null,filters:new Set,query:"",showCompleted:false,expanded:new Set,editingId:null,dateEditId:null,lastAdded:null,visible:[],
-digestDismissed:false};const NONE="·none";const init=()=>{
+digestDismissed:false,subEditing:null,subDateEdit:null,subAdding:null,subFocus:null};const NONE="·none";const init=()=>{
 ["app","appTitle","banners","tagKey","titleInput","dateInput","datePreview","searchWrap","searchInput","searchClear","countLine","digestWrap","listRoot","completedRoot","toasts","overlayRoot","popRoot","fileChip","saveInd","completedToggle","settingsBtn"].forEach(id=>{
 els[id]=$(id)});els.appTitle.textContent=APP_NAME;on(els.fileChip,"click",()=>{if(chipAct)chipAct()})}
 ;const urgencyOf=Days.urgencyOf;const sectionsFor=()=>{const biz=Days.business()
@@ -619,33 +649,65 @@ wrap.append(E("b",{text:"All clear."}),"Nothing due.")}else{wrap.append(E("b",{t
 ;const dateChipText=(t,rec)=>t.due?Util.fmtShort(t.due,new Date)+" · "+Days.fmtRel(rec):""
 ;const lateAria=rec=>{if(!rec||!rec.overdue)return""
 ;if(Days.business())return rec.wd<0?", "+-rec.wd+" work days late":", overdue";return", "+-rec.cal+" days late"};const buildRow=(t,rec)=>{
-const urg=t.done?"none":urgencyOf(rec?rec.eff:null)
+const colourIso=Days.effectiveColourIso(t);const colourRec=colourIso?colourIso===t.due?rec||Days.recFor(colourIso):Days.recFor(colourIso):null
+;const subDrives=!t.done&&colourIso!==null&&colourIso!==t.due;const urg=t.done?"none":urgencyOf(colourRec?colourRec.eff:null)
 ;const li=E("li",{class:"task u-"+urg+(t.done?" done":""),dataset:{id:t.id}});if(t.id===state.lastAdded)li.classList.add("adding");const gauge=E("div",{
 class:"gauge","aria-hidden":"true"});for(let i=0;i<4;i++)gauge.append(E("i",{class:i<SEGS[urg]?"f":null}));li.append(gauge);const cb=E("input",{class:"cb",
 type:"checkbox","aria-label":"Complete: "+t.title});cb.checked=t.done;on(cb,"change",()=>{
 if(cb.checked)collapseThen(li,()=>Actions.complete(t.id));else Actions.uncomplete(t.id)});li.append(cb);const tmain=E("div",{class:"tmain"})
 ;if(state.editingId===t.id){tmain.append(buildTitleEditor(t))}else{const title=E("span",{class:"title",text:t.title,tabindex:"-1"})
 ;on(title,"click",()=>startEdit(t.id));tmain.append(title)}if(t.note||t.subtasks.length){const done=t.subtasks.filter(s=>s.done).length
-;const label=(t.subtasks.length?done+"/"+t.subtasks.length:"note")+(state.expanded.has(t.id)?" ⌃":" ⌄");const tg=E("button",{class:"note-toggle",text:label,
-"aria-expanded":state.expanded.has(t.id)?"true":"false"});on(tg,"click",()=>{
+;const label=(t.subtasks.length?done+"/"+t.subtasks.length:"note")+(state.expanded.has(t.id)?" ⌃":" ⌄")
+;const tg=E("button",{class:"note-toggle"+(subDrives?" sub-drives":""),text:label,
+title:subDrives?"Colour driven by a sub-task due date ("+Util.fmtShort(colourIso,new Date)+")":null,
+"aria-expanded":state.expanded.has(t.id)?"true":"false"});if(subDrives)tg.append(E("span",{class:"sr",text:" urgency from sub-task"}))
+;on(tg,"click",()=>{
 if(state.expanded.has(t.id))state.expanded.delete(t.id);else state.expanded.add(t.id);render()});tmain.append(tg)}li.append(tmain);const meta=E("div",{
 class:"tmeta"});const actions=E("span",{class:"rowactions"});const ren=E("button",{title:"Rename","aria-label":"Rename: "+t.title})
 ;ren.append(Util.svgIcon(["M4 20l4-1L19 8l-3-3L5 16l-1 4z"]));on(ren,"click",e=>{e.stopPropagation();startEdit(t.id)})
+;const sadd=E("button",{title:"Add sub-task","aria-label":"Add sub-task: "+t.title})
+;sadd.append(Util.svgIcon(["M4 6h16","M4 12h9","M4 18h9","M18 14v6","M15 17h6"]));on(sadd,"click",e=>{e.stopPropagation()
+;state.expanded.add(t.id);state.subAdding=t.id;state.subFocus=t.id;render()})
 ;const snz=E("button",{title:"Snooze","aria-label":"Snooze: "+t.title})
 ;snz.append(Util.svgIcon(["M12 7v5l3 2","M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z"]));on(snz,"click",e=>{e.stopPropagation();openSnooze(t.id,snz)})
 ;const delb=E("button",{title:"Delete","aria-label":"Delete: "+t.title})
 ;delb.append(Util.svgIcon(["M4 7h16","M9 7V5h6v2","M6 7l1 13h10l1-13","M10 11v6M14 11v6"]));on(delb,"click",e=>{e.stopPropagation();Actions.del(t.id)})
-;actions.append(ren,snz,delb);meta.append(actions);for(const tag of t.tags){const known=Object.values(SETTINGS.tagMap).includes(tag);meta.append(E("span",{
+;actions.append(ren,sadd,snz,delb);meta.append(actions);for(const tag of t.tags){const known=Object.values(SETTINGS.tagMap).includes(tag);meta.append(E("span",{
 class:"tag"+(known?"":" unknown"),text:tag}))}if(t.priority)meta.append(E("span",{class:"pri p"+t.priority,text:"!".repeat(t.priority),
 title:["","low priority","medium priority","high priority"][t.priority]}));if(t.done){meta.append(E("span",{class:"donechip",
 text:"done "+Util.fmtShort(t.doneAt,new Date)}))}else if(state.dateEditId===t.id){meta.append(buildDateEditor(t))}else{
 const chipTxt=t.due?dateChipText(t,rec):"no date";const chip=E("button",{class:"datechip"+(t.due?"":" undated"),text:chipTxt,
 "aria-label":"Due date: "+(t.due?Util.fmtLong(t.due)+lateAria(rec):"none")});on(chip,"click",()=>startDateEdit(t.id));meta.append(chip)}
-li.append(meta);if(state.expanded.has(t.id)&&(t.note||t.subtasks.length)){const sub=E("div",{class:"subwrap"});if(t.note)sub.append(E("div",{class:"notetext",
-text:t.note}));if(t.subtasks.length){const ul=E("ul",{class:"subtasks",role:"list"});t.subtasks.forEach((s,i)=>{const scb=E("input",{type:"checkbox",
-id:"st-"+t.id+"-"+i});scb.checked=s.done;on(scb,"change",()=>Actions.toggleSubtask(t.id,i));ul.append(E("li",null,scb,E("label",{class:s.done?"sdone":null,
-for:"st-"+t.id+"-"+i,text:s.text})))});sub.append(ul)}li.append(sub)}else if(t.note&&!state.expanded.has(t.id)){}on(li,"mousedown",()=>select(t.id,false))
-;return li};const collapseThen=(li,fn)=>{const h=li.getBoundingClientRect().height;li.style.height=h+"px";li.getBoundingClientRect()
+li.append(meta);if(state.expanded.has(t.id)&&(t.note||t.subtasks.length||state.subAdding===t.id)){const sub=E("div",{class:"subwrap"})
+;if(t.note)sub.append(E("div",{class:"notetext",text:t.note}));sub.append(buildSubtasks(t));li.append(sub)}on(li,"mousedown",()=>select(t.id,false))
+;return li};const buildSubtasks=t=>{const wrap=E("div",null);const ul=E("ul",{class:"subtasks",role:"list"});t.subtasks.forEach((s,i)=>{
+const li=E("li",null);const scb=E("input",{type:"checkbox","aria-label":"Done: "+s.text});scb.checked=s.done
+;on(scb,"change",()=>Actions.toggleSubtask(t.id,i));li.append(scb)
+;if(state.subEditing&&state.subEditing.id===t.id&&state.subEditing.idx===i){
+const inp=E("input",{class:"sub-edit",type:"text","aria-label":"Edit sub-task"});inp.value=s.text;let closed=false
+;const commit=()=>{const v=inp.value.trim();closed=true;state.subEditing=null;if(v&&v!==s.text)Actions.subtaskRename(t.id,i,v);else render()}
+;on(inp,"keydown",e=>{if(e.key==="Enter"){e.preventDefault();commit()}else if(e.key==="Escape"){e.stopPropagation();closed=true;state.subEditing=null
+;render()}});on(inp,"blur",()=>{if(!closed){closed=true;state.subEditing=null;render()}});li.append(inp);setTimeout(()=>{inp.focus();inp.select()},0)
+}else{const lab=E("span",{class:"stext"+(s.done?" sdone":""),text:s.text})
+;on(lab,"click",()=>{state.subEditing={id:t.id,idx:i};state.subDateEdit=null;render()});li.append(lab)}
+if(state.subDateEdit&&state.subDateEdit.id===t.id&&state.subDateEdit.idx===i){
+const ed=buildDateEditorFor(s.due,async iso=>{state.subDateEdit=null;await Actions.subtaskDue(t.id,i,iso)},()=>{state.subDateEdit=null;render()})
+;li.append(ed);setTimeout(()=>{const di=ed.querySelector(".date-edit");if(di){di.focus();di.select()}},0)}else{
+const sRec=s.due?Days.recFor(s.due):null;const sUrg=s.done?"none":urgencyOf(sRec?sRec.eff:null)
+;const chip=E("button",{class:"datechip"+(s.due?"":" undated"),
+style:s.due&&!s.done?"color:var(--"+(sUrg==="overdue"?"due":sUrg)+"-text)":null,
+text:s.due?Util.fmtShort(s.due,new Date)+" · "+Days.fmtRel(sRec):"+ date",
+"aria-label":"Sub-task due date: "+(s.due?Util.fmtLong(s.due)+lateAria(sRec):"none")})
+;on(chip,"click",()=>{state.subDateEdit={id:t.id,idx:i};state.subEditing=null;render()});li.append(chip)}
+const sact=E("span",{class:"subactions"});const mkb=(title,paths,fn,dis)=>{const b=E("button",{title:title,"aria-label":title+": "+s.text,
+disabled:dis||null});b.append(Util.svgIcon(paths));on(b,"click",e=>{e.stopPropagation();fn()});return b}
+;sact.append(mkb("Move up",["M12 19V5","M5 12l7-7 7 7"],()=>Actions.subtaskMove(t.id,i,-1),i===0),
+mkb("Move down",["M12 5v14","M19 12l-7 7-7-7"],()=>Actions.subtaskMove(t.id,i,1),i===t.subtasks.length-1),
+mkb("Delete sub-task",["M4 7h16","M9 7V5h6v2","M6 7l1 13h10l1-13"],()=>Actions.subtaskDelete(t.id,i)));li.append(sact);ul.append(li)})
+;wrap.append(ul);const addInp=E("input",{class:"sub-add",type:"text",placeholder:"Add sub-task…","aria-label":"Add sub-task"})
+;on(addInp,"keydown",async e=>{if(e.key==="Enter"){e.preventDefault();const v=addInp.value.trim();if(!v)return;state.subAdding=t.id
+;state.subFocus=t.id;await Actions.subtaskAdd(t.id,v)}else if(e.key==="Escape"){e.stopPropagation();addInp.value="";state.subAdding=null;addInp.blur()
+;render()}});wrap.append(addInp);if(state.subFocus===t.id){state.subFocus=null;setTimeout(()=>addInp.focus(),0)}return wrap};const collapseThen=(li,fn)=>{const h=li.getBoundingClientRect().height;li.style.height=h+"px";li.getBoundingClientRect()
 ;li.classList.add("collapsing");li.style.height="0px";let doneCalled=false;const go=()=>{if(!doneCalled){doneCalled=true;fn()}};on(li,"transitionend",go,{
 once:true});setTimeout(go,300)};const startEdit=id=>{state.editingId=id;state.dateEditId=null;render();focusEditor()};const startDateEdit=id=>{
 state.dateEditId=id;state.editingId=null;render();focusEditor()};const focusEditor=()=>{const inp=els.listRoot.querySelector(".title-edit, .date-edit");if(inp){
@@ -653,15 +715,18 @@ inp.focus();inp.select()}};const buildTitleEditor=t=>{const inp=E("input",{class
 ;inp.value=t.title;const commit=async()=>{state.editingId=null;const parsed=EntryParse.parse(inp.value,SETTINGS.tagMap);if(!parsed.title){render();return}
 const tags=[...new Set([...t.tags,...parsed.tags])];await Actions.patch(t.id,{title:parsed.title,tags:tags,priority:parsed.priority||t.priority},"edit")}
 ;on(inp,"keydown",e=>{if(e.key==="Enter"){e.preventDefault();commit()}else if(e.key==="Escape"){e.stopPropagation();state.editingId=null;render()}})
-;on(inp,"blur",()=>{if(state.editingId===t.id){state.editingId=null;render()}});return inp};const buildDateEditor=t=>{const wrap=E("span",null)
+;on(inp,"blur",()=>{if(state.editingId===t.id){state.editingId=null;render()}});return inp}
+;const buildDateEditorFor=(curIso,onCommit,onCancel)=>{const wrap=E("span",null)
 ;const inp=E("input",{class:"date-edit",type:"text","aria-label":"Edit due date",
-placeholder:Days.business()?"12 5 · tom · +3b · empty":"12 5 · tom · +2w · empty"});inp.value=t.due?t.due:""
+placeholder:Days.business()?"12 5 · tom · +3b · empty":"12 5 · tom · +2w · empty"});inp.value=curIso||""
 ;const pv=E("span",{class:"donechip",style:"margin-left:6px"});const preview=()=>{const r=DateParse.parse(inp.value,Days.parseOpts())
 ;pv.textContent=r.kind==="invalid"?r.reason:r.kind==="empty"?"no date":Util.fmtLong(r.iso)};on(inp,"input",Util.debounce(preview,120))
-;const commit=async literal=>{const r=DateParse.parse(inp.value,Days.parseOpts({literal:literal}));if(r.kind==="invalid"){
-inp.classList.add("bad");pv.textContent=r.reason;return}state.dateEditId=null;await Actions.patch(t.id,{due:r.iso},"edit")};on(inp,"keydown",e=>{
-if(e.key==="Enter"){e.preventDefault();commit(e.shiftKey)}else if(e.key==="Escape"){e.stopPropagation();state.dateEditId=null;render()}});on(inp,"blur",()=>{
-if(state.dateEditId===t.id){state.dateEditId=null;render()}});wrap.append(inp,pv);return wrap};const renderTagKey=(open,recs)=>{const tk=els.tagKey
+;let closed=false;const commit=literal=>{const r=DateParse.parse(inp.value,Days.parseOpts({literal:literal}));if(r.kind==="invalid"){
+inp.classList.add("bad");pv.textContent=r.reason;return}closed=true;onCommit(r.iso)};on(inp,"keydown",e=>{
+if(e.key==="Enter"){e.preventDefault();commit(e.shiftKey)}else if(e.key==="Escape"){e.stopPropagation();closed=true;onCancel()}});on(inp,"blur",()=>{
+if(!closed){closed=true;onCancel()}});wrap.append(inp,pv);return wrap}
+;const buildDateEditor=t=>buildDateEditorFor(t.due,async iso=>{state.dateEditId=null;await Actions.patch(t.id,{due:iso},"edit")},()=>{
+if(state.dateEditId===t.id){state.dateEditId=null;render()}});const renderTagKey=(open,recs)=>{const tk=els.tagKey
 ;tk.textContent="";const entries=Object.entries(SETTINGS.tagMap);entries.forEach(([key,label],i)=>{const count=open.filter(t=>t.tags.includes(label)).length
 ;const chip=E("button",{class:"tkchip","aria-pressed":state.filters.has(label)?"true":"false",disabled:count===0&&!state.filters.has(label),
 title:label+" — press "+(i+1)+" to filter"});chip.append(E("span",{class:"k",text:key}),E("span",{class:"lbl",text:label}))
@@ -784,14 +849,16 @@ e.preventDefault();if(Persist.state().tier===1&&Persist.state().handle)Persist.f
 e.preventDefault();Render.selectMove(1);break;case"k":case"ArrowUp":e.preventDefault();Render.selectMove(-1);break;case"x":case" ":e.preventDefault();if(sel){
 const t=Model.byId.get(sel);if(t.done)Actions.uncomplete(sel);else{const li=document.querySelector('li[data-id="'+sel+'"]')
 ;if(li)Render.collapseThen(li,()=>Actions.complete(sel));else Actions.complete(sel)}}break;case"e":if(sel){e.preventDefault();Render.startEdit(sel)}break
-;case"d":if(sel){e.preventDefault();Render.startDateEdit(sel)}break;case".":if(sel){e.preventDefault();Render.openSnooze(sel,null)}break;case"!":if(sel){
+;case"d":if(sel){e.preventDefault();Render.startDateEdit(sel)}break
+;case"s":if(sel){e.preventDefault();Render.state.expanded.add(sel);Render.state.subAdding=sel;Render.state.subFocus=sel;Render.render()}break
+;case".":if(sel){e.preventDefault();Render.openSnooze(sel,null)}break;case"!":if(sel){
 e.preventDefault();const t=Model.byId.get(sel);Actions.setPriority(sel,(t.priority+1)%4)}break;case"1":case"2":case"3":{e.preventDefault()
 ;const labels=Object.values(SETTINGS.tagMap);const label=labels[+e.key-1];if(label)Render.toggleFilter(label);break}case"0":e.preventDefault()
 ;Render.clearFilters();break;case"?":e.preventDefault();Shortcuts.toggle();break;case"Escape":{const si=document.getElementById("searchInput");if(si.value){
 Render.setQuery("");si.value=""}else Render.select(null,false);break}}};const init=fnOverlayOpen=>{overlayOpen=fnOverlayOpen;on(window,"keydown",handler)}
 ;return{init:init}})();
 /* ================================================================ Shortcuts overlay */const Shortcuts=(()=>{let open=false,elRef=null,prevFocus=null
-;const GROUPS=[["Navigate",[["j / ↓","Select next task"],["k / ↑","Select previous task"],["Esc","Close overlay · clear search · deselect"]]],["Act",[["x / Space","Toggle complete"],["e","Rename task"],["d","Edit date"],[".","Snooze menu"],["!","Cycle priority"],["n","New task (focus entry)"]]],["Filter",[["/","Focus search"],["1 2 3","Toggle tag filter"],["0","Clear all filters"]]],["Entry",[["Enter","Add task"],["Shift+Enter","Add with literal date (no roll-forward)"],["Tab","Title → date field"],["+3b","Date fields: in 3 work days"]]],["System",[["Ctrl/⌘ Z","Undo"],["Ctrl/⌘ ⇧ Z","Redo"],["Ctrl/⌘ S","Save to disk"],["?","This overlay"]]]]
+;const GROUPS=[["Navigate",[["j / ↓","Select next task"],["k / ↑","Select previous task"],["Esc","Close overlay · clear search · deselect"]]],["Act",[["x / Space","Toggle complete"],["e","Rename task"],["d","Edit date"],["s","Add sub-task"],[".","Snooze menu"],["!","Cycle priority"],["n","New task (focus entry)"]]],["Filter",[["/","Focus search"],["1 2 3","Toggle tag filter"],["0","Clear all filters"]]],["Entry",[["Enter","Add task"],["Shift+Enter","Add with literal date (no roll-forward)"],["Tab","Title → date field"],["+3b","Date fields: in 3 work days"]]],["System",[["Ctrl/⌘ Z","Undo"],["Ctrl/⌘ ⇧ Z","Redo"],["Ctrl/⌘ S","Save to disk"],["?","This overlay"]]]]
 ;const close=()=>{if(!open)return;open=false;document.getElementById("overlayRoot").textContent="";if(prevFocus&&prevFocus.focus)prevFocus.focus()}
 ;const show=()=>{if(open)return;prevFocus=document.activeElement;open=true;const root=document.getElementById("overlayRoot");const scrim=E("div",{class:"scrim"
 });on(scrim,"mousedown",close);const box=E("div",{class:"shortcuts",role:"dialog","aria-modal":"true","aria-label":"Keyboard shortcuts",tabindex:"-1"})
@@ -1051,6 +1118,37 @@ ok("wdb antisymmetric",Util.workDaysBetween(new Date(2026,7,25),new Date(2026,7,
 ;ok("eow biz MF",beow(REF(),MF)==="2026-08-28");ok("eow biz MF from Sat",beow(new Date(2026,7,29),MF)==="2026-09-04")
 ;ok("eow biz ST",beow(REF(),ST)==="2026-08-27");ok("eow biz ST from Fri",beow(new Date(2026,7,28),ST)==="2026-09-03")
 ;ok("eow biz all-7 falls back",beow(REF(),A7)==="2026-08-28")
+;/* sub-task dates */const stv=Model.validate({id:"aaaaaa",title:"x",tags:[],due:null,priority:0,done:false,doneAt:null,note:null,
+subtasks:[{text:"a",done:true},{text:"b",done:false,due:"2026-09-01"},{text:"c",done:false,due:"2026-02-30"}],
+createdAt:"2026-08-01T00:00:00Z",updatedAt:"2026-08-01T00:00:00Z"})
+;ok("validate migrates sub-tasks",stv.subtasks[0].due===null&&stv.subtasks[1].due==="2026-09-01"&&stv.subtasks[2].due===null)
+;ok("sub-task key order fixed",JSON.stringify(stv.subtasks[0])==='{"text":"a","done":true,"due":null}')
+;ok("fingerprint stable across migration",Model.fingerprint(Model.validate({id:"aaaaab",title:"x",subtasks:[{text:"a",done:true}]}))===Model.fingerprint(Model.validate({id:"aaaaab",title:"x",subtasks:[{text:"a",done:true,due:null}]})))
+;const SUB_EMOJI="## Open\n- [ ] Parent task 📅 2026-09-10 ^s10001\n    - [ ] raise CR 📅 2026-09-01\n    - [x] schedule window\n"
+;p=MD.parse(SUB_EMOJI,{tagMap:TM})
+;ok("md sub due parsed",p.tasks[0].subtasks[0].text==="raise CR"&&p.tasks[0].subtasks[0].due==="2026-09-01"&&p.tasks[0].subtasks[1].due===null)
+;ok("md sub due byte round-trip",rtOf(p)===SUB_EMOJI)
+;const SUB_BRACKET="## Open\n- [ ] Parent [due:: 2026-09-10] ^s10002\n    - [ ] raise CR [due:: 2026-09-01]\n"
+;p=MD.parse(SUB_BRACKET,{tagMap:TM});ok("md sub bracket due parsed",p.tasks[0].subtasks[0].due==="2026-09-01")
+;ok("md sub bracket byte round-trip",rtOf(p)===SUB_BRACKET)
+;p=MD.parse(SUB_EMOJI,{tagMap:TM});p.tasks[0].subtasks[0].done=true;const rts=rtOf(p)
+;ok("md sub regenerated with date",rts.includes("    - [x] raise CR 📅 2026-09-01"))
+;ok("md sub serialise twice stable",(()=>{const p2=MD.parse(rts,{tagMap:TM});return rtOf(p2)===rts})())
+;p=MD.parse(SUB_EMOJI,{tagMap:TM});p.tasks[0].subtasks[0].text="raise change"
+;const rtb=MD.serialise(p.tasks,{blocks:p.blocks,eol:p.eol},{mdStyle:"bracket",writeBlockIds:true})
+;ok("md sub bracket render",rtb.includes("    - [ ] raise change [due:: 2026-09-01]"))
+;const SUB_BAD="## Open\n- [ ] Parent ^s10003\n    - [ ] fix by 📅 2026-02-30 maybe\n"
+;p=MD.parse(SUB_BAD,{tagMap:TM})
+;ok("md invalid sub date stays text",p.tasks[0].subtasks[0].due===null&&p.tasks[0].subtasks[0].text==="fix by 📅 2026-02-30 maybe")
+;ok("md invalid sub date byte round-trip",rtOf(p)===SUB_BAD)
+;p=MD.parse("## Open\n- [ ] P ^s10004\n    - [ ] raise 📅 2026-09-01 CR\n",{tagMap:TM})
+;ok("md sub mid-text date",p.tasks[0].subtasks[0].text==="raise CR"&&p.tasks[0].subtasks[0].due==="2026-09-01")
+;const ec=Days.effectiveColourIso;const mkt=(due,subs,done)=>({due:due===undefined?null:due,done:!!done,subtasks:subs||[]})
+;ok("effColour sub earlier",ec(mkt("2026-09-10",[{text:"a",done:false,due:"2026-09-01"}]))==="2026-09-01")
+;ok("effColour done sub ignored",ec(mkt("2026-09-10",[{text:"a",done:true,due:"2026-09-01"}]))==="2026-09-10")
+;ok("effColour undated parent",ec(mkt(null,[{text:"a",done:false,due:"2026-09-01"}]))==="2026-09-01")
+;ok("effColour none dated",ec(mkt(null,[{text:"a",done:false,due:null}]))===null)
+;ok("effColour done task",ec(mkt("2026-09-10",[],true))===null)
 ;return results};const runInPage=()=>{const results=run();const old=document.getElementById("testpanel");if(old)old.remove();const panel=E("div",{
 id:"testpanel",role:"log"});const passed=results.filter(r=>r.pass).length;panel.append(E("div",null,E("strong",{text:passed+" / "+results.length+" passed"})))
 ;for(const r of results)panel.append(E("div",{class:r.pass?"pass":"fail",text:(r.pass?"✓ ":"✗ ")+r.name+(r.pass||!r.detail?"":" — "+r.detail)}))
