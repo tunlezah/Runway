@@ -36,6 +36,13 @@ body{background:var(--surface);color:var(--fg);font:14px/1.45 var(--font-sans)}
 .hdr-btn[aria-pressed="true"]{color:var(--accent);background:var(--accent-soft)}
 .pill{display:inline-flex;align-items:center;gap:6px;min-height:32px;padding:4px 10px;border:1px solid var(--border);border-radius:999px;font:500 12px var(--font-mono);color:var(--fg)}
 .pill:hover{border-color:var(--accent);color:var(--accent)}
+.pill.warn,.pill.warn:hover{border-color:var(--dirty);color:var(--dirty)}
+.pill.err,.pill.err:hover{border-color:var(--err);color:var(--err)}
+.pill.warn:hover,.pill.err:hover{background:var(--surface-raised)}
+.pill .g:empty{display:none}
+@container app (max-width:560px){#fileChip .lbl{display:none}
+#fileChip .g{min-width:14px}
+}
 .save-ind{display:inline-flex;align-items:center;gap:6px;min-height:32px;padding:4px 6px;font:400 12px var(--font-mono);color:var(--fg-muted)}
 .save-ind .dot{width:7px;height:7px;border-radius:50%;background:var(--fg-muted);opacity:.4}
 .save-ind.dirty .dot{background:var(--dirty);opacity:1}
@@ -258,8 +265,7 @@ to{transform:none}
 <div class="app" id="app">
 <header class="hdr">
 <h1 class="app-title" id="appTitle">Runway</h1>
-<button id="choosePill" class="pill" hidden>Choose todo.md</button>
-<button id="reconnectPill" class="pill" hidden>&#8644; Reconnect todo.md</button>
+<button id="fileChip" class="pill" hidden><span class="g" aria-hidden="true"></span><span class="lbl"></span></button>
 <span id="saveInd" class="save-ind" hidden><span class="dot"></span><span class="txt"></span></span>
 <button id="completedToggle" class="hdr-btn" aria-pressed="false" title="Show completed tasks"></button>
 <button id="settingsBtn" class="hdr-btn" aria-label="Settings" aria-expanded="false" title="Settings">
@@ -544,8 +550,8 @@ setPriority:setPriority,toggleSubtask:toggleSubtask,undo:undo,redo:redo}})();
 /* ================================================================ Render */const Render=(()=>{const $=id=>document.getElementById(id);const els={}
 ;const state={sel:null,filters:new Set,query:"",showCompleted:false,expanded:new Set,editingId:null,dateEditId:null,lastAdded:null,visible:[],
 digestDismissed:false};const NONE="·none";const init=()=>{
-["app","appTitle","banners","tagKey","titleInput","dateInput","datePreview","searchWrap","searchInput","searchClear","countLine","digestWrap","listRoot","completedRoot","toasts","overlayRoot","popRoot","choosePill","reconnectPill","saveInd","completedToggle","settingsBtn"].forEach(id=>{
-els[id]=$(id)});els.appTitle.textContent=APP_NAME};const daysMap=()=>{const today=new Date;const m=new Map
+["app","appTitle","banners","tagKey","titleInput","dateInput","datePreview","searchWrap","searchInput","searchClear","countLine","digestWrap","listRoot","completedRoot","toasts","overlayRoot","popRoot","fileChip","saveInd","completedToggle","settingsBtn"].forEach(id=>{
+els[id]=$(id)});els.appTitle.textContent=APP_NAME;on(els.fileChip,"click",()=>{if(chipAct)chipAct()})};const daysMap=()=>{const today=new Date;const m=new Map
 ;for(const t of Model.tasks)m.set(t.id,t.due?Util.daysBetween(today,Util.parseISO(t.due)):null);return m};const urgencyOf=d=>{if(d===null)return"none"
 ;if(d<0)return"overdue";if(d<=(SETTINGS.urgency.due??0))return"due";if(d<=SETTINGS.urgency.near)return"near";if(d<=SETTINGS.urgency.soon)return"soon"
 ;return"calm"};const SEGS={none:0,calm:1,soon:2,near:3,due:4,overdue:4};const cmpOpen=(a,b)=>{if(a.due!==b.due){if(a.due===null)return 1
@@ -653,11 +659,12 @@ text:"· "+list.length})));const ul=E("ul",{role:"list"});for(const t of list){u
 ;const selected=()=>state.sel&&Model.byId.get(state.sel)?state.sel:null;const showBanner=(id,opts)=>{hideBanner(id);const b=E("div",{
 class:"banner "+(opts.cls||""),dataset:{bid:id},role:opts.cls==="alert"?"alert":"status"});b.append(E("span",{class:"msg",text:opts.msg}))
 ;for(const a of opts.actions||[]){const btn=E("button",{text:a.label});on(btn,"click",()=>a.fn(b));b.append(btn)}if(opts.closable){const x=E("button",{
-class:"bx","aria-label":"Dismiss",text:"✕"});on(x,"click",()=>b.remove());b.append(x)}els.banners.append(b);return b};const hideBanner=id=>{
+class:"bx","aria-label":"Dismiss",text:"✕"});on(x,"click",()=>{b.remove();if(opts.onClose)opts.onClose()});b.append(x)}els.banners.append(b);return b};const hideBanner=id=>{
 const cur=els.banners.querySelector('[data-bid="'+id+'"]');if(cur)cur.remove()};const showParseProblems=problems=>{const b=showBanner("parse",{cls:"warn",
 closable:true,msg:problems.length+(problems.length===1?" line":" lines")+" in the file couldn't be read as tasks. They've been left untouched."})
 ;const btn=E("button",{text:"Show lines"});const pre=E("pre",{hidden:true});pre.textContent=problems.map(p=>"line "+p.line+" · "+p.msg+"\n  "+p.text).join("\n")
-;on(btn,"click",()=>{pre.hidden=!pre.hidden});b.insertBefore(btn,b.querySelector(".bx"));b.append(pre)};const showFileGone=()=>{showBanner("filegone",{
+;on(btn,"click",()=>{pre.hidden=!pre.hidden});b.insertBefore(btn,b.querySelector(".bx"));b.append(pre)};const showFileGone=()=>{hideBanner("nosave")
+;curSaveKind=null;showBanner("filegone",{
 cls:"alert",closable:true,msg:"todo.md is no longer at that location.",actions:[{label:"Choose file",fn:b=>{b.remove();Persist.chooseFile()}},{
 label:"Save as new file",fn:b=>{b.remove();Persist.createFile()}}]})};const diffLines=(aText,bText)=>{
 const a=aText.split(/\r\n|\n|\r/),b=bText.split(/\r\n|\n|\r/);if(a.length*b.length>4e6){return[{t:"-",
@@ -665,18 +672,42 @@ l:"(files too large to diff — "+a.length+" vs "+b.length+" lines)"}]}const n=a
 ;for(let i=n-1;i>=0;i--)for(let j=m-1;j>=0;j--)dp[i][j]=a[i]===b[j]?dp[i+1][j+1]+1:Math.max(dp[i+1][j],dp[i][j+1]);const out=[];let i=0,j=0;while(i<n&&j<m){
 if(a[i]===b[j]){out.push({t:" ",l:a[i]});i++;j++}else if(dp[i+1][j]>=dp[i][j+1]){out.push({t:"-",l:a[i]});i++}else{out.push({t:"+",l:b[j]});j++}}
 while(i<n)out.push({t:"-",l:a[i++]});while(j<m)out.push({t:"+",l:b[j++]});return out};const showConflict=(fileText,opts)=>{hideBanner("conflict")
+;hideBanner("nosave");curSaveKind=null
 ;const src=opts&&opts.source?"Backup "+opts.source:"todo.md";const b=showBanner("conflict",{cls:"alert",
 msg:src+" changed outside this app. Choose which version to keep — nothing is merged automatically.",actions:[{label:"Reload from disk",fn:async bn=>{
 if(Persist.state().dirty&&!window.confirm("Discard unsaved changes in the app and load the file version?"))return;bn.remove()
 ;await Persist.resolveReload(fileText)}},{label:"Keep my version",fn:async bn=>{if(!window.confirm("Overwrite the file with the app's current tasks?"))return
 ;bn.remove();await Persist.resolveKeepMine()}},{label:"Show what changed",fn:bn=>{let pre=bn.querySelector("pre");if(pre){pre.hidden=!pre.hidden;return}
 pre=E("pre",null);for(const d of diffLines(Persist.currentText(),fileText)){const line=E("span",{class:d.t==="+"?"da":d.t==="-"?"dr":null,text:d.t+" "+d.l})
-;pre.append(line,"\n")}bn.append(pre)}}]});return b};const updateFileUI=mode=>{const p=Persist.state();els.choosePill.hidden=!(p.tier===1&&!p.handle)
-;els.reconnectPill.hidden=!(p.handle&&p.permission==="prompt");if(p.handle&&(p.permission==="granted"||p.permission==="prompt")){
-els.saveInd.hidden=p.permission!=="granted";els.saveInd.className="save-ind "+(mode==="saving"?"saving":p.lastError?"error":p.dirty?"dirty":"")
-;const txt=els.saveInd.querySelector(".txt");txt.textContent=mode==="saving"?"SAVING…":"· "+(p.fileName||"todo.md")
-;els.saveInd.title=p.lastError?"Couldn't write the file: "+(p.lastError.message||p.lastError.name)+". Your tasks are safe in this browser; the file copy is stale.":p.dirty?"Unsaved changes will be written shortly":"Saved to "+(p.fileName||"todo.md")
-}else{els.saveInd.hidden=true}};const toasts=[];const dropToast=t=>{const i=toasts.indexOf(t);if(i>=0)toasts.splice(i,1);t.el.remove();clearInterval(t.timer)}
+;pre.append(line,"\n")}bn.append(pre)}}]});return b};
+/* save-state prominence */const fileStatus=p=>{if(p.tier===3)return"tier3";if(p.tier===2)return"tier2";if(!p.handle)return"nofile"
+;if(p.permission==="none")return"pending";if(p.permission!=="granted")return"perm";if(p.lastError)return"error";return"ok"}
+;const saveDismissed=new Set;let curSaveKind=null;let chipAct=null;const unDismiss=kind=>{saveDismissed.delete(kind);curSaveKind=null;updateFileUI()}
+;const syncSaveBanner=st=>{let kind=Model.tasks.length>0?{nofile:"nofile",perm:"perm",error:"error",tier2:"tier2"}[st]||null:null
+;if(kind&&["conflict","filegone","secerr"].some(id=>els.banners.querySelector('[data-bid="'+id+'"]')))kind=null
+;if(kind&&saveDismissed.has(kind))kind=null;if(kind===curSaveKind)return;curSaveKind=kind;if(!kind){hideBanner("nosave");return}const p=Persist.state()
+;const file=p.fileName||"todo.md";const spec={nofile:{cls:"warn",msg:"These tasks aren't saved to a markdown file — they live only in this browser.",
+actions:[{label:"Choose todo.md",fn:()=>Persist.chooseFile()},{label:"Create new",fn:()=>Persist.createFile()}]},perm:{cls:"warn",
+msg:"Runway needs permission again to keep writing "+file+".",actions:[{label:"Reconnect",fn:()=>Persist.reconnect()}]},error:{cls:"alert",
+msg:"Couldn't write "+file+": "+(p.lastError&&(p.lastError.message||p.lastError.name)||"unknown error")+". Your tasks are safe in this browser; the file copy is stale.",
+actions:[{label:"Retry",fn:()=>Persist.flush(true)}]},tier2:{cls:"warn",
+msg:"This browser can't save directly to a file. Tasks are stored in the browser — export a copy to keep todo.md up to date.",
+actions:[{label:"Export .md",fn:()=>Persist.exportMd()}]}}[kind]
+;showBanner("nosave",{cls:spec.cls,closable:true,msg:spec.msg,actions:spec.actions,onClose:()=>{saveDismissed.add(kind);curSaveKind=null}})}
+;const CHIP={nofile0:{lbl:"Choose todo.md",g:"⊕",cls:"",tip:"Save this list to a markdown file",act:()=>Persist.chooseFile()},
+nofile:{lbl:"not saved to file",g:"⚠",cls:"warn",tip:"Tasks live only in this browser — click for options",act:()=>unDismiss("nofile")},
+perm:{lbl:"reconnect todo.md",g:"⚠",cls:"warn",tip:"Permission needed to keep writing the file",act:()=>{unDismiss("perm");Persist.reconnect()}},
+error:{lbl:"save failing",g:"⚠",cls:"err",tip:"Couldn't write the file — click to retry",act:()=>{unDismiss("error");Persist.flush(true)}},
+tier2:{lbl:"in-browser only",g:"⚠",cls:"warn",tip:"This browser can't save to a file — click for options",act:()=>unDismiss("tier2")}}
+;const updateFileUI=mode=>{const p=Persist.state();const st=mode==="saving"?"ok":fileStatus(p);const hasTasks=Model.tasks.length>0;let chip=null
+;if(st==="nofile")chip=hasTasks?CHIP.nofile:CHIP.nofile0;else if(st==="perm")chip=CHIP.perm;else if(st==="error")chip=CHIP.error
+;else if(st==="tier2"&&hasTasks)chip=CHIP.tier2;els.fileChip.hidden=!chip;chipAct=chip?chip.act:null;if(chip){
+els.fileChip.className="pill"+(chip.cls?" "+chip.cls:"");els.fileChip.querySelector(".g").textContent=chip.g
+;els.fileChip.querySelector(".lbl").textContent=chip.lbl;els.fileChip.title=chip.tip;els.fileChip.setAttribute("aria-label",chip.tip)}
+if(st==="ok"){els.saveInd.hidden=false;els.saveInd.className="save-ind "+(mode==="saving"?"saving":p.dirty?"dirty":"")
+;els.saveInd.querySelector(".txt").textContent=mode==="saving"?"SAVING…":"· "+(p.fileName||"todo.md")
+;els.saveInd.title=p.dirty?"Unsaved changes will be written shortly":"Saved to "+(p.fileName||"todo.md")}else els.saveInd.hidden=true
+;syncSaveBanner(st)};const toasts=[];const dropToast=t=>{const i=toasts.indexOf(t);if(i>=0)toasts.splice(i,1);t.el.remove();clearInterval(t.timer)}
 ;const makeToast=(msg,undoCount)=>{const t={remaining:SETTINGS.undoWindowSec*1e3,undoCount:undoCount,paused:false,kind:"undo"};const el=E("div",{class:"toast",
 role:"status","aria-live":"polite"});el.append(E("span",{class:"tmsg",text:msg}));const ub=E("button",{class:"tundo",text:undoCount>1?"Undo all":"Undo"})
 ;on(ub,"click",async()=>{dropToast(t);for(let i=0;i<undoCount;i++)await Undo.undo();Render.render();Persist.markDirty()});el.append(ub,E("span",{class:"tk",
@@ -883,8 +914,7 @@ msg:quota?"Browser storage is full ("+Model.tasks.length+" tasks stored). Archiv
 ;const overlayOpen=()=>Settings.isOpen()||Shortcuts.isOpen()||!!document.querySelector("#overlayRoot .shortcuts[aria-label='Confirm paste']")
 ;const boot=async()=>{const dbOk=await DB.open();await Settings.load();await Model.load();await Undo.load();Render.init();Entry.init();Keys.init(overlayOpen)
 ;Render.render();on(document.getElementById("settingsBtn"),"click",()=>{if(Settings.isOpen())Settings.closePanel();else Settings.openPanel()})
-;on(document.getElementById("completedToggle"),"click",Render.toggleCompleted);on(document.getElementById("choosePill"),"click",()=>Persist.chooseFile())
-;on(document.getElementById("reconnectPill"),"click",()=>Persist.reconnect());const si=document.getElementById("searchInput")
+;on(document.getElementById("completedToggle"),"click",Render.toggleCompleted);const si=document.getElementById("searchInput")
 ;on(si,"input",Util.debounce(()=>Render.setQuery(si.value),100));on(si,"keydown",e=>{if(e.key==="Escape"){si.value="";Render.setQuery("");si.blur()}})
 ;on(document.getElementById("searchClear"),"click",()=>{si.value="";Render.setQuery("");si.focus()});if(!dbOk){Persist.setTier(3);Render.showBanner("tier3",{
 cls:"alert",msg:"Storage is unavailable in this browser session. Your tasks will be lost when you close this tab. Export to a file before you leave.",actions:[{
