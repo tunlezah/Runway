@@ -307,6 +307,11 @@ const MONTHS=["January","February","March","April","May","June","July","August",
 ;const MON3=MONTHS.map(m=>m.slice(0,3));const DAYS3=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];const pad2=n=>String(n).padStart(2,"0")
 ;const isLeap=y=>y%4===0&&y%100!==0||y%400===0;const daysInMonth=(y,m)=>[31,isLeap(y)?29:28,31,30,31,30,31,31,30,31,30,31][m-1];const midnight=d=>{
 const x=new Date(d);x.setHours(0,0,0,0);return x};const daysBetween=(a,b)=>Math.round((midnight(b)-midnight(a))/864e5)
+;const workDaysBetween=(a,b,workArr)=>{const cal=daysBetween(a,b);if(cal===0)return 0;const sign=cal>0?1:-1;const len=Math.abs(cal)
+;const startDow=midnight(sign>0?a:b).getDay();let per=0;for(let i=0;i<7;i++)if(workArr[i])per++;let n=Math.floor(len/7)*per
+;for(let i=1;i<=len%7;i++)if(workArr[(startDow+i)%7])n++;return sign*n}
+;const addWorkDays=(from,n,workArr)=>{const d=midnight(from);let count=0,guard=0;while(count<n&&guard<7e3){d.setDate(d.getDate()+1);guard++
+;if(workArr[d.getDay()])count++}return d}
 ;const isoOf=d=>d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate());const parseISO=s=>{const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(s)
 ;return m?new Date(+m[1],+m[2]-1,+m[3]):null};const validISO=s=>{const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(s);if(!m)return false;const y=+m[1],mo=+m[2],d=+m[3]
 ;return mo>=1&&mo<=12&&d>=1&&d<=daysInMonth(y,mo)};const fmtLong=iso=>{const d=parseISO(iso)
@@ -321,7 +326,7 @@ if(v===null||v===undefined||v===false)continue
 }for(const c of children)if(c!=null)n.append(c);return n};const svgIcon=paths=>{const NS="http://www.w3.org/2000/svg";const s=document.createElementNS(NS,"svg")
 ;s.setAttribute("viewBox","0 0 24 24");s.setAttribute("aria-hidden","true");for(const d of paths){const p=document.createElementNS(NS,"path")
 ;p.setAttribute("d",d);s.append(p)}return s};const snap=o=>JSON.parse(JSON.stringify(o));return{MONTHS:MONTHS,MON3:MON3,DAYS3:DAYS3,pad2:pad2,isLeap:isLeap,
-daysInMonth:daysInMonth,midnight:midnight,daysBetween:daysBetween,isoOf:isoOf,parseISO:parseISO,validISO:validISO,fmtLong:fmtLong,fmtShort:fmtShort,
+daysInMonth:daysInMonth,midnight:midnight,daysBetween:daysBetween,workDaysBetween:workDaysBetween,addWorkDays:addWorkDays,isoOf:isoOf,parseISO:parseISO,validISO:validISO,fmtLong:fmtLong,fmtShort:fmtShort,
 debounce:debounce,hash:hash,fuzzy:fuzzy,el:el,svgIcon:svgIcon,snap:snap}})();const E=Util.el;
 /* ================================================================ DB */const DB=(()=>{let db=null;let failed=false;const open=()=>new Promise(resolve=>{
 if(!CAPS.idb){failed=true;resolve(false);return}let req;try{req=indexedDB.open("runway",1)}catch(e){failed=true;resolve(false);return}req.onupgradeneeded=e=>{
@@ -367,11 +372,15 @@ newId:newId,fresh:fresh,validate:validate,load:load,commit:commit,remove:remove,
 ;const today=Util.midnight(opts.today||new Date);const rollFwd=opts.rollForward!==false&&!opts.literal;const s=String(input==null?"":input).trim().toLowerCase()
 ;if(!s)return{kind:"empty",iso:null};if(s==="tod"||s==="today")return result(today,today)
 ;if(s==="tom"||s==="tmw"||s==="tomorrow")return result(new Date(today.getFullYear(),today.getMonth(),today.getDate()+1),today)
-;let m=/^\+(\d{1,3})(d|w|m)?$/.exec(s);if(m){const n=+m[1],unit=m[2]||"d";if(unit==="m"){let y=today.getFullYear(),mo=today.getMonth()+1+n
+;let m=/^\+(\d{1,3})(d|w|m|b)?$/.exec(s);if(m){const n=+m[1],unit=m[2]||"d";if(unit==="m"){let y=today.getFullYear(),mo=today.getMonth()+1+n
 ;y+=Math.floor((mo-1)/12);mo=(mo-1)%12+1;const day=Math.min(today.getDate(),Util.daysInMonth(y,mo));return result(mkDate(y,mo,day),today)}
-const days=unit==="w"?n*7:n;return result(new Date(today.getFullYear(),today.getMonth(),today.getDate()+days),today)}if(WD_RE.test(s)){
+if(unit==="b")return result(Util.addWorkDays(today,n,opts.workDays||[false,true,true,true,true,true,false]),today)
+;const days=unit==="w"?n*7:n;return result(new Date(today.getFullYear(),today.getMonth(),today.getDate()+days),today)}if(WD_RE.test(s)){
 const target=WD[s.slice(0,3)];const delta=(target-today.getDay()+6)%7+1
-;return result(new Date(today.getFullYear(),today.getMonth(),today.getDate()+delta),today)}if(s==="eow"){const dowM=(today.getDay()+6)%7;let delta=4-dowM
+;return result(new Date(today.getFullYear(),today.getMonth(),today.getDate()+delta),today)}if(s==="eow"){
+if(opts.business&&opts.workDays){const wk=opts.workDays;let per=0;for(const v of wk)if(v)per++;if(per>0&&per<7)for(let i=0;i<=14;i++){
+const d=new Date(today.getFullYear(),today.getMonth(),today.getDate()+i);if(wk[d.getDay()]&&!wk[(d.getDay()+1)%7])return result(d,today)}}
+const dowM=(today.getDay()+6)%7;let delta=4-dowM
 ;if(delta<0)delta+=7;return result(new Date(today.getFullYear(),today.getMonth(),today.getDate()+delta),today)}
 if(s==="eom")return result(mkDate(today.getFullYear(),today.getMonth()+1,Util.daysInMonth(today.getFullYear(),today.getMonth()+1)),today)
 ;m=/^(\d{1,4})(?:[\s\/\-.]+(\d{1,2})(?:[\s\/\-.]+(\d{1,4}))?)?$/.exec(s);if(!m||!m[2])return inv("can't read that as a date");const d=+m[1],mo=+m[2]
@@ -437,9 +446,32 @@ lines:["## "+sect],section:sect,heading:true});entries.push(...newEntries)}}cons
 ;let text=lines.join(eol);if(!blocks.length&&text&&!text.endsWith(eol))text+=eol;return text};return{parse:parse,serialise:serialise,renderTask:renderTask,
 targetSection:targetSection,MANAGED:MANAGED}})();
 /* ================================================================ settings data */const defaultSettings=()=>({schemaVersion:1,theme:"system",accent:"indigo",
-density:"comfortable",urgency:{calm:14,soon:14,near:5,due:0},rollForward:true,mdStyle:"emoji",writeBlockIds:true,showCompletedDays:7,autosaveDebounceMs:800,
+density:"comfortable",urgency:{calm:14,soon:14,near:5,due:0},rollForward:true,dayMode:"calendar",workWeek:[1,2,3,4,5],mdStyle:"emoji",writeBlockIds:true,
+showCompletedDays:7,autosaveDebounceMs:800,
 undoWindowSec:8,folderMode:false,backupRetain:20,tagMap:{d:"DPN",b:"BSM",t:"Highside"}});const SETTINGS=defaultSettings();const ACCENTS={neutral:"#475569",
 cyan:"#0891B2",sky:"#0284C7",blue:"#2563EB",indigo:"#4F46E5",violet:"#7C3AED"};
+/* ================================================================ Days (effective day counts) */const Days=(()=>{let memo={key:"",map:new Map}
+;const weekArr=list=>{const a=[false,false,false,false,false,false,false];for(const d of list||[])a[d]=true;return a}
+;const configuredWeek=()=>weekArr(SETTINGS.workWeek)
+;const business=()=>SETTINGS.dayMode==="business"
+;const isWorkDay=d=>configuredWeek()[d.getDay()]
+;const recFor=(iso,today)=>{today=Util.midnight(today||new Date)
+;const key=Util.isoOf(today)+"|"+SETTINGS.dayMode+"|"+(SETTINGS.workWeek||[]).join("");if(memo.key!==key)memo={key:key,map:new Map}
+;if(!memo.map.has(iso)){const due=Util.parseISO(iso);const cal=Util.daysBetween(today,due)
+;const wd=business()?Util.workDaysBetween(today,due,configuredWeek()):cal
+;memo.map.set(iso,{cal:cal,wd:wd,overdue:cal<0,eff:cal<0?Math.min(wd,-1):wd})}return memo.map.get(iso)}
+;const mapFor=(tasks,today)=>{const m=new Map;for(const t of tasks)m.set(t.id,t.due?recFor(t.due,today):null);return m}
+;const urgencyOf=eff=>{if(eff===null||eff===undefined)return"none";if(eff<0)return"overdue";if(eff<=(SETTINGS.urgency.due??0))return"due"
+;if(eff<=SETTINGS.urgency.near)return"near";if(eff<=SETTINGS.urgency.soon)return"soon";return"calm"}
+;const bucketOf=rec=>{if(!rec)return"undated";if(rec.overdue)return"overdue";if(rec.eff===0)return"today";if(rec.eff===1)return"tomorrow"
+;if(rec.eff<=7)return"week";return"later"}
+;const fmtRel=rec=>{if(rec.cal===0)return"today";if(business()){if(rec.overdue)return rec.wd<0?-rec.wd+" wd late":"late"
+;return rec.eff===0?"0 wd":"in "+rec.eff+" wd"}if(rec.overdue)return-rec.cal+"d late";return rec.eff===1?"tomorrow":"in "+rec.eff+"d"}
+;const addWorkDays=(from,n)=>Util.addWorkDays(from,n,configuredWeek())
+;const effectiveColourIso=t=>{if(t.done)return null;let min=t.due;for(const s of t.subtasks)if(!s.done&&s.due&&(min===null||s.due<min))min=s.due;return min}
+;const parseOpts=extra=>Object.assign({rollForward:SETTINGS.rollForward,business:business(),workDays:configuredWeek()},extra)
+;return{weekArr:weekArr,configuredWeek:configuredWeek,business:business,isWorkDay:isWorkDay,recFor:recFor,mapFor:mapFor,urgencyOf:urgencyOf,
+bucketOf:bucketOf,fmtRel:fmtRel,addWorkDays:addWorkDays,effectiveColourIso:effectiveColourIso,parseOpts:parseOpts}})();
 /* ================================================================ Persist */const Persist=(()=>{let tier=3;let handle=null;let dirHandle=null
 ;let fileMeta=null;let mdState={blocks:[],eol:"\n"};let dirty=false;let flushTimer=null;let flushing=false;let permission="none";let lastError=null
 ;const state=()=>({tier:tier,handle:handle,dirHandle:dirHandle,fileMeta:fileMeta,dirty:dirty,permission:permission,lastError:lastError,
@@ -511,10 +543,10 @@ resolveKeepMine:resolveKeepMine,currentText:currentText,checkExternal:checkExter
 /* ================================================================ Filter */const Filter=(()=>{const parseQuery=q=>{const clauses=[];const free=[]
 ;let wantDone=false;for(let tok of String(q||"").trim().split(/\s+/)){if(!tok)continue;let neg=false;if(tok.length>1&&tok[0]==="-"){neg=true;tok=tok.slice(1)}
 const low=tok.toLowerCase();let test=null;let m;if(low[0]==="#"&&low.length>1){const pre=low.slice(1);test=t=>t.tags.some(x=>x.toLowerCase().startsWith(pre))
-}else if(/^!{1,3}$/.test(tok)){const lv=tok.length;test=t=>t.priority>=lv}else if(low==="overdue"){test=(t,ctx)=>t.due!==null&&ctx.days.get(t.id)<0
-}else if(low==="today"){test=(t,ctx)=>t.due!==null&&ctx.days.get(t.id)===0}else if(low==="week"){
-test=(t,ctx)=>t.due!==null&&ctx.days.get(t.id)>=0&&ctx.days.get(t.id)<=7}else if(m=/^due:([<>])(\d+)d$/.exec(low)){const n=+m[2],lt=m[1]==="<";test=(t,ctx)=>{
-if(t.due===null)return false;const d=ctx.days.get(t.id);return lt?d>=0&&d<n:d>n}}else if(m=/^due:([<>])(\d{4}-\d{2}-\d{2})$/.exec(low)){
+}else if(/^!{1,3}$/.test(tok)){const lv=tok.length;test=t=>t.priority>=lv}else if(low==="overdue"){test=(t,ctx)=>{const r=ctx.recs.get(t.id)
+;return!!r&&r.overdue}}else if(low==="today"){test=(t,ctx)=>{const r=ctx.recs.get(t.id);return!!r&&r.eff===0}}else if(low==="week"){
+test=(t,ctx)=>{const r=ctx.recs.get(t.id);return!!r&&r.eff>=0&&r.eff<=7}}else if(m=/^due:([<>])(\d+)d$/.exec(low)){const n=+m[2],lt=m[1]==="<";test=(t,ctx)=>{
+const r=ctx.recs.get(t.id);if(!r)return false;return lt?r.eff>=0&&r.eff<n:r.eff>n}}else if(m=/^due:([<>])(\d{4}-\d{2}-\d{2})$/.exec(low)){
 const iso=m[2],lt=m[1]==="<";test=t=>t.due!==null&&(lt?t.due<iso:t.due>iso)}else if(low==="is:done"){if(!neg)wantDone=true;test=t=>t.done
 }else if(low==="is:undated"){test=t=>t.due===null}else if(low==="has:note"){test=t=>!!t.note||t.subtasks.length>0}else{free.push({neg:neg,term:tok});continue}
 clauses.push({neg:neg,test:test})}return{clauses:clauses,free:free,wantDone:wantDone,empty:clauses.length===0&&free.length===0}}
@@ -551,40 +583,43 @@ setPriority:setPriority,toggleSubtask:toggleSubtask,undo:undo,redo:redo}})();
 ;const state={sel:null,filters:new Set,query:"",showCompleted:false,expanded:new Set,editingId:null,dateEditId:null,lastAdded:null,visible:[],
 digestDismissed:false};const NONE="·none";const init=()=>{
 ["app","appTitle","banners","tagKey","titleInput","dateInput","datePreview","searchWrap","searchInput","searchClear","countLine","digestWrap","listRoot","completedRoot","toasts","overlayRoot","popRoot","fileChip","saveInd","completedToggle","settingsBtn"].forEach(id=>{
-els[id]=$(id)});els.appTitle.textContent=APP_NAME;on(els.fileChip,"click",()=>{if(chipAct)chipAct()})};const daysMap=()=>{const today=new Date;const m=new Map
-;for(const t of Model.tasks)m.set(t.id,t.due?Util.daysBetween(today,Util.parseISO(t.due)):null);return m};const urgencyOf=d=>{if(d===null)return"none"
-;if(d<0)return"overdue";if(d<=(SETTINGS.urgency.due??0))return"due";if(d<=SETTINGS.urgency.near)return"near";if(d<=SETTINGS.urgency.soon)return"soon"
-;return"calm"};const SEGS={none:0,calm:1,soon:2,near:3,due:4,overdue:4};const cmpOpen=(a,b)=>{if(a.due!==b.due){if(a.due===null)return 1
+els[id]=$(id)});els.appTitle.textContent=APP_NAME;on(els.fileChip,"click",()=>{if(chipAct)chipAct()})}
+;const urgencyOf=Days.urgencyOf;const sectionsFor=()=>{const biz=Days.business()
+;return[["overdue","Overdue"],["today","Today"],["tomorrow",biz?"Next work day":"Tomorrow"],["week",biz?"This work week":"This week"],["later","Later"],["undated","No date"]]}
+;const SEGS={none:0,calm:1,soon:2,near:3,due:4,overdue:4};const cmpOpen=(a,b)=>{if(a.due!==b.due){if(a.due===null)return 1
 ;if(b.due===null)return-1;return a.due<b.due?-1:1}if(a.priority!==b.priority)return b.priority-a.priority
-;if(a.createdAt!==b.createdAt)return a.createdAt<b.createdAt?-1:1;return a.id<b.id?-1:a.id>b.id?1:0};const render=()=>{const days=daysMap();const ctx={days:days
+;if(a.createdAt!==b.createdAt)return a.createdAt<b.createdAt?-1:1;return a.id<b.id?-1:a.id>b.id?1:0};const render=()=>{
+const recs=Days.mapFor(Model.tasks);const ctx={recs:recs
 };const parsedQ=Filter.parseQuery(state.query);const searching=!parsedQ.empty;const open=Model.tasks.filter(t=>!t.done)
 ;let domain=parsedQ.wantDone?Model.tasks.filter(t=>t.done):open;if(state.filters.size){
 domain=domain.filter(t=>state.filters.has(NONE)&&t.tags.length===0||t.tags.some(x=>state.filters.has(x)))}const ranks=new Map;if(searching){
 domain=domain.filter(t=>{const r=Filter.match(t,parsedQ,ctx);if(r<0)return false;ranks.set(t.id,r);return true})}const buckets={overdue:[],today:[],tomorrow:[],
-week:[],later:[],undated:[]};for(const t of domain){const d=days.get(t.id)
-;if(d===null)buckets.undated.push(t);else if(d<0)buckets.overdue.push(t);else if(d===0)buckets.today.push(t);else if(d===1)buckets.tomorrow.push(t);else if(d<=7)buckets.week.push(t);else buckets.later.push(t)
-}const rankCmp=base=>(a,b)=>{if(searching){const ra=ranks.get(a.id)||0,rb=ranks.get(b.id)||0;if(ra!==rb)return ra-rb}return base(a,b)}
+week:[],later:[],undated:[]};for(const t of domain)buckets[Days.bucketOf(recs.get(t.id))].push(t)
+;const rankCmp=base=>(a,b)=>{if(searching){const ra=ranks.get(a.id)||0,rb=ranks.get(b.id)||0;if(ra!==rb)return ra-rb}return base(a,b)}
 ;for(const k of["overdue","today","tomorrow","week","later"])buckets[k].sort(rankCmp(cmpOpen))
 ;buckets.undated.sort(rankCmp((a,b)=>a.createdAt>b.createdAt?-1:a.createdAt<b.createdAt?1:0))
-;const SECTIONS=[["overdue","Overdue"],["today","Today"],["tomorrow","Tomorrow"],["week","This week"],["later","Later"],["undated","No date"]]
-;const root=els.listRoot;root.textContent="";state.visible=[];const totalOpen=open.length;const dueTodayCount=open.filter(t=>days.get(t.id)===0).length
-;const overdueCount=open.filter(t=>t.due&&days.get(t.id)<0).length;if(parsedQ.wantDone){
+;const SECTIONS=sectionsFor()
+;const root=els.listRoot;root.textContent="";state.visible=[];const totalOpen=open.length
+;const dueTodayCount=open.filter(t=>{const r=recs.get(t.id);return!!r&&r.eff===0}).length
+;const overdueCount=open.filter(t=>{const r=recs.get(t.id);return!!r&&r.overdue}).length;if(parsedQ.wantDone){
 renderDoneList(root,domain.slice().sort(rankCmp((a,b)=>(a.doneAt||"")<(b.doneAt||"")?1:(a.doneAt||"")>(b.doneAt||"")?-1:0)))}else{let any=false
 ;for(const[key,label]of SECTIONS){const list=buckets[key];if(!list.length)continue;any=true;const sect=E("section",{class:"sect"});const h=E("h2",{
 class:"sect-h"},label,E("span",{class:"n",text:"· "+list.length}));sect.append(h);const ul=E("ul",{role:"list"});for(const t of list){
-ul.append(buildRow(t,days.get(t.id)));state.visible.push(t.id)}sect.append(ul);root.append(sect)}
+ul.append(buildRow(t,recs.get(t.id)));state.visible.push(t.id)}sect.append(ul);root.append(sect)}
 if(!any)root.append(emptyState(searching,totalOpen));else if(buckets.undated.length&&buckets.undated.length===state.visible.length&&!searching&&!state.filters.size)root.prepend(E("div",{
 class:"empty",style:"padding:16px 0"},E("b",{text:"Nothing scheduled."}),"Tasks without a date are listed below."))}
 if(state.sel&&!state.visible.includes(state.sel))state.sel=null;if(state.sel){const li=root.querySelector('li[data-id="'+state.sel+'"]')
-;if(li)li.classList.add("sel")}renderTagKey(open,days);renderCompletedToggle();renderCompletedSection(days);renderCountLine(domain.length,totalOpen,searching)
+;if(li)li.classList.add("sel")}renderTagKey(open,recs);renderCompletedToggle();renderCompletedSection();renderCountLine(domain.length,totalOpen,searching)
 ;renderDigest(overdueCount,dueTodayCount);document.title=(dueTodayCount+overdueCount>0?"("+(dueTodayCount+overdueCount)+") ":"")+APP_NAME;state.lastAdded=null}
 ;const emptyState=(searching,totalOpen)=>{const wrap=E("div",{class:"empty"});if(searching||state.filters.size){wrap.append(E("b",{
 text:"No matches for “"+(state.query.trim()||"this filter")+"”."}),"Press Esc to clear.")}else if(Model.tasks.length===0){
 if(document.documentElement.getAttribute("data-theme")==="geocities")wrap.append(E("b",{text:"~ Welcome to my To-Do Page ~"
 }),"This page is best viewed at 800×600.");else wrap.append(E("b",{text:"Nothing here yet."}),"Type a task above and press Enter.")}else if(totalOpen===0){
 wrap.append(E("b",{text:"All clear."}),"Nothing due.")}else{wrap.append(E("b",{text:"No matches."}),"Press Esc to clear.")}return wrap}
-;const dateChipText=(t,d)=>{const today=new Date;if(!t.due)return"";const short=Util.fmtShort(t.due,today);if(d<0)return short+" · "+-d+"d late"
-;if(d===0)return short+" · today";if(d===1)return short+" · tomorrow";return short+" · in "+d+"d"};const buildRow=(t,d)=>{const urg=t.done?"none":urgencyOf(d)
+;const dateChipText=(t,rec)=>t.due?Util.fmtShort(t.due,new Date)+" · "+Days.fmtRel(rec):""
+;const lateAria=rec=>{if(!rec||!rec.overdue)return""
+;if(Days.business())return rec.wd<0?", "+-rec.wd+" work days late":", overdue";return", "+-rec.cal+" days late"};const buildRow=(t,rec)=>{
+const urg=t.done?"none":urgencyOf(rec?rec.eff:null)
 ;const li=E("li",{class:"task u-"+urg+(t.done?" done":""),dataset:{id:t.id}});if(t.id===state.lastAdded)li.classList.add("adding");const gauge=E("div",{
 class:"gauge","aria-hidden":"true"});for(let i=0;i<4;i++)gauge.append(E("i",{class:i<SEGS[urg]?"f":null}));li.append(gauge);const cb=E("input",{class:"cb",
 type:"checkbox","aria-label":"Complete: "+t.title});cb.checked=t.done;on(cb,"change",()=>{
@@ -604,8 +639,8 @@ class:"tmeta"});const actions=E("span",{class:"rowactions"});const ren=E("button
 class:"tag"+(known?"":" unknown"),text:tag}))}if(t.priority)meta.append(E("span",{class:"pri p"+t.priority,text:"!".repeat(t.priority),
 title:["","low priority","medium priority","high priority"][t.priority]}));if(t.done){meta.append(E("span",{class:"donechip",
 text:"done "+Util.fmtShort(t.doneAt,new Date)}))}else if(state.dateEditId===t.id){meta.append(buildDateEditor(t))}else{
-const chipTxt=t.due?dateChipText(t,d):"no date";const chip=E("button",{class:"datechip"+(t.due?"":" undated"),text:chipTxt,
-"aria-label":"Due date: "+(t.due?Util.fmtLong(t.due)+(d<0?", "+-d+" days late":""):"none")});on(chip,"click",()=>startDateEdit(t.id));meta.append(chip)}
+const chipTxt=t.due?dateChipText(t,rec):"no date";const chip=E("button",{class:"datechip"+(t.due?"":" undated"),text:chipTxt,
+"aria-label":"Due date: "+(t.due?Util.fmtLong(t.due)+lateAria(rec):"none")});on(chip,"click",()=>startDateEdit(t.id));meta.append(chip)}
 li.append(meta);if(state.expanded.has(t.id)&&(t.note||t.subtasks.length)){const sub=E("div",{class:"subwrap"});if(t.note)sub.append(E("div",{class:"notetext",
 text:t.note}));if(t.subtasks.length){const ul=E("ul",{class:"subtasks",role:"list"});t.subtasks.forEach((s,i)=>{const scb=E("input",{type:"checkbox",
 id:"st-"+t.id+"-"+i});scb.checked=s.done;on(scb,"change",()=>Actions.toggleSubtask(t.id,i));ul.append(E("li",null,scb,E("label",{class:s.done?"sdone":null,
@@ -619,20 +654,22 @@ inp.focus();inp.select()}};const buildTitleEditor=t=>{const inp=E("input",{class
 const tags=[...new Set([...t.tags,...parsed.tags])];await Actions.patch(t.id,{title:parsed.title,tags:tags,priority:parsed.priority||t.priority},"edit")}
 ;on(inp,"keydown",e=>{if(e.key==="Enter"){e.preventDefault();commit()}else if(e.key==="Escape"){e.stopPropagation();state.editingId=null;render()}})
 ;on(inp,"blur",()=>{if(state.editingId===t.id){state.editingId=null;render()}});return inp};const buildDateEditor=t=>{const wrap=E("span",null)
-;const inp=E("input",{class:"date-edit",type:"text","aria-label":"Edit due date",placeholder:"12 5 · tom · +2w · empty"});inp.value=t.due?t.due:""
-;const pv=E("span",{class:"donechip",style:"margin-left:6px"});const preview=()=>{const r=DateParse.parse(inp.value,{rollForward:SETTINGS.rollForward})
+;const inp=E("input",{class:"date-edit",type:"text","aria-label":"Edit due date",
+placeholder:Days.business()?"12 5 · tom · +3b · empty":"12 5 · tom · +2w · empty"});inp.value=t.due?t.due:""
+;const pv=E("span",{class:"donechip",style:"margin-left:6px"});const preview=()=>{const r=DateParse.parse(inp.value,Days.parseOpts())
 ;pv.textContent=r.kind==="invalid"?r.reason:r.kind==="empty"?"no date":Util.fmtLong(r.iso)};on(inp,"input",Util.debounce(preview,120))
-;const commit=async literal=>{const r=DateParse.parse(inp.value,{literal:literal,rollForward:SETTINGS.rollForward});if(r.kind==="invalid"){
+;const commit=async literal=>{const r=DateParse.parse(inp.value,Days.parseOpts({literal:literal}));if(r.kind==="invalid"){
 inp.classList.add("bad");pv.textContent=r.reason;return}state.dateEditId=null;await Actions.patch(t.id,{due:r.iso},"edit")};on(inp,"keydown",e=>{
 if(e.key==="Enter"){e.preventDefault();commit(e.shiftKey)}else if(e.key==="Escape"){e.stopPropagation();state.dateEditId=null;render()}});on(inp,"blur",()=>{
-if(state.dateEditId===t.id){state.dateEditId=null;render()}});wrap.append(inp,pv);return wrap};const renderTagKey=(open,days)=>{const tk=els.tagKey
+if(state.dateEditId===t.id){state.dateEditId=null;render()}});wrap.append(inp,pv);return wrap};const renderTagKey=(open,recs)=>{const tk=els.tagKey
 ;tk.textContent="";const entries=Object.entries(SETTINGS.tagMap);entries.forEach(([key,label],i)=>{const count=open.filter(t=>t.tags.includes(label)).length
 ;const chip=E("button",{class:"tkchip","aria-pressed":state.filters.has(label)?"true":"false",disabled:count===0&&!state.filters.has(label),
 title:label+" — press "+(i+1)+" to filter"});chip.append(E("span",{class:"k",text:key}),E("span",{class:"lbl",text:label}))
 ;on(chip,"click",()=>toggleFilter(label));tk.append(chip)});const noneCount=open.filter(t=>t.tags.length===0).length;const noneChip=E("button",{class:"tkchip",
 "aria-pressed":state.filters.has(NONE)?"true":"false",disabled:noneCount===0&&!state.filters.has(NONE),title:"Untagged tasks — 0 clears filters"})
 ;noneChip.append(E("span",{class:"k",text:"·"}),E("span",{class:"lbl",text:"none"}));on(noneChip,"click",()=>toggleFilter(NONE));tk.append(noneChip)
-;const dueToday=open.filter(t=>days.get(t.id)===0).length;tk.append(E("span",{class:"counts",text:open.length+" open · "+dueToday+" today"}))}
+;const dueToday=open.filter(t=>{const r=recs.get(t.id);return!!r&&r.eff===0}).length
+;tk.append(E("span",{class:"counts",text:open.length+" open · "+dueToday+" today"}))}
 ;const toggleFilter=label=>{if(state.filters.has(label))state.filters.delete(label);else state.filters.add(label);render()};const clearFilters=()=>{
 state.filters.clear();render()};const renderCountLine=(shown,totalOpen,searching)=>{if(searching){els.countLine.hidden=false
 ;els.countLine.textContent="showing "+shown+" of "+totalOpen}else els.countLine.hidden=true};const renderDigest=(overdue,today)=>{const w=els.digestWrap
@@ -719,7 +756,9 @@ const undoToasts=toasts.filter(x=>x.kind==="undo");if(undoToasts.length>=3){cons
 ;const toastDeleted=task=>makeToast("Deleted “"+task.title+"”",1);let popCleanup=null;const closePop=()=>{if(popCleanup){popCleanup();popCleanup=null}}
 ;const openSnooze=(id,anchor)=>{closePop();const t=Model.byId.get(id);if(!t)return;const today=new Date;const opt=(n,label,iso)=>({n:n,label:label,iso:iso})
 ;const plus=days=>Util.isoOf(new Date(today.getFullYear(),today.getMonth(),today.getDate()+days));const pm=DateParse.parse("+1m",{today:today})
-;const options=[opt(1,"Tomorrow",plus(1)),opt(2,"In 3 days",plus(3)),opt(3,"Next week",plus(7)),opt(4,"Next month",pm.iso),opt(5,"Remove date",null)]
+;const wplus=n=>Util.isoOf(Days.addWorkDays(today,n));const options=Days.business()
+?[opt(1,"Next work day",wplus(1)),opt(2,"In 3 work days",wplus(3)),opt(3,"In 7 work days",wplus(7)),opt(4,"Next month",pm.iso),opt(5,"Remove date",null)]
+:[opt(1,"Tomorrow",plus(1)),opt(2,"In 3 days",plus(3)),opt(3,"Next week",plus(7)),opt(4,"Next month",pm.iso),opt(5,"Remove date",null)]
 ;const pop=E("div",{class:"pop",role:"menu","aria-label":"Snooze"});pop.append(E("h3",{text:"Snooze to…"}));const btns=options.map(o=>{const b=E("button",{
 role:"menuitem"},E("span",{class:"kk",text:String(o.n)}),E("span",{text:o.label}),E("span",{class:"dd",text:o.iso?Util.fmtShort(o.iso,today):"(undated)"}))
 ;on(b,"click",()=>{closePop();Actions.snooze(id,o.iso)});pop.append(b);return b});els.popRoot.append(pop)
@@ -752,7 +791,7 @@ e.preventDefault();const t=Model.byId.get(sel);Actions.setPriority(sel,(t.priori
 Render.setQuery("");si.value=""}else Render.select(null,false);break}}};const init=fnOverlayOpen=>{overlayOpen=fnOverlayOpen;on(window,"keydown",handler)}
 ;return{init:init}})();
 /* ================================================================ Shortcuts overlay */const Shortcuts=(()=>{let open=false,elRef=null,prevFocus=null
-;const GROUPS=[["Navigate",[["j / ↓","Select next task"],["k / ↑","Select previous task"],["Esc","Close overlay · clear search · deselect"]]],["Act",[["x / Space","Toggle complete"],["e","Rename task"],["d","Edit date"],[".","Snooze menu"],["!","Cycle priority"],["n","New task (focus entry)"]]],["Filter",[["/","Focus search"],["1 2 3","Toggle tag filter"],["0","Clear all filters"]]],["Entry",[["Enter","Add task"],["Shift+Enter","Add with literal date (no roll-forward)"],["Tab","Title → date field"]]],["System",[["Ctrl/⌘ Z","Undo"],["Ctrl/⌘ ⇧ Z","Redo"],["Ctrl/⌘ S","Save to disk"],["?","This overlay"]]]]
+;const GROUPS=[["Navigate",[["j / ↓","Select next task"],["k / ↑","Select previous task"],["Esc","Close overlay · clear search · deselect"]]],["Act",[["x / Space","Toggle complete"],["e","Rename task"],["d","Edit date"],[".","Snooze menu"],["!","Cycle priority"],["n","New task (focus entry)"]]],["Filter",[["/","Focus search"],["1 2 3","Toggle tag filter"],["0","Clear all filters"]]],["Entry",[["Enter","Add task"],["Shift+Enter","Add with literal date (no roll-forward)"],["Tab","Title → date field"],["+3b","Date fields: in 3 work days"]]],["System",[["Ctrl/⌘ Z","Undo"],["Ctrl/⌘ ⇧ Z","Redo"],["Ctrl/⌘ S","Save to disk"],["?","This overlay"]]]]
 ;const close=()=>{if(!open)return;open=false;document.getElementById("overlayRoot").textContent="";if(prevFocus&&prevFocus.focus)prevFocus.focus()}
 ;const show=()=>{if(open)return;prevFocus=document.activeElement;open=true;const root=document.getElementById("overlayRoot");const scrim=E("div",{class:"scrim"
 });on(scrim,"mousedown",close);const box=E("div",{class:"shortcuts",role:"dialog","aria-modal":"true","aria-label":"Keyboard shortcuts",tabindex:"-1"})
@@ -770,6 +809,8 @@ const root=document.documentElement;if(SETTINGS.theme==="system")root.removeAttr
 ;if(!raw||typeof raw!=="object")return{s:d,corrupt:raw!==undefined&&raw!==null};let corrupt=false;const s=defaultSettings();const take=(k,ok)=>{
 if(raw[k]!==undefined&&ok(raw[k]))s[k]=raw[k];else if(raw[k]!==undefined)corrupt=true};take("theme",v=>["system","light","dark","geocities"].includes(v))
 ;take("accent",v=>v in ACCENTS);take("density",v=>["comfortable","compact"].includes(v));take("rollForward",v=>typeof v==="boolean")
+;take("dayMode",v=>["calendar","business"].includes(v));if(raw.workWeek!==undefined){if(Array.isArray(raw.workWeek)){
+const ww=[...new Set(raw.workWeek.filter(v=>Number.isInteger(v)&&v>=0&&v<=6))].sort((a,b)=>a-b);if(ww.length)s.workWeek=ww;else corrupt=true}else corrupt=true}
 ;take("mdStyle",v=>["emoji","bracket"].includes(v));take("writeBlockIds",v=>typeof v==="boolean");take("showCompletedDays",v=>Number.isInteger(v)&&v>=1&&v<=365)
 ;take("autosaveDebounceMs",v=>Number.isInteger(v)&&v>=100&&v<=6e4);take("undoWindowSec",v=>Number.isInteger(v)&&v>=2&&v<=120)
 ;take("folderMode",v=>typeof v==="boolean");take("backupRetain",v=>Number.isInteger(v)&&v>=5&&v<=100);if(raw.urgency&&typeof raw.urgency==="object"){
@@ -780,7 +821,8 @@ corrupt:corrupt}};const load=async()=>{let raw;try{raw=await DB.metaGet("setting
 ;Object.assign(SETTINGS,s);if(corrupt)setTimeout(()=>Render.showBanner("badset",{cls:"warn",closable:true,
 msg:"Some saved settings couldn't be read and were reset to defaults. Your tasks are untouched."}),0);applyTheme();applyDensity()};const set=async(key,value)=>{
 SETTINGS[key]=value;await persist();switch(key){case"theme":applyTheme();Render.render();break;case"accent":applyAccent();break;case"density":applyDensity()
-;break;case"urgency":case"showCompletedDays":case"tagMap":Render.render();break;case"mdStyle":case"writeBlockIds":Persist.markDirty();break}}
+;break;case"urgency":case"showCompletedDays":case"tagMap":case"dayMode":case"workWeek":Render.render();break
+;case"mdStyle":case"writeBlockIds":Persist.markDirty();break}}
 ;const isOpen=()=>panelOpen;const closePanel=()=>{if(!panelOpen)return;panelOpen=false;document.getElementById("overlayRoot").textContent=""
 ;const gear=$("settingsBtn");gear.setAttribute("aria-expanded","false");gear.focus()};const row=(label,control,hint)=>{const r=E("div",{class:"set-row"})
 ;if(typeof label==="string")r.append(E("span",{class:"slbl",text:label}));else if(label)r.append(label);if(control)r.append(control);if(hint)r.append(E("span",{
@@ -805,13 +847,25 @@ text:"Each threshold must be smaller than the one above it."});const soonIn=E("i
 ;soonIn.value=SETTINGS.urgency.soon;const nearIn=E("input",{type:"number",min:"1",max:"365","aria-label":"Near threshold (days)"})
 ;nearIn.value=SETTINGS.urgency.near;const dueIn=E("input",{type:"number",disabled:true,"aria-label":"Due threshold (fixed: today)"});dueIn.value=0
 ;const ramp=E("div",{class:"ramp-preview"});const drawRamp=()=>{ramp.textContent="";const soon=+soonIn.value,near=+nearIn.value
-;const items=[["calm",1,"> "+soon+"d"],["soon",2,near+1+"–"+soon+"d"],["near",3,"1–"+near+"d"],["due",4,"today"]];for(const[name,fill,lab]of items){
+;const u=Days.business()?" wd":"d";const items=[["calm",1,"> "+soon+u],["soon",2,near+1+"–"+soon+u],["near",3,"1–"+near+u],["due",4,"today"]]
+;for(const[name,fill,lab]of items){
 const g=E("span",{class:"g"});for(let i=0;i<4;i++){const seg=E("i",null);if(i<fill)seg.style.background="var(--"+name+"-bar)";g.append(seg)}
 ramp.append(E("span",{class:"rp"},g,name+" "+lab))}};drawRamp();const commitUrg=()=>{const soon=parseInt(soonIn.value,10),near=parseInt(nearIn.value,10)
 ;const bad=!(Number.isInteger(soon)&&Number.isInteger(near)&&soon>near&&near>0);soonIn.classList.toggle("bad",bad);nearIn.classList.toggle("bad",bad)
 ;err.hidden=!bad;if(!bad){set("urgency",{calm:soon,soon:soon,near:near,due:0});drawRamp()}};on(soonIn,"input",commitUrg);on(nearIn,"input",commitUrg)
-;ug.append(row("Soon within (days)",soonIn),row("Near within (days)",nearIn),row("Due",dueIn,"Overdue is anything before today; undated is never coloured."),err,ramp)
+;const soonLbl=E("span",{class:"slbl"});const nearLbl=E("span",{class:"slbl"});const refreshUnits=()=>{
+const u=Days.business()?"work days":"days";soonLbl.textContent="Soon within ("+u+")";nearLbl.textContent="Near within ("+u+")";drawRamp()};refreshUnits()
+;ug.append(row(soonLbl,soonIn),row(nearLbl,nearIn),row("Due",dueIn,"Overdue is anything before today; undated is never coloured."),err,ramp)
 ;body.append(ug);const dt=E("div",{class:"set-sect"},E("h3",{text:"Dates"}))
+;dt.append(row("Count days as",segButtons([["calendar","Calendar"],["business","Work days"]],SETTINGS.dayMode,v=>{set("dayMode",v);refreshUnits()})))
+;const wwWrap=E("div",{class:"seg-btns",role:"group","aria-label":"Work week days"})
+;const wwErr=E("span",{class:"set-err",hidden:true,text:"Keep at least one work day."})
+;for(const[lbl,num]of[["Mon",1],["Tue",2],["Wed",3],["Thu",4],["Fri",5],["Sat",6],["Sun",0]]){
+const b=E("button",{text:lbl,"aria-pressed":SETTINGS.workWeek.includes(num)?"true":"false","aria-label":lbl+" is a work day"});on(b,"click",()=>{
+const cur=new Set(SETTINGS.workWeek);if(cur.has(num)){if(cur.size===1){wwErr.hidden=false;return}cur.delete(num)}else cur.add(num);wwErr.hidden=true
+;b.setAttribute("aria-pressed",cur.has(num)?"true":"false");set("workWeek",[...cur].sort((x,y)=>x-y))});wwWrap.append(b)}
+dt.append(row("Work week",wwWrap),wwErr,
+row(null,null,"Work-days mode counts only these days for chips, urgency and sections. The +Nb date input (e.g. +3b) uses them in both modes."))
 ;dt.append(checkbox("Roll past dates forward",SETTINGS.rollForward,v=>set("rollForward",v)))
 ;dt.append(row(null,null,"Example: typing “12 5” after 12 May resolves to 12 May next year. Shift+Enter always keeps the literal date."));body.append(dt)
 ;const fl=E("div",{class:"set-sect"},E("h3",{text:"File"}));const p=Persist.state();fl.append(row("Current file",E("span",{class:"hint",style:"flex:none",
@@ -879,15 +933,16 @@ applyAccent:applyAccent,applyDensity:applyDensity,openPanel:openPanel,closePanel
 ;const renderChips=()=>{const parsed=EntryParse.parse($("titleInput").value,SETTINGS.tagMap);if(!chipsEl){chipsEl=E("div",{class:"entry-chips",
 "aria-hidden":"true"});$("datePreview").before(chipsEl)}chipsEl.textContent="";for(const t of parsed.tags)chipsEl.append(E("span",{class:"tag",text:t}))
 ;if(parsed.priority)chipsEl.append(E("span",{class:"pri p"+parsed.priority,text:"!".repeat(parsed.priority)}))};const previewText=r=>{
-if(r.kind==="invalid")return{text:r.reason,cls:"invalid"};if(r.kind==="empty")return{text:"no date",cls:""};const today=Util.midnight(new Date)
-;const d=Util.daysBetween(today,Util.parseISO(r.iso));let suffix
-;if(r.rolled)suffix="rolled forward";else if(d<0)suffix=-d+" days ago";else if(d===0)suffix="today";else if(d===1)suffix="in 1 day";else suffix="in "+d+" days"
-;return{text:Util.fmtLong(r.iso)+" · "+suffix,cls:r.rolled?"rolled":d<0?"past":""}};const updatePreview=()=>{const el=$("datePreview")
-;const r=DateParse.parse($("dateInput").value,{rollForward:SETTINGS.rollForward});const p=previewText(r);el.textContent=p.text
+if(r.kind==="invalid")return{text:r.reason,cls:"invalid"};if(r.kind==="empty")return{text:"no date",cls:""};const rec=Days.recFor(r.iso);let suffix
+;if(r.rolled)suffix="rolled forward";else if(Days.business()){
+if(rec.overdue)suffix=rec.wd<0?-rec.wd+" wd ago":"past";else if(rec.cal===0)suffix="today";else suffix=rec.eff===0?"0 wd":"in "+rec.eff+" wd"}
+else if(rec.cal<0)suffix=-rec.cal+" days ago";else if(rec.cal===0)suffix="today";else if(rec.cal===1)suffix="in 1 day";else suffix="in "+rec.cal+" days"
+;return{text:Util.fmtLong(r.iso)+" · "+suffix,cls:r.rolled?"rolled":rec.cal<0?"past":""}};const updatePreview=()=>{const el=$("datePreview")
+;const r=DateParse.parse($("dateInput").value,Days.parseOpts());const p=previewText(r);el.textContent=p.text
 ;el.className="date-preview "+p.cls;$("dateInput").classList.toggle("bad",r.kind==="invalid")};const clear=()=>{$("titleInput").value="";$("dateInput").value=""
 ;$("dateInput").classList.remove("bad");$("datePreview").textContent="";$("datePreview").className="date-preview";if(chipsEl)chipsEl.textContent=""}
 ;const commit=async literal=>{const raw=$("titleInput").value;const parsed=EntryParse.parse(raw,SETTINGS.tagMap);if(!parsed.title){$("titleInput").focus()
-;return}const r=DateParse.parse($("dateInput").value,{literal:literal,rollForward:SETTINGS.rollForward});if(r.kind==="invalid"){
+;return}const r=DateParse.parse($("dateInput").value,Days.parseOpts({literal:literal}));if(r.kind==="invalid"){
 $("dateInput").classList.add("bad");updatePreview();$("dateInput").focus();return}await Actions.add({title:parsed.title,tags:parsed.tags,
 priority:parsed.priority,due:r.iso});clear();$("titleInput").focus()};const confirmBulk=lines=>{const root=document.getElementById("overlayRoot")
 ;root.textContent="";const scrim=E("div",{class:"scrim"});const box=E("div",{class:"shortcuts",role:"dialog","aria-modal":"true","aria-label":"Confirm paste",
@@ -895,7 +950,7 @@ style:"width:min(380px,90vw)"});box.append(E("h2",{text:"Add "+lines.length+" ta
 text:"One task per pasted line. Dates in the text are not parsed."}));const rowEl=E("div",{class:"set-row"});const addB=E("button",{class:"mini-btn",
 text:"Add "+lines.length+" tasks"});const cancelB=E("button",{class:"mini-btn",text:"Cancel"});const close=()=>{root.textContent="";$("titleInput").focus()}
 ;on(cancelB,"click",close);on(scrim,"mousedown",close);on(box,"keydown",e=>{if(e.key==="Escape"){e.stopPropagation();close()}});on(addB,"click",async()=>{
-close();const r=DateParse.parse($("dateInput").value,{rollForward:SETTINGS.rollForward});const due=r.kind==="date"?r.iso:null;const fields=lines.map(l=>{
+close();const r=DateParse.parse($("dateInput").value,Days.parseOpts());const due=r.kind==="date"?r.iso:null;const fields=lines.map(l=>{
 const p=EntryParse.parse(l,SETTINGS.tagMap);return{title:p.title||l.trim(),tags:p.tags,priority:p.priority,due:due}}).filter(f=>f.title)
 ;await Actions.bulkAdd(fields);clear()});rowEl.append(addB,cancelB);box.append(rowEl);root.append(scrim,box);addB.focus()};const init=()=>{
 const ti=$("titleInput"),di=$("dateInput");on(ti,"keydown",e=>{if(e.key==="Enter"){e.preventDefault();commit(false)}else if(e.key==="Escape"){clear();ti.blur()}
@@ -926,7 +981,7 @@ if(Persist.state().dirty)Persist.flush(true)}else{Render.render();Persist.checkE
 ;on(window,"hashchange",()=>{if(location.hash==="#test")Tests.runInPage()})};return{boot:boot,wipe:wipe,dbWriteError:dbWriteError}})();
 /* ================================================================ Tests */const Tests=(()=>{const REF=()=>new Date(2026,7,25);const TM={d:"DPN",b:"BSM",
 t:"Highside"};const MS={mdStyle:"emoji",writeBlockIds:true}
-;const VECTORS=[["12 5","2027-05-12"],["12 5 27","2027-05-12"],["1-9-2026","2026-09-01"],["26 8","2026-08-26"],["25 8","2026-08-25"],["24 8","2027-08-24"],["1/9","2026-09-01"],["1 1","2027-01-01"],["29 2 28","2028-02-29"],["29 2","2028-02-29"],["29 2 27",null],["31 4",null],["+3","2026-08-28"],["+1w","2026-09-01"],["+2w","2026-09-08"],["tom","2026-08-26"],["fri","2026-08-28"],["wed","2026-08-26"],["tue","2026-09-01"],["mon","2026-08-31"],["eow","2026-08-28"],["eom","2026-08-31"],["",""],["12 5","2026-05-12",true],["banana",null],["12.5","2027-05-12"],["+1m","2026-09-25"]]
+;const VECTORS=[["12 5","2027-05-12"],["12 5 27","2027-05-12"],["1-9-2026","2026-09-01"],["26 8","2026-08-26"],["25 8","2026-08-25"],["24 8","2027-08-24"],["1/9","2026-09-01"],["1 1","2027-01-01"],["29 2 28","2028-02-29"],["29 2","2028-02-29"],["29 2 27",null],["31 4",null],["+3","2026-08-28"],["+1w","2026-09-01"],["+2w","2026-09-08"],["tom","2026-08-26"],["fri","2026-08-28"],["wed","2026-08-26"],["tue","2026-09-01"],["mon","2026-08-31"],["eow","2026-08-28"],["eom","2026-08-31"],["",""],["12 5","2026-05-12",true],["banana",null],["12.5","2027-05-12"],["+1m","2026-09-25"],["+2b","2026-08-27"],["+4b","2026-08-31"],["+0b","2026-08-25"]]
 ;const SAMPLE=["# To Do","\x3c!-- Runway v1 · edit freely; the app preserves anything it does not recognise --\x3e","","## Open","- [ ] Send an email to frank #DPN 📅 2027-05-12 ^k3f9qm","- [ ] Patch the jump host #Highside ⏫ 📅 2026-08-26 ^a7b2xd","    Needs change approval before the window opens.","    - [ ] raise CR","    - [x] schedule window","","## Reference","Some prose the app must never touch.","","## No date","- [ ] Buy vinyl inner sleeves ^q8w3ez","","## Completed","- [x] Replace the failing SSD #Highside ✅ 2026-08-18 ^z1x4cv",""].join("\n")
 ;const run=()=>{const results=[];const ok=(name,cond,detail)=>results.push({name:name,pass:!!cond,detail:detail||""})
 ;const d=(input,opts)=>DateParse.parse(input,Object.assign({today:REF()},opts));for(const[inp,want,lit]of VECTORS){const r=d(inp,lit?{literal:true}:null)
@@ -955,9 +1010,47 @@ tagMap:TM});ok("md parses 4 tasks",p.tasks.length===4,"got "+p.tasks.length);con
 ;ok("md invalid date → undated + reported",p.tasks[0]&&p.tasks[0].due===null&&p.problems.length===1);ok("md invalid date line preserved",rtOf(p)===BAD)
 ;p=MD.parse("## Completed\n* [X] star bullet done ✅ 2026-08-01 ^cccccc\n",{tagMap:TM});ok("md * and [X] accepted",p.tasks[0]&&p.tasks[0].done===true)
 ;const ft=Model.validate({id:"zzzzzz",title:"Chase vendor",tags:["DPN"],due:"2026-08-20",priority:2,done:false,doneAt:null,note:null,subtasks:[],
-createdAt:"2026-08-01T00:00:00Z",updatedAt:"2026-08-01T00:00:00Z"});const ctx={days:new Map([["zzzzzz",-5]])}
+createdAt:"2026-08-01T00:00:00Z",updatedAt:"2026-08-01T00:00:00Z"})
+;const mkrec=(cal,wd)=>{const w=wd===undefined?cal:wd;return{cal:cal,wd:w,overdue:cal<0,eff:cal<0?Math.min(w,-1):w}}
+;const ctx={recs:new Map([["zzzzzz",mkrec(-5)]])}
 ;const fm=q=>Filter.match(ft,Filter.parseQuery(q),ctx)
 ;for(const[q,hit]of[["#dpn",1],["overdue",1],["!!",1],["!!!",0],["-#dpn",0],["chsvndr",1],["is:undated",0],["today",0],["due:<7d",0],["has:note",0]])ok("filter "+JSON.stringify(q),hit?fm(q)>=0:fm(q)<0,"rank "+fm(q))
+;const fm2=(q,rec)=>Filter.match(ft,Filter.parseQuery(q),{recs:new Map([["zzzzzz",rec]])})
+;ok("filter overdue biz rec",fm2("overdue",mkrec(-1,0))>=0);ok("filter today 0wd rec",fm2("today",mkrec(1,0))>=0)
+;ok("filter week eff boundary",fm2("week",mkrec(9,7))>=0&&fm2("week",mkrec(10,8))<0)
+;ok("filter due:<7d eff",fm2("due:<7d",mkrec(8,6))>=0&&fm2("due:<7d",mkrec(9,7))<0)
+;/* work-day engine */const withDays=(mode,week,fn)=>{const pm=SETTINGS.dayMode,pw=SETTINGS.workWeek;SETTINGS.dayMode=mode;SETTINGS.workWeek=week
+;try{fn()}finally{SETTINGS.dayMode=pm;SETTINGS.workWeek=pw}};const MF=[1,2,3,4,5],ST=[0,1,2,3,4],A7=[0,1,2,3,4,5,6];const wkArr=Days.weekArr
+;const WDV=[["2026-08-25","2026-08-25",MF,0,0,"today","today"],["2026-08-25","2026-08-26",MF,1,1,"tomorrow","in 1 wd"],
+["2026-08-25","2026-08-28",MF,3,3,"week","in 3 wd"],["2026-08-25","2026-08-29",MF,3,3,"week","in 3 wd"],
+["2026-08-25","2026-08-31",MF,4,4,"week","in 4 wd"],["2026-08-25","2026-09-03",MF,7,7,"week","in 7 wd"],
+["2026-08-25","2026-09-08",MF,10,10,"later","in 10 wd"],["2026-08-28","2026-08-29",MF,0,0,"today","0 wd"],
+["2026-08-28","2026-08-30",MF,0,0,"today","0 wd"],["2026-08-28","2026-08-31",MF,1,1,"tomorrow","in 1 wd"],
+["2026-08-30","2026-08-29",MF,0,-1,"overdue","late"],["2026-08-31","2026-08-28",MF,-1,-1,"overdue","1 wd late"],
+["2026-08-31","2026-08-29",MF,-1,-1,"overdue","1 wd late"],["2026-08-25","2026-08-18",MF,-5,-5,"overdue","5 wd late"],
+["2026-08-27","2026-08-28",ST,0,0,"today","0 wd"],["2026-08-27","2026-08-30",ST,1,1,"tomorrow","in 1 wd"],
+["2026-08-29","2026-08-30",ST,1,1,"tomorrow","in 1 wd"],["2026-08-28","2026-08-27",ST,0,-1,"overdue","late"]]
+;for(const[tod,due,week,wd,eff,bucket,chip]of WDV)withDays("business",week,()=>{const rec=Days.recFor(due,Util.parseISO(tod))
+;ok("wd "+tod+"→"+due+" ["+week.join("")+"]",rec.wd===wd&&rec.eff===eff&&Days.bucketOf(rec)===bucket&&Days.fmtRel(rec)===chip,
+JSON.stringify({wd:rec.wd,eff:rec.eff,bucket:Days.bucketOf(rec),chip:Days.fmtRel(rec)}))})
+;withDays("business",A7,()=>{let all=true;for(let off=-10;off<=15;off++){const rec=Days.recFor(Util.isoOf(new Date(2026,7,25+off)),REF())
+;if(rec.wd!==rec.cal)all=false}ok("all-7 week ≡ calendar",all)})
+;withDays("calendar",MF,()=>{const c=(o,s)=>Days.fmtRel(Days.recFor(Util.isoOf(new Date(2026,7,25+o)),REF()))===s
+;ok("calendar chips unchanged",c(0,"today")&&c(1,"tomorrow")&&c(3,"in 3d")&&c(-3,"3d late"))})
+;ok("urgency eff mapping",Days.urgencyOf(-1)==="overdue"&&Days.urgencyOf(0)==="due"&&Days.urgencyOf(5)==="near"&&Days.urgencyOf(6)==="soon"&&Days.urgencyOf(14)==="soon"&&Days.urgencyOf(15)==="calm"&&Days.urgencyOf(null)==="none")
+;ok("addWorkDays Fri+1",Util.isoOf(Util.addWorkDays(new Date(2026,7,28),1,wkArr(MF)))==="2026-08-31")
+;ok("addWorkDays Fri+3",Util.isoOf(Util.addWorkDays(new Date(2026,7,28),3,wkArr(MF)))==="2026-09-02")
+;ok("addWorkDays Sat+1",Util.isoOf(Util.addWorkDays(new Date(2026,7,29),1,wkArr(MF)))==="2026-08-31")
+;ok("addWorkDays ST Thu+1",Util.isoOf(Util.addWorkDays(new Date(2026,7,27),1,wkArr(ST)))==="2026-08-30")
+;{let good=true;for(const wk of[MF,ST])for(const n of[1,3,7]){const to=Util.addWorkDays(REF(),n,wkArr(wk))
+;if(Util.workDaysBetween(REF(),to,wkArr(wk))!==n)good=false}ok("workDaysBetween∘addWorkDays identity",good)}
+ok("wdb antisymmetric",Util.workDaysBetween(new Date(2026,7,25),new Date(2026,7,29),wkArr(MF))===3&&Util.workDaysBetween(new Date(2026,7,29),new Date(2026,7,25),wkArr(MF))===-3)
+;ok("+1b from Fri",DateParse.parse("+1b",{today:new Date(2026,7,28)}).iso==="2026-08-31")
+;ok("+2b sun-thu",DateParse.parse("+2b",{today:new Date(2026,7,27),workDays:wkArr(ST)}).iso==="2026-08-31")
+;const beow=(t,wk)=>DateParse.parse("eow",{today:t,business:true,workDays:wkArr(wk)}).iso
+;ok("eow biz MF",beow(REF(),MF)==="2026-08-28");ok("eow biz MF from Sat",beow(new Date(2026,7,29),MF)==="2026-09-04")
+;ok("eow biz ST",beow(REF(),ST)==="2026-08-27");ok("eow biz ST from Fri",beow(new Date(2026,7,28),ST)==="2026-09-03")
+;ok("eow biz all-7 falls back",beow(REF(),A7)==="2026-08-28")
 ;return results};const runInPage=()=>{const results=run();const old=document.getElementById("testpanel");if(old)old.remove();const panel=E("div",{
 id:"testpanel",role:"log"});const passed=results.filter(r=>r.pass).length;panel.append(E("div",null,E("strong",{text:passed+" / "+results.length+" passed"})))
 ;for(const r of results)panel.append(E("div",{class:r.pass?"pass":"fail",text:(r.pass?"✓ ":"✗ ")+r.name+(r.pass||!r.detail?"":" — "+r.detail)}))
@@ -965,7 +1058,7 @@ id:"testpanel",role:"log"});const passed=results.filter(r=>r.pass).length;panel.
 ;return{run:run,runInPage:runInPage}})();
 /* ================================================================ boot */if(typeof document!=="undefined"&&typeof window!=="undefined"){
 if(document.readyState==="loading")on(document,"DOMContentLoaded",()=>{App.boot()});else App.boot()}if(typeof module!=="undefined"&&module.exports){
-module.exports={Util:Util,DateParse:DateParse,EntryParse:EntryParse,MD:MD,Model:Model,Filter:Filter,Tests:Tests,SETTINGS:SETTINGS}}})();
+module.exports={Util:Util,Days:Days,DateParse:DateParse,EntryParse:EntryParse,MD:MD,Model:Model,Filter:Filter,Tests:Tests,SETTINGS:SETTINGS}}})();
 /*JS-END*/
 </script>
 </body>
