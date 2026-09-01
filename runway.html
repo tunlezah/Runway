@@ -588,11 +588,13 @@ if(cb.checked)collapseThen(li,()=>Actions.complete(t.id));else Actions.uncomplet
 ;const label=(t.subtasks.length?done+"/"+t.subtasks.length:"note")+(state.expanded.has(t.id)?" ⌃":" ⌄");const tg=E("button",{class:"note-toggle",text:label,
 "aria-expanded":state.expanded.has(t.id)?"true":"false"});on(tg,"click",()=>{
 if(state.expanded.has(t.id))state.expanded.delete(t.id);else state.expanded.add(t.id);render()});tmain.append(tg)}li.append(tmain);const meta=E("div",{
-class:"tmeta"});const actions=E("span",{class:"rowactions"});const snz=E("button",{title:"Snooze","aria-label":"Snooze: "+t.title})
+class:"tmeta"});const actions=E("span",{class:"rowactions"});const ren=E("button",{title:"Rename","aria-label":"Rename: "+t.title})
+;ren.append(Util.svgIcon(["M4 20l4-1L19 8l-3-3L5 16l-1 4z"]));on(ren,"click",e=>{e.stopPropagation();startEdit(t.id)})
+;const snz=E("button",{title:"Snooze","aria-label":"Snooze: "+t.title})
 ;snz.append(Util.svgIcon(["M12 7v5l3 2","M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z"]));on(snz,"click",e=>{e.stopPropagation();openSnooze(t.id,snz)})
 ;const delb=E("button",{title:"Delete","aria-label":"Delete: "+t.title})
 ;delb.append(Util.svgIcon(["M4 7h16","M9 7V5h6v2","M6 7l1 13h10l1-13","M10 11v6M14 11v6"]));on(delb,"click",e=>{e.stopPropagation();Actions.del(t.id)})
-;actions.append(snz,delb);meta.append(actions);for(const tag of t.tags){const known=Object.values(SETTINGS.tagMap).includes(tag);meta.append(E("span",{
+;actions.append(ren,snz,delb);meta.append(actions);for(const tag of t.tags){const known=Object.values(SETTINGS.tagMap).includes(tag);meta.append(E("span",{
 class:"tag"+(known?"":" unknown"),text:tag}))}if(t.priority)meta.append(E("span",{class:"pri p"+t.priority,text:"!".repeat(t.priority),
 title:["","low priority","medium priority","high priority"][t.priority]}));if(t.done){meta.append(E("span",{class:"donechip",
 text:"done "+Util.fmtShort(t.doneAt,new Date)}))}else if(state.dateEditId===t.id){meta.append(buildDateEditor(t))}else{
@@ -719,7 +721,7 @@ e.preventDefault();const t=Model.byId.get(sel);Actions.setPriority(sel,(t.priori
 Render.setQuery("");si.value=""}else Render.select(null,false);break}}};const init=fnOverlayOpen=>{overlayOpen=fnOverlayOpen;on(window,"keydown",handler)}
 ;return{init:init}})();
 /* ================================================================ Shortcuts overlay */const Shortcuts=(()=>{let open=false,elRef=null,prevFocus=null
-;const GROUPS=[["Navigate",[["j / ↓","Select next task"],["k / ↑","Select previous task"],["Esc","Close overlay · clear search · deselect"]]],["Act",[["x / Space","Toggle complete"],["e","Edit title"],["d","Edit date"],[".","Snooze menu"],["!","Cycle priority"],["n","New task (focus entry)"]]],["Filter",[["/","Focus search"],["1 2 3","Toggle tag filter"],["0","Clear all filters"]]],["Entry",[["Enter","Add task"],["Shift+Enter","Add with literal date (no roll-forward)"],["Tab","Title → date field"]]],["System",[["Ctrl/⌘ Z","Undo"],["Ctrl/⌘ ⇧ Z","Redo"],["Ctrl/⌘ S","Save to disk"],["?","This overlay"]]]]
+;const GROUPS=[["Navigate",[["j / ↓","Select next task"],["k / ↑","Select previous task"],["Esc","Close overlay · clear search · deselect"]]],["Act",[["x / Space","Toggle complete"],["e","Rename task"],["d","Edit date"],[".","Snooze menu"],["!","Cycle priority"],["n","New task (focus entry)"]]],["Filter",[["/","Focus search"],["1 2 3","Toggle tag filter"],["0","Clear all filters"]]],["Entry",[["Enter","Add task"],["Shift+Enter","Add with literal date (no roll-forward)"],["Tab","Title → date field"]]],["System",[["Ctrl/⌘ Z","Undo"],["Ctrl/⌘ ⇧ Z","Redo"],["Ctrl/⌘ S","Save to disk"],["?","This overlay"]]]]
 ;const close=()=>{if(!open)return;open=false;document.getElementById("overlayRoot").textContent="";if(prevFocus&&prevFocus.focus)prevFocus.focus()}
 ;const show=()=>{if(open)return;prevFocus=document.activeElement;open=true;const root=document.getElementById("overlayRoot");const scrim=E("div",{class:"scrim"
 });on(scrim,"mousedown",close);const box=E("div",{class:"shortcuts",role:"dialog","aria-modal":"true","aria-label":"Keyboard shortcuts",tabindex:"-1"})
