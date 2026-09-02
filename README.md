@@ -3,7 +3,7 @@
 **A to-do list that lives in one HTML file and saves to a markdown file you own.**
 
 [![Tests](https://github.com/tunlezah/Runway/actions/workflows/test.yml/badge.svg)](https://github.com/tunlezah/Runway/actions/workflows/test.yml)
-&nbsp;Current version: **v1.1.1**
+&nbsp;Current version: **v1.2.0**
 
 Runway is a fast, keyboard-friendly task list with due dates, tags, priorities, notes and
 sub-tasks — and a runway-style view of what's landing when. It is deliberately small:
@@ -30,7 +30,10 @@ sub-tasks — and a runway-style view of what's landing when. It is deliberately
    the *"When?"* box first if it has a deadline — see [date language](#the-date-language) below.
 3. **Connect your markdown file.** Click **⊕ Choose todo.md** in the header (or *Settings →
    File*). Pick an existing `todo.md` or create a new one. From then on every change autosaves
-   to that file, about a second after you stop typing.
+   to that file, about a second after you stop typing. If the browser already holds tasks *and*
+   the file you pick has some too, Runway asks what to do — **Keep both**, **Use the file**, or
+   **Use browser tasks** — and shows the difference; the file's headings and notes are kept
+   whichever you choose.
 
 **Browsers:** direct file saving uses the File System Access API, which exists in
 Chrome, Edge, Brave, Arc and other Chromium browsers. In Firefox and Safari the app still
@@ -232,11 +235,13 @@ Some prose the app must never touch. It won't.
 - Tags are `#Words_With_Underscores` in the file and display with spaces in the app.
 
 **Hand-editing is a supported workflow.** Edit in Obsidian, vim, or Notepad while the app is
-closed — or even while it's open: Runway checks the file when you return to the tab and shows
-a conflict banner if both sides changed, with a line-by-line diff and an explicit choice
-(*Reload from disk* / *Keep my version*). **Nothing is ever merged or overwritten silently.**
-Lines it can't read (say, a task with `📅 2026-02-31`) are flagged in a banner, treated as
-undated, and left untouched in the file.
+closed — or even while it's open: Runway checks the file when you return to the tab. If only
+the file changed, it reloads it and tells you; if both sides changed, it shows a conflict banner
+with a line-by-line diff and an explicit choice (*Reload from disk* / *Keep my version* — the
+latter overwrites the file's *tasks* but keeps its headings, notes and anything else). **Nothing
+is ever merged or overwritten silently.** Lines it can't read (say, a task with `📅 2026-02-31`)
+are flagged in a banner, treated as undated, and kept in the file exactly as written — the only
+thing Runway ever adds to a hand-written line is its `^id`.
 
 ### Saving, backups and safety nets
 
@@ -250,8 +255,9 @@ undated, and left untouched in the file.
 - **Folder mode** (*Settings → File*, Chromium only): point Runway at a folder instead of a
   file and it keeps `todo.md` **plus timestamped backups** in `backups/` after every save —
   keeping the newest 20 by default (5–100). A restore list with task counts is built into
-  Settings; restoring shows the same conflict diff before touching anything.
-- **Export / Import** works everywhere, any browser.
+  Settings; restoring shows a diff and asks before it writes the backup over `todo.md`.
+- **Export / Import** works everywhere, any browser. Importing into a connected file adds the
+  imported tasks; the connected file keeps its own headings and notes.
 - **Wipe local data** (*Settings → Advanced*, type `wipe` to confirm) clears the browser copy,
   settings and undo history. The markdown file on disk is never touched by a wipe.
 
@@ -346,7 +352,9 @@ with regression tests. Details in the report.
 | **"⊕ Choose todo.md"** chip | Tasks aren't connected to a file yet | Click it and pick/create your file |
 | **"not saved to file"** warning chip | You have tasks but no file connection | Same as above — until then they live in this browser only |
 | **"Runway needs permission again…"** | The browser dropped file permission (happens after restarts) | Click **Reconnect** — one click restores it |
-| **"todo.md changed outside this app"** | The file was edited elsewhere while you had unsaved changes | Use **Show what changed**, then *Reload from disk* or *Keep my version* — nothing merges silently |
+| **"todo.md changed on disk and was reloaded"** | The file was edited elsewhere and you had nothing unsaved | Nothing to do — the app now shows the file's version |
+| **"todo.md changed outside this app while you had unsaved changes"** | Both sides changed | Use **Show what changed**, then *Reload from disk* or *Keep my version* — nothing merges silently |
+| **"todo.md already has N tasks, and this browser has M tasks…"** | You connected a file while the browser already held tasks | **Keep both** merges them; the other two buttons say exactly what they drop |
 | **"Couldn't write todo.md…"** + red dot | A save failed (drive unplugged, file locked…) | Your data is safe in the browser; fix the cause and hit **Retry** |
 | **"todo.md is no longer at that location"** | File moved/renamed/deleted | **Choose file** to re-point, or **Save as new file** |
 | **"N lines couldn't be read as tasks"** | e.g. an invalid date typed by hand | Click **Show lines**; fix them in the file or in the app — the lines were preserved as-is |
@@ -357,7 +365,7 @@ with regression tests. Details in the report.
 | **"Some saved settings couldn't be read"** | Settings got corrupted | They reset to defaults; tasks untouched |
 
 Still stuck? Open the app with `#test` appended to the URL to run its built-in self-test
-panel (150 checks) — a clean pass rules out the app's own logic.
+panel (162 checks) — a clean pass rules out the app's own logic.
 
 ---
 
@@ -365,7 +373,7 @@ panel (150 checks) — a clean pass rules out the app's own logic.
 
 - Everything is in `runway.html` — no dependencies, no build. CSS at the top, JS between
   `/*JS-START*/ … /*JS-END*/` markers.
-- `node test.js` runs the same 150-test suite the browser runs at `#test` (CI runs it on
+- `node test.js` runs the same 162-test suite the browser runs at `#test` (CI runs it on
   every push).
 - `stress/` contains the load-test harnesses behind the numbers above:
   `node --expose-gc stress/stress-node.js` (parser/serialiser limits + robustness corpus) and

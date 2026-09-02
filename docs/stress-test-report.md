@@ -134,6 +134,13 @@ Verified by test (all in `stress-node.js` robustness corpus):
 > IndexedDB transaction (F5). Each fix carries a regression test in the embedded suite
 > (150/150 green), and harness cases R3a/R5/R9/R10/R13 now pass. The table below documents
 > the pre-fix behaviour the stress test demonstrated.
+>
+> **v1.2.0 follow-up (reliability review):** F4 turned out to be only half-fixed in the browser —
+> `Blob.text()` strips the BOM before the parser sees it, so a BOM'd file was still rewritten
+> without one; file reads now decode the bytes with `ignoreBOM: true`. The same review found and
+> fixed the first-connect / "Keep my version" path discarding the file's non-task content,
+> hand-written lines being re-rendered instead of kept, and restore-from-backup never reaching
+> the disk. Details are in the v1.2.0 commit message.
 
 | # | Severity | Finding |
 |---|---|---|
@@ -186,5 +193,5 @@ a technical one.
 ```sh
 node --expose-gc stress/stress-node.js --out stress/results/node.json
 node stress/stress-dom.js --out stress/results/dom.json   # needs Playwright + Chromium
-node test.js                                              # app's own suite still 146/146
+node test.js                                              # app's own suite (162 tests as of v1.2.0)
 ```
