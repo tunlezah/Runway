@@ -14,7 +14,7 @@ core; treat absolute numbers as ±2×, the shapes as reliable).
 | **Comfortable** | ≤ 500 | ≤ 5,000 (~430 KB) |
 | **Noticeably sluggish** | ~1,000–2,000 (0.4–1.6 s freeze per action) | ~20,000 (~1.7 MB, ~350 ms CPU per autosave) |
 | **Painful** | ~5,000 (2–4 s freeze per action) | ~50,000 (~4.3 MB, >1 s per autosave, ~0.6 s parse on load) |
-| **Broken / data-risk** | ~10,000+ (freezes >5 s) | ~125,000 in one section → **serialiser crashes, autosave permanently fails** |
+| **Broken / data-risk** | ~10,000+ (freezes >5 s) | ~125,000 in one section → **pre-fix serialiser crash** (F1, fixed on this branch — post-fix there is no hard cliff to the 300k probe ceiling, just the slowness above) |
 
 The binding constraint is the **UI, not the file format**: the app re-renders the whole
 list on every mutation with no virtualisation, so *open* tasks are what hurt. The parser
@@ -127,6 +127,14 @@ Verified by test (all in `stress-node.js` robustness corpus):
 
 ### Findings (defects demonstrated by the harness)
 
+> **Status: all five findings are fixed on this branch** (app v1.1.1). The serialiser inserts
+> without spread calls (F1), ids generated within one parse are collision-checked against each
+> other (F2), the `^id` extractor is anchored to the end of the line (F3), a UTF-8 BOM is
+> threaded through `mdState` and re-emitted on save (F4), and bulk imports write one batched
+> IndexedDB transaction (F5). Each fix carries a regression test in the embedded suite
+> (150/150 green), and harness cases R3a/R5/R9/R10/R13 now pass. The table below documents
+> the pre-fix behaviour the stress test demonstrated.
+
 | # | Severity | Finding |
 |---|---|---|
 | **F1** | **High (crash)** | `MD.serialise` uses spread (`lines.push(...e.lines)`, `entries.push(...newEntries)`) and **throws `RangeError: Maximum call stack size exceeded` at ≈125,546 lines** in one entry or one batch. Two real triggers: (a) a single task whose note+subtasks exceed ~125k lines — autosave of that file **permanently fails** (data stays in IndexedDB, file goes stale, "save failing" banner forever); (b) "Save as new file"/first connect when ~125k+ tasks must be placed into one section at once. Fix is one line each: replace spread with a loop/`concat`. |
@@ -137,7 +145,7 @@ Verified by test (all in `stress-node.js` robustness corpus):
 
 ## 4. Hard ceilings (for completeness)
 
-- **Serialiser crash:** ~125k lines in one entry/section (F1) — the only true "file becomes unsaveable" cliff we found.
+- **Serialiser crash:** ~125k lines in one entry/section (F1) — the only true "file becomes unsaveable" cliff we found. **Fixed on this branch**; the harness now verifies no crash up to its 300k probe ceiling.
 - **Memory:** parse result retains ~0.4 KB/task (37 MB at 100k); the browser roughly doubles that with the model + DOM. Not the binding constraint.
 - **Id space:** 36⁶ ≈ 2.18 billion — collisions between *existing* ids are a non-issue below millions of tasks; only generation-in-one-parse collides (F2).
 - **32-bit content hash (FNV-1a)** for conflict detection: a false "no conflict" needs a 1-in-4-billion collision on a changed file — acceptable.

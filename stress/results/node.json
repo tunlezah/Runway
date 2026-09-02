@@ -3,7 +3,7 @@
     "node": "v22.22.2",
     "platform": "linux x64",
     "cpus": "Intel(R) Xeon(R) Processor @ 2.80GHz",
-    "date": "2026-09-02T05:27:59.673Z",
+    "date": "2026-09-02T06:11:33.511Z",
     "quick": false,
     "gcExposed": true
   },
@@ -12,14 +12,14 @@
       "tasks": 100,
       "bytes": 8749,
       "lines": 159,
-      "parseMs": 1.3182349999999872,
-      "parseColdMs": 4.356545000000011,
-      "serialiseMs": 0.15183400000000802,
-      "hashMs": 0.4261510000000044,
-      "saveCycleMs": 1.5684400000000096,
-      "saveCycleColdMs": 1.5684400000000096,
-      "fsWriteMs": 0.15483399999999392,
-      "heapMB": 0.16457366943359375,
+      "parseMs": 1.3367489999999975,
+      "parseColdMs": 4.350848999999982,
+      "serialiseMs": 0.21052700000001323,
+      "hashMs": 0.4446630000000198,
+      "saveCycleMs": 1.4518929999999841,
+      "saveCycleColdMs": 1.6458869999999877,
+      "fsWriteMs": 0.14508299999999963,
+      "heapMB": 0.164764404296875,
       "roundtripIdentical": true,
       "editSurvives": true
     },
@@ -27,14 +27,14 @@
       "tasks": 500,
       "bytes": 42741,
       "lines": 796,
-      "parseMs": 8.030069999999967,
-      "parseColdMs": 6.091090000000008,
-      "serialiseMs": 0.7006589999999733,
-      "hashMs": 0.16389999999995553,
-      "saveCycleMs": 6.2964489999999955,
-      "saveCycleColdMs": 20.981178,
-      "fsWriteMs": 0.21287000000000944,
-      "heapMB": 0.2989349365234375,
+      "parseMs": 7.923445000000015,
+      "parseColdMs": 6.199589000000003,
+      "serialiseMs": 0.7173570000000495,
+      "hashMs": 0.1874300000000062,
+      "saveCycleMs": 8.268965999999978,
+      "saveCycleColdMs": 10.029087000000004,
+      "fsWriteMs": 0.1787830000000099,
+      "heapMB": 0.29895782470703125,
       "roundtripIdentical": true,
       "editSurvives": true
     },
@@ -42,14 +42,14 @@
       "tasks": 1000,
       "bytes": 85580,
       "lines": 1588,
-      "parseMs": 14.693529000000012,
-      "parseColdMs": 13.998192999999958,
-      "serialiseMs": 1.5771119999999428,
-      "hashMs": 0.36021599999992304,
-      "saveCycleMs": 12.42676300000005,
-      "saveCycleColdMs": 12.42676300000005,
-      "fsWriteMs": 0.3454710000000887,
-      "heapMB": 0.27135467529296875,
+      "parseMs": 20.690819000000033,
+      "parseColdMs": 23.185733000000027,
+      "serialiseMs": 1.744595000000004,
+      "hashMs": 0.36185199999999895,
+      "saveCycleMs": 13.55951899999991,
+      "saveCycleColdMs": 12.080368000000021,
+      "fsWriteMs": 0.318033000000014,
+      "heapMB": 0.242645263671875,
       "roundtripIdentical": true,
       "editSurvives": true
     },
@@ -57,14 +57,14 @@
       "tasks": 2000,
       "bytes": 172609,
       "lines": 3148,
-      "parseMs": 24.389905999999996,
-      "parseColdMs": 26.915918000000033,
-      "serialiseMs": 3.1479170000000067,
-      "hashMs": 0.6727719999998953,
-      "saveCycleMs": 26.35454299999992,
-      "saveCycleColdMs": 25.185050000000047,
-      "fsWriteMs": 0.39775600000007216,
-      "heapMB": 0.8134765625,
+      "parseMs": 26.79128300000002,
+      "parseColdMs": 26.79128300000002,
+      "serialiseMs": 3.84938800000009,
+      "hashMs": 0.7194619999999077,
+      "saveCycleMs": 28.032922999999982,
+      "saveCycleColdMs": 28.032922999999982,
+      "fsWriteMs": 0.4054920000000948,
+      "heapMB": 0.7609176635742188,
       "roundtripIdentical": true,
       "editSurvives": true
     },
@@ -72,14 +72,14 @@
       "tasks": 5000,
       "bytes": 432796,
       "lines": 7951,
-      "parseMs": 58.43325600000003,
-      "parseColdMs": 70.93130300000007,
-      "serialiseMs": 10.957742999999937,
-      "hashMs": 2.05355899999995,
-      "saveCycleMs": 98.90882899999997,
-      "saveCycleColdMs": 98.90882899999997,
-      "fsWriteMs": 0.8899609999998574,
-      "heapMB": 2.2551803588867188,
+      "parseMs": 64.20358299999998,
+      "parseColdMs": 71.07647300000008,
+      "serialiseMs": 10.677900000000136,
+      "hashMs": 1.6793790000001536,
+      "saveCycleMs": 71.4148439999999,
+      "saveCycleColdMs": 81.29598900000019,
+      "fsWriteMs": 0.6773150000003625,
+      "heapMB": 2.2556915283203125,
       "roundtripIdentical": true,
       "editSurvives": true
     },
@@ -87,14 +87,14 @@
       "tasks": 10000,
       "bytes": 865228,
       "lines": 15870,
-      "parseMs": 165.82441900000003,
-      "parseColdMs": 165.82441900000003,
-      "serialiseMs": 26.534578999999667,
-      "hashMs": 3.3157400000000052,
-      "saveCycleMs": 135.43914900000027,
-      "saveCycleColdMs": 145.95671399999992,
-      "fsWriteMs": 1.1721600000000763,
-      "heapMB": 3.647857666015625,
+      "parseMs": 111.56326900000022,
+      "parseColdMs": 132.85455899999988,
+      "serialiseMs": 20.585143000000244,
+      "hashMs": 3.5772390000001906,
+      "saveCycleMs": 143.68118700000014,
+      "saveCycleColdMs": 143.68118700000014,
+      "fsWriteMs": 1.435059999999794,
+      "heapMB": 3.7148284912109375,
       "roundtripIdentical": true,
       "editSurvives": true
     },
@@ -102,14 +102,14 @@
       "tasks": 20000,
       "bytes": 1728333,
       "lines": 31635,
-      "parseMs": 223.44801000000007,
-      "parseColdMs": 239.13849500000015,
-      "serialiseMs": 42.5009970000001,
-      "hashMs": 6.497605999999905,
-      "saveCycleMs": 345.1037040000001,
-      "saveCycleColdMs": 298.20880099999977,
-      "fsWriteMs": 7.978762000000643,
-      "heapMB": 7.350128173828125,
+      "parseMs": 235.7509200000004,
+      "parseColdMs": 250.4415429999999,
+      "serialiseMs": 51.136585000000196,
+      "hashMs": 4.480379000000539,
+      "saveCycleMs": 299.1674120000007,
+      "saveCycleColdMs": 299.1674120000007,
+      "fsWriteMs": 3.2563850000005914,
+      "heapMB": 7.348182678222656,
       "roundtripIdentical": true,
       "editSurvives": true
     },
@@ -117,14 +117,14 @@
       "tasks": 50000,
       "bytes": 4329162,
       "lines": 79050,
-      "parseMs": 605.0376890000007,
-      "parseColdMs": 602.4339409999993,
-      "serialiseMs": 230.46660299999894,
-      "hashMs": 17.200254000001223,
-      "saveCycleMs": 1133.3297230000007,
-      "saveCycleColdMs": 913.7753120000016,
-      "fsWriteMs": 8.281192999998893,
-      "heapMB": 21.893699645996094,
+      "parseMs": 605.9102600000006,
+      "parseColdMs": 617.3557340000007,
+      "serialiseMs": 155.31431399999929,
+      "hashMs": 17.046141000000716,
+      "saveCycleMs": 785.1417700000002,
+      "saveCycleColdMs": 779.1666100000002,
+      "fsWriteMs": 8.056388999999399,
+      "heapMB": 21.893051147460938,
       "roundtripIdentical": true,
       "editSurvives": true
     },
@@ -132,14 +132,14 @@
       "tasks": 100000,
       "bytes": 8658772,
       "lines": 158165,
-      "parseMs": 1467.8067560000018,
-      "parseColdMs": 1467.8067560000018,
-      "serialiseMs": 498.29788100000223,
-      "hashMs": 34.47882100000061,
-      "saveCycleMs": 2604.901722999999,
-      "saveCycleColdMs": 2330.343284999999,
-      "fsWriteMs": 20.505057000002125,
-      "heapMB": 36.679283142089844,
+      "parseMs": 1265.2878610000025,
+      "parseColdMs": 1265.2878610000025,
+      "serialiseMs": 349.04981000000043,
+      "hashMs": 36.172418000001926,
+      "saveCycleMs": 1704.618144,
+      "saveCycleColdMs": 1668.7442870000013,
+      "fsWriteMs": 16.204979999998613,
+      "heapMB": 36.678955078125,
       "roundtripIdentical": true,
       "editSurvives": true
     },
@@ -147,14 +147,14 @@
       "tasks": 200000,
       "bytes": 17340305,
       "lines": 316898,
-      "parseMs": 2650.5233820000067,
-      "parseColdMs": 2480.599921000001,
-      "serialiseMs": 990.9467430000004,
-      "hashMs": 70.81587900000159,
-      "saveCycleMs": 5271.0499930000005,
-      "saveCycleColdMs": 5271.0499930000005,
-      "fsWriteMs": 268.0726680000007,
-      "heapMB": 73.6762466430664,
+      "parseMs": 2602.962916999997,
+      "parseColdMs": 2602.962916999997,
+      "serialiseMs": 834.4428429999971,
+      "hashMs": 73.31131900000037,
+      "saveCycleMs": 5224.978899000002,
+      "saveCycleColdMs": 4491.496942999998,
+      "fsWriteMs": 244.8324599999978,
+      "heapMB": 73.67717742919922,
       "roundtripIdentical": true,
       "editSurvives": true
     }
@@ -163,10 +163,10 @@
     {
       "subs": 10,
       "bytes": 376,
-      "parseMs": 0.06064899999910267,
-      "serialiseMs": 0.017271999997319654,
-      "fingerprintMs": 0.0025529999984428287,
-      "snapMs": 0.0058169999974779785,
+      "parseMs": 0.04685899999458343,
+      "serialiseMs": 0.01759200000378769,
+      "fingerprintMs": 0.002435000002151355,
+      "snapMs": 0.005486000001837965,
       "ok": true,
       "roundtripIdentical": true,
       "serialiseCrash": null
@@ -174,10 +174,10 @@
     {
       "subs": 100,
       "bytes": 2608,
-      "parseMs": 0.32093799999711337,
-      "serialiseMs": 0.06891700000414858,
-      "fingerprintMs": 0.026278999997884966,
-      "snapMs": 0.051952000001620036,
+      "parseMs": 0.24202499999955762,
+      "serialiseMs": 0.04575299999851268,
+      "fingerprintMs": 0.017276999999012332,
+      "snapMs": 0.05011899999954039,
       "ok": true,
       "roundtripIdentical": true,
       "serialiseCrash": null
@@ -185,10 +185,10 @@
     {
       "subs": 1000,
       "bytes": 25828,
-      "parseMs": 2.464185999997426,
-      "serialiseMs": 0.31148899999971036,
-      "fingerprintMs": 0.16556999999738764,
-      "snapMs": 0.46862099999998463,
+      "parseMs": 1.9742850000038743,
+      "serialiseMs": 0.27789100000518374,
+      "fingerprintMs": 0.18158000000403263,
+      "snapMs": 0.4351669999959995,
       "ok": true,
       "roundtripIdentical": true,
       "serialiseCrash": null
@@ -196,10 +196,10 @@
     {
       "subs": 5000,
       "bytes": 133028,
-      "parseMs": 15.592365999997128,
-      "serialiseMs": 5.980233000002045,
-      "fingerprintMs": 3.2938869999998133,
-      "snapMs": 5.282976999995299,
+      "parseMs": 11.536637999997765,
+      "serialiseMs": 4.7349709999980405,
+      "fingerprintMs": 3.2836240000033285,
+      "snapMs": 4.439323999999033,
       "ok": true,
       "roundtripIdentical": true,
       "serialiseCrash": null
@@ -207,10 +207,10 @@
     {
       "subs": 10000,
       "bytes": 267028,
-      "parseMs": 30.148741999997583,
-      "serialiseMs": 12.669672999996692,
-      "fingerprintMs": 6.7480780000041705,
-      "snapMs": 9.28259799999796,
+      "parseMs": 30.435127000004286,
+      "serialiseMs": 11.764553000000888,
+      "fingerprintMs": 7.17595099999744,
+      "snapMs": 9.945671000001312,
       "ok": true,
       "roundtripIdentical": true,
       "serialiseCrash": null
@@ -218,10 +218,10 @@
     {
       "subs": 50000,
       "bytes": 1379028,
-      "parseMs": 207.15295000000333,
-      "serialiseMs": 79.3534209999998,
-      "fingerprintMs": 32.95847199999844,
-      "snapMs": 29.408018000001903,
+      "parseMs": 194.08207799999946,
+      "serialiseMs": 65.54733300000225,
+      "fingerprintMs": 30.096065999998245,
+      "snapMs": 29.01718499999697,
       "ok": true,
       "roundtripIdentical": true,
       "serialiseCrash": null
@@ -232,27 +232,27 @@
       "perTask": 5,
       "totalSubs": 25000,
       "bytes": 1059235,
-      "parseMs": 179.6564789999975,
-      "serialiseMs": 51.48261999999522,
-      "saveCycleMs": 189.676947999993,
+      "parseMs": 141.36070699999982,
+      "serialiseMs": 50.5019769999999,
+      "saveCycleMs": 221.71374600000127,
       "roundtripIdentical": true
     },
     {
       "perTask": 20,
       "totalSubs": 100000,
       "bytes": 3134228,
-      "parseMs": 491.44853800001147,
-      "serialiseMs": 159.36413800000446,
-      "saveCycleMs": 377.65527499999735,
+      "parseMs": 447.5798610000056,
+      "serialiseMs": 107.19994199999928,
+      "saveCycleMs": 359.8070599999992,
       "roundtripIdentical": true
     },
     {
       "perTask": 50,
       "totalSubs": 250000,
       "bytes": 7331967,
-      "parseMs": 611.007746000003,
-      "serialiseMs": 118.97835199999099,
-      "saveCycleMs": 750.7532070000016,
+      "parseMs": 618.2006820000024,
+      "serialiseMs": 124.69827799999621,
+      "saveCycleMs": 723.3846279999998,
       "roundtripIdentical": true
     }
   ],
@@ -261,19 +261,19 @@
       "name": "R1 10k invalid dates: reported + preserved",
       "ok": true,
       "finding": false,
-      "detail": "parse 103ms, problems=10000"
+      "detail": "parse 95.3ms, problems=10000"
     },
     {
       "name": "R2 10k duplicate ^ids: deduped, no loss",
       "ok": true,
       "finding": false,
-      "detail": "parse 116ms, console.warn ×9999"
+      "detail": "parse 125ms, console.warn ×9999"
     },
     {
-      "name": "R3a generated-id collision on dated id-less tasks silently loses content",
-      "ok": false,
-      "finding": true,
-      "detail": "ids=[\"i00000\",\"i00000\"] → after save titles=[\"second survivor\",\"second survivor\"] (one task overwritten by the other)"
+      "name": "R3a forced generated-id collision is retried — both tasks survive the save",
+      "ok": true,
+      "finding": false,
+      "detail": "ids=[\"i00000\",\"9n6eaj\"] → after save titles=[\"first casualty\",\"second survivor\"]"
     },
     {
       "name": "R3b idless K=1000",
@@ -283,32 +283,32 @@
     },
     {
       "name": "R3b idless K=10000",
-      "ok": false,
-      "finding": true,
-      "detail": "1/30 trials collided (expected ≈0.023/trial), dup ids 1, content loss in 1 trial(s), 1 task(s) lost"
+      "ok": true,
+      "finding": false,
+      "detail": "0/30 trials collided (expected ≈0.023/trial), dup ids 0, content loss in 0 trial(s), 0 task(s) lost"
     },
     {
       "name": "R3b idless K=50000",
-      "ok": false,
-      "finding": true,
-      "detail": "2/10 trials collided (expected ≈0.574/trial), dup ids 3, content loss in 2 trial(s), 3 task(s) lost"
+      "ok": true,
+      "finding": false,
+      "detail": "0/10 trials collided (expected ≈0.574/trial), dup ids 0, content loss in 0 trial(s), 0 task(s) lost"
     },
     {
       "name": "R3b idless K=100000",
-      "ok": false,
-      "finding": true,
-      "detail": "5/5 trials collided (expected ≈2.297/trial), dup ids 12, content loss in 5 trial(s), 12 task(s) lost"
+      "ok": true,
+      "finding": false,
+      "detail": "0/5 trials collided (expected ≈2.297/trial), dup ids 0, content loss in 0 trial(s), 0 task(s) lost"
     },
     {
       "name": "R4 5MB single-line title",
       "ok": true,
       "finding": false,
-      "detail": "parse 81.2ms"
+      "detail": "parse 85.9ms"
     },
     {
-      "name": "R5 200k-line note: parse ok (191ms) but SERIALISE CRASHES (RangeError) — autosave of this file can never succeed",
-      "ok": false,
-      "finding": true,
+      "name": "R5 200k-line note: parse ok (190ms), serialise round-trips byte-identical",
+      "ok": true,
+      "finding": false,
       "detail": "7.1MB file"
     },
     {
@@ -321,7 +321,7 @@
       "name": "R7 50k fuzz lines + 5k real tasks",
       "ok": true,
       "finding": false,
-      "detail": "parse 77.9ms, recovered 5000/5000 real tasks among 5000 parsed, fuzz preserved byte-identical: true"
+      "detail": "parse 95.3ms, recovered 5000/5000 real tasks among 5000 parsed, fuzz preserved byte-identical: true"
     },
     {
       "name": "R8 mixed EOL: normalised to majority, no content change",
@@ -330,22 +330,22 @@
       "detail": "minority-LF lines rewritten as CRLF on save"
     },
     {
-      "name": "R9 BOM detected but dropped on save (cosmetic)",
-      "ok": false,
-      "finding": true,
-      "detail": "a UTF-8 BOM file is rewritten without its BOM"
+      "name": "R9 BOM survives parse → save byte-identical",
+      "ok": true,
+      "finding": false,
+      "detail": "round-trip byte-identical"
     },
     {
-      "name": "R10 mid-title ^tokens eaten by id extraction",
-      "ok": false,
-      "finding": true,
-      "detail": "{\"got0\":\"Review PR for the parser ^aaaaaa\",\"id0\":\"580uej\",\"got1\":\"Fix the bug ^aaaaab\",\"id1\":\"djd3kw\"}"
+      "name": "R10 mid-title ^tokens preserved; trailing id extracted",
+      "ok": true,
+      "finding": false,
+      "detail": "{\"got0\":\"Review PR ^123 for the parser\",\"id0\":\"aaaaaa\",\"got1\":\"Fix the ^caret bug\",\"id1\":\"aaaaab\"}"
     },
     {
       "name": "R11 1M raw prose lines + 1 task",
       "ok": true,
       "finding": false,
-      "detail": "parse 517ms, 45.7MB file, retained heap +86.2MB"
+      "detail": "parse 604ms, 45.7MB file, retained heap +86.2MB"
     },
     {
       "name": "R12 20k tasks, ~200 completions: reserialise idempotent + count preserved",
@@ -354,18 +354,18 @@
       "detail": ""
     },
     {
-      "name": "R13a serialise crashes when one task carries ≥ ~125546 continuation lines (note+subtasks)",
-      "ok": false,
-      "finding": true,
-      "detail": "RangeError: max call stack — autosave permanently fails for such a file",
-      "threshold": 125546
+      "name": "R13a serialise handles 300k continuation lines on one task",
+      "ok": true,
+      "finding": false,
+      "detail": "no crash up to the 300k probe ceiling",
+      "threshold": null
     },
     {
-      "name": "R13b serialise crashes when ≥ ~125546 tasks must be placed into one section at once",
-      "ok": false,
-      "finding": true,
-      "detail": "RangeError: max call stack — hits 'Save as new file' / first connect of a big list",
-      "threshold": 125546
+      "name": "R13b serialise places 300k tasks into one section at once",
+      "ok": true,
+      "finding": false,
+      "detail": "no crash up to the 300k probe ceiling",
+      "threshold": null
     }
   ]
 }

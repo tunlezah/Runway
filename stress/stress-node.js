@@ -292,10 +292,11 @@ function robustness(results) {
     add("R2 10k duplicate ^ids: deduped, no loss", uniq === 10000 && titles.size === 10000, "parse " + ms(dt) + "ms, console.warn ×" + warns);
   }
 
-  { // R3a: deterministic demo — two DATED id-less tasks whose generated ids collide
-    //       (Math.random stubbed to force the collision the statistics in R3b make rare)
+  { // R3a: deterministic demo — two DATED id-less tasks whose generated ids collide.
+    //       Math.random is stubbed so the first two ids collide; later calls fall back to
+    //       real randomness so a fixed (retrying) generator can escape the collision.
     const app = loadApp();
-    const or = Math.random; Math.random = () => 0.5; // newId → "i00000" every time
+    const or = Math.random; let rc = 0; Math.random = () => { rc++; return rc <= 2 ? 0.5 : or(); };
     const text = "## Open\n- [ ] first casualty 📅 2026-09-10\n- [ ] second survivor 📅 2026-09-11\n";
     const p = app.MD.parse(text, { tagMap: app.SETTINGS.tagMap });
     Math.random = or;
@@ -304,8 +305,9 @@ function robustness(results) {
     const p2 = app.MD.parse(rt, { tagMap: app.SETTINGS.tagMap });
     const titles = p2.tasks.map(t => t.title);
     const lost = !titles.includes("first casualty");
-    const duped = titles.filter(t => t === "second survivor").length;
-    add("R3a generated-id collision on dated id-less tasks silently loses content", !lost, "ids=" + JSON.stringify(ids) + " → after save titles=" + JSON.stringify(titles) + " (one task overwritten by the other)", lost);
+    add(lost ? "R3a generated-id collision on dated id-less tasks silently loses content"
+             : "R3a forced generated-id collision is retried — both tasks survive the save",
+      !lost, "ids=" + JSON.stringify(ids) + " → after save titles=" + JSON.stringify(titles), lost);
   }
 
   { // R3b: id-less files at scale — how often does R3a's collision actually happen?
@@ -354,7 +356,7 @@ function robustness(results) {
     const p = t.ret;
     let crash = null, rtOk = false;
     try { rtOk = app.MD.serialise(p.tasks, { blocks: p.blocks, eol: p.eol }, app.SETTINGS) === text; } catch (e) { crash = e.constructor.name; }
-    add("R5 200k-line note: parse ok (" + ms(t.median) + "ms) but SERIALISE " + (crash ? "CRASHES (" + crash + ") — autosave of this file can never succeed" : "ok"), !crash && p.tasks.length === 1 && rtOk, mb(text.length) + "MB file", !!crash);
+    add("R5 200k-line note: parse ok (" + ms(t.median) + "ms), serialise " + (crash ? "CRASHES (" + crash + ") — autosave of this file can never succeed" : "round-trips byte-identical"), !crash && p.tasks.length === 1 && rtOk, mb(text.length) + "MB file", !!crash);
   }
 
   { // R6: deep-nested checkbox lists flatten to one level of subtasks (documented behaviour)
@@ -404,13 +406,14 @@ function robustness(results) {
     add("R8 mixed EOL: normalised to majority, no content change", p.eol === "\r\n" && p.tasks.length === 100 && norm >= 100 && rt.replace(/\r\n/g, "\n") === text.replace(/\r\n/g, "\n"), "minority-LF lines rewritten as CRLF on save");
   }
 
-  { // R9: BOM stripped on parse and NOT restored on save
+  { // R9: BOM must survive parse → save (the app threads hadBOM through its mdState)
     const app = loadApp();
     const text = "﻿## Open\n- [ ] bom task ^aaaaaa\n";
     const p = app.MD.parse(text, { tagMap: app.SETTINGS.tagMap });
-    const rt = app.MD.serialise(p.tasks, { blocks: p.blocks, eol: p.eol }, app.SETTINGS);
+    const rt = app.MD.serialise(p.tasks, { blocks: p.blocks, eol: p.eol, bom: p.hadBOM }, app.SETTINGS);
     const dropped = p.hadBOM === true && !rt.startsWith("﻿");
-    add("R9 BOM detected but dropped on save (cosmetic)", !dropped, "a UTF-8 BOM file is rewritten without its BOM", dropped);
+    add(dropped ? "R9 BOM detected but dropped on save (cosmetic)" : "R9 BOM survives parse → save byte-identical",
+      !dropped, dropped ? "a UTF-8 BOM file is rewritten without its BOM" : "round-trip " + (rt === text ? "byte-identical" : "MISMATCH"), dropped);
   }
 
   { // R10: adversarial titles containing " ^token " — the id extractor eats mid-title carets
@@ -419,7 +422,8 @@ function robustness(results) {
     const p = app.MD.parse(text, { tagMap: app.SETTINGS.tagMap });
     const t0 = p.tasks[0], t1 = p.tasks[1];
     const mangled = t0.title !== "Review PR ^123 for the parser" || t1.title !== "Fix the ^caret bug";
-    add("R10 mid-title ^tokens eaten by id extraction", !mangled, JSON.stringify({ got0: t0.title, id0: t0.id, got1: t1.title, id1: t1.id }), mangled);
+    add(mangled ? "R10 mid-title ^tokens eaten by id extraction" : "R10 mid-title ^tokens preserved; trailing id extracted",
+      !mangled, JSON.stringify({ got0: t0.title, id0: t0.id, got1: t1.title, id1: t1.id }), mangled);
   }
 
   { // R11: 1M raw prose lines (huge non-task markdown around a few tasks)
@@ -467,7 +471,9 @@ function robustness(results) {
         try { app.MD.serialise(p.tasks, { blocks: p.blocks, eol: p.eol }, app.SETTINGS); return false; } catch (e) { return true; }
       };
       const th = findThreshold(probe, 10000, 300000);
-      add("R13a serialise crashes when one task carries ≥ ~" + (th === null ? ">300k (no crash found)" : th) + " continuation lines (note+subtasks)", th === null, "RangeError: max call stack — autosave permanently fails for such a file", th !== null);
+      add(th === null ? "R13a serialise handles 300k continuation lines on one task"
+                      : "R13a serialise crashes when one task carries ≥ ~" + th + " continuation lines (note+subtasks)",
+        th === null, th === null ? "no crash up to the 300k probe ceiling" : "RangeError: max call stack — autosave permanently fails for such a file", th !== null);
       results.robustness[results.robustness.length - 1].threshold = th;
     }
     { // b) pending tasks placed into a new section at once (entries.push(...newEntries)) —
@@ -479,7 +485,9 @@ function robustness(results) {
         try { app.MD.serialise(tasks, { blocks: [], eol: "\n" }, app.SETTINGS); return false; } catch (e) { return true; }
       };
       const th = findThreshold(probe, 10000, 300000);
-      add("R13b serialise crashes when ≥ ~" + (th === null ? ">300k (no crash found)" : th) + " tasks must be placed into one section at once", th === null, "RangeError: max call stack — hits 'Save as new file' / first connect of a big list", th !== null);
+      add(th === null ? "R13b serialise places 300k tasks into one section at once"
+                      : "R13b serialise crashes when ≥ ~" + th + " tasks must be placed into one section at once",
+        th === null, th === null ? "no crash up to the 300k probe ceiling" : "RangeError: max call stack — hits 'Save as new file' / first connect of a big list", th !== null);
       results.robustness[results.robustness.length - 1].threshold = th;
     }
   }
