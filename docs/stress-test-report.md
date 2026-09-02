@@ -71,21 +71,40 @@ serialiser past ~125k (finding F1).**
 
 ## 2. UI limits (headless Chromium, real app, tasks seeded into IndexedDB)
 
-<!-- DOM-TABLE -->
+All figures ms. *Stall* = longest main-thread freeze (longest rAF gap) in the 2.5 s after
+the interaction; idle baseline gap was 17–138 ms, so treat anything ≥200 ms as real.
+
+| scenario | rows rendered | load | toggle stall | search stall | add-task stall | DOM nodes | JS heap |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| 100 open | 100 | 55 | 68 | 19 | 54 | 3,484 | 1.5 MB |
+| 500 open | 500 | 104 | 155 | 28 | 232 | 16,618 | 3.3 MB |
+| 1,000 open | 1,000 | 173 | 352 | 69 | 615 | 32,964 | 5.8 MB |
+| 2,000 open | 2,000 | 276 | 805 | 99 | 1,564 | 65,597 | 9.0 MB |
+| 5,000 open | 5,000 | 683 | 3,777 | 211 | 2,314 | 163,550 | 14.4 MB |
+| 10,000 open | 10,000 | 1,531 | 3,442 | 2,090 | 6,437 | 326,830 | 33.7 MB |
+| 20,000 open | 20,000 | 2,529 | 5,822 | 2,005 | 10,919 | 653,320 | 90.6 MB |
+| 50,000 open | 50,000 | 7,555 | 1,916 ³ | 9,928 | **53,356** | 1,632,802 | 130 MB |
+| **20k total, 5% open** | 1,032 | 577 | 357 | 138 | 517 | 34,012 | 35.6 MB |
+| **1k × 10 subtasks** | 1,000 | 199 | 361 | 59 | 648 | 33,964 | 7.8 MB |
+
+³ under-measured: at 50k the model/journal bookkeeping delays the re-render past the 2.5 s
+probe window; the true toggle stall is at least the 20k figure.
 
 Interpretation:
 
-- **Load** = navigation → list fully rendered. Acceptable to ~10k open (seconds), but…
-- **Toggle/add stall** = longest main-thread freeze after completing/adding a task. The
-  app rebuilds the entire list DOM on every mutation (~33 DOM nodes per row), so this
-  grows super-linearly with teardown+GC and is the real ceiling: **~1,000 open tasks ≈
-  0.35–0.6 s per action; 2,000 ≈ 0.8–1.6 s; 5,000 ≈ 2–4 s.** These figures are
-  render-only (no file connected) — with a file connected, add the saveCycle column
-  from §1 on top of each action.
-- **Search** stays cheaper (debounced, and filtered result sets render fewer rows).
-- A **20k-item file where only ~1k is open renders fine** — completed items are hidden
-  behind a capped (200 rows, last-7-days) completed view. DOM cost tracks *open* tasks;
-  file cost tracks *total* items.
+- **Load** = navigation → list fully rendered: 1.5 s at 10k open, 2.5 s at 20k, 7.6 s at 50k.
+- **Toggle/add stall** is the real ceiling. The app rebuilds the entire list DOM on every
+  mutation (~33 DOM nodes per row), so re-renders cost more than first render
+  (teardown + GC): **~1,000 open ≈ 0.35–0.6 s per action; 2,000 ≈ 0.8–1.6 s; 5,000 ≈
+  2–4 s; 20,000 ≈ 6–11 s; 50,000 ≈ up to 53 s.** These figures are render-only (no file
+  connected) — with a file connected, add the saveCycle column from §1 to each action.
+- **Search** stays cheaper (100 ms debounce, and filtered result sets render fewer rows).
+- **Completed items are DOM-free**: a 20k-item file with only ~1k open loads in 577 ms
+  and toggles in 357 ms — identical to a 1k list. The completed view is capped (200 rows,
+  last-7-days window). DOM cost tracks *open* tasks; file cost tracks *total* items.
+- **Collapsed subtasks are DOM-free too**: 1k tasks × 10 subtasks each measures the same
+  as 1k plain tasks (199 ms load / 361 ms toggle; node count unchanged). Subtasks only
+  enter the DOM for rows you expand.
 
 ## 3. Robustness — what the app's error handling actually covers
 
