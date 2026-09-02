@@ -29,7 +29,8 @@ body{background:var(--surface);color:var(--fg);font:14px/1.45 var(--font-sans)}
 .app{max-width:880px;margin:0 auto;padding:0 var(--sp-4) 80px;container-type:inline-size;container-name:app;min-height:100%}
 /* header */
 .hdr{display:flex;align-items:center;gap:var(--sp-2);padding:var(--sp-3) 0;border-bottom:1px solid var(--border)}
-.app-title{font:600 15px/1 var(--font-title);letter-spacing:-0.01em;margin-right:auto}
+.app-title{font:600 15px/1 var(--font-title);letter-spacing:-0.01em}
+.app-ver{margin-right:auto;font:400 11px var(--font-mono);color:var(--fg-muted);opacity:.65;align-self:center}
 .hdr-btn{display:inline-flex;align-items:center;gap:6px;min-width:32px;min-height:32px;justify-content:center;padding:4px 8px;border-radius:var(--radius);color:var(--fg-muted);font:500 12px var(--font-mono)}
 .hdr-btn:hover{background:var(--surface-raised);color:var(--fg)}
 .hdr-btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.6}
@@ -352,6 +353,7 @@ to{transform:none}
 <div class="app" id="app">
 <header class="hdr">
 <h1 class="app-title" id="appTitle">Runway</h1>
+<span class="app-ver" title="App version">v1.1.0</span>
 <div class="seg-btns view-seg" id="viewSeg" role="group" aria-label="View"></div>
 <button id="fileChip" class="pill" hidden><span class="g" aria-hidden="true"></span><span class="lbl"></span></button>
 <span id="saveInd" class="save-ind" hidden><span class="dot"></span><span class="txt"></span></span>
@@ -1327,6 +1329,8 @@ ok("literal past distance",(()=>{const r=d("12 5",{literal:true});return r.past=
 ;ok("reason 2027-02-29",d("2027-02-29").reason==="2027 isn't a leap year",d("2027-02-29").reason)
 ;ok("reason 2026-09",d("2026-09").reason==="can't read that as a date",d("2026-09").reason)
 ;ok("iso prefill parses past",(()=>{const r=d("2026-01-05");return r.kind==="date"&&r.past===true&&r.rolled===false})())
+;ok("emitted iso always parses back",(()=>{for(let i=-366;i<=920;i++){const iso=Util.isoOf(new Date(2026,7,25+i));const r=d(iso)
+;if(r.kind!=="date"||r.iso!==iso)return false}return true})())
 ;ok("+1m clamps",DateParse.parse("+1m",{today:new Date(2026,0,31)
 }).iso==="2026-02-28");const ep=(s,t,tags,pri)=>{const e=EntryParse.parse(s,TM)
 ;ok("entry "+JSON.stringify(s),e.title===t&&e.tags.join()===tags&&e.priority===(pri||0),JSON.stringify(e))};ep("Email frank [d]","Email frank","DPN")
