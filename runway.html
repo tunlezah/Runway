@@ -475,8 +475,9 @@ const d=new Date(today.getFullYear(),today.getMonth(),today.getDate()+i);if(wk[d
 const dowM=(today.getDay()+6)%7;let delta=4-dowM
 ;if(delta<0)delta+=7;return result(new Date(today.getFullYear(),today.getMonth(),today.getDate()+delta),today)}
 if(s==="eom")return result(mkDate(today.getFullYear(),today.getMonth()+1,Util.daysInMonth(today.getFullYear(),today.getMonth()+1)),today)
-;m=/^(\d{1,4})(?:[\s\/\-.]+(\d{1,2})(?:[\s\/\-.]+(\d{1,4}))?)?$/.exec(s);if(!m||!m[2])return inv("can't read that as a date");const d=+m[1],mo=+m[2]
-;let yRaw=m[3];if(mo<1||mo>12)return inv("there's no month "+mo);const monthName=Util.MONTHS[mo-1]
+;m=/^(\d{1,4})(?:[\s\/\-.]+(\d{1,2})(?:[\s\/\-.]+(\d{1,4}))?)?$/.exec(s);if(!m||!m[2])return inv("can't read that as a date")
+;const yearFirst=m[1].length===4;if(yearFirst&&(m[3]===undefined||m[3].length>2))return inv("can't read that as a date")
+;const d=yearFirst?+m[3]:+m[1],mo=+m[2];let yRaw=yearFirst?m[1]:m[3];if(mo<1||mo>12)return inv("there's no month "+mo);const monthName=Util.MONTHS[mo-1]
 ;if(d<1||d>MAX_EVER[mo-1])return inv(d+" "+monthName+" doesn't exist");const validIn=y=>d<=Util.daysInMonth(y,mo);if(yRaw!==undefined){
 if(yRaw.length===3)return inv("can't read that as a date");const y=yRaw.length<=2?2e3+ +yRaw:+yRaw;if(!validIn(y))return inv(y+" isn't a leap year")
 ;return result(mkDate(y,mo,d),today,false)}const curYear=today.getFullYear();const todayISO=Util.isoOf(today);for(let y=curYear;y<=curYear+8;y++){
@@ -966,7 +967,7 @@ const tags=[...new Set([...t.tags,...parsed.tags])];await Actions.patch(t.id,{ti
 ;const inp=E("input",{class:"date-edit",type:"text","aria-label":"Edit due date",
 placeholder:Days.business()?"12 5 · tom · +3b · empty":"12 5 · tom · +2w · empty"});inp.value=curIso||""
 ;const pv=E("span",{class:"donechip",style:"margin-left:6px"});const preview=()=>{const r=DateParse.parse(inp.value,Days.parseOpts())
-;pv.textContent=r.kind==="invalid"?r.reason:r.kind==="empty"?"no date":Util.fmtLong(r.iso)};on(inp,"input",Util.debounce(preview,120))
+;pv.textContent=r.kind==="invalid"?r.reason:r.kind==="empty"?"no date":Util.fmtLong(r.iso)};on(inp,"input",Util.debounce(preview,120));if(inp.value)preview()
 ;let closed=false;const commit=literal=>{const r=DateParse.parse(inp.value,Days.parseOpts({literal:literal}));if(r.kind==="invalid"){
 inp.classList.add("bad");pv.textContent=r.reason;return}closed=true;onCommit(r.iso)};on(inp,"keydown",e=>{
 if(e.key==="Enter"){e.preventDefault();commit(e.shiftKey)}else if(e.key==="Escape"){e.stopPropagation();closed=true;onCancel()}});on(inp,"blur",()=>{
@@ -1120,7 +1121,7 @@ case"?":e.preventDefault();Shortcuts.toggle();break;case"Escape":{const si=docum
 Render.setQuery("");si.value=""}else Render.select(null,false);break}}};const init=fnOverlayOpen=>{overlayOpen=fnOverlayOpen;on(window,"keydown",handler)}
 ;return{init:init}})();
 /* ================================================================ Shortcuts overlay */const Shortcuts=(()=>{let open=false,elRef=null,prevFocus=null
-;const GROUPS=[["Navigate",[["j / ↓","Select next task"],["k / ↑","Select previous task"],["v","Cycle list · board · calendar"],["Esc","Close overlay · clear search · deselect"]]],["Act",[["x / Space","Toggle complete"],["e","Rename task"],["d","Edit date"],["s","Add sub-task"],[".","Snooze menu"],["!","Cycle priority"],["n","New task (focus entry)"]]],["Filter",[["/","Focus search"],["1 2 3","Toggle tag filter"],["0","Clear all filters"]]],["Entry",[["Enter","Add task"],["Shift+Enter","Add with literal date (no roll-forward)"],["Tab","Title → date field"],["+3b","Date fields: in 3 work days"]]],["System",[["Ctrl/⌘ Z","Undo"],["Ctrl/⌘ ⇧ Z","Redo"],["Ctrl/⌘ S","Save to disk"],["?","This overlay"]]]]
+;const GROUPS=[["Navigate",[["j / ↓","Select next task"],["k / ↑","Select previous task"],["v","Cycle list · board · calendar"],["Esc","Close overlay · clear search · deselect"]]],["Act",[["x / Space","Toggle complete"],["e","Rename task"],["d","Edit date"],["s","Add sub-task"],[".","Snooze menu"],["!","Cycle priority"],["n","New task (focus entry)"]]],["Filter",[["/","Focus search"],["1 2 3","Toggle tag filter"],["0","Clear all filters"]]],["Entry",[["Enter","Add task"],["Shift+Enter","Add with literal date (no roll-forward)"],["Tab","Title → date field"],["+3b","Date fields: in 3 work days"],["6 9 · 2026-9-6","Date fields: day-first or year-first"]]],["System",[["Ctrl/⌘ Z","Undo"],["Ctrl/⌘ ⇧ Z","Redo"],["Ctrl/⌘ S","Save to disk"],["?","This overlay"]]]]
 ;const close=()=>{if(!open)return;open=false;document.getElementById("overlayRoot").textContent="";if(prevFocus&&prevFocus.focus)prevFocus.focus()}
 ;const show=()=>{if(open)return;prevFocus=document.activeElement;open=true;const root=document.getElementById("overlayRoot");const scrim=E("div",{class:"scrim"
 });on(scrim,"mousedown",close);const box=E("div",{class:"shortcuts",role:"dialog","aria-modal":"true","aria-label":"Keyboard shortcuts",tabindex:"-1"})
@@ -1314,7 +1315,7 @@ if(Persist.state().dirty)Persist.flush(true)}else{Render.render();Persist.checkE
 ;on(window,"hashchange",()=>{if(location.hash==="#test")Tests.runInPage()})};return{boot:boot,wipe:wipe,dbWriteError:dbWriteError}})();
 /* ================================================================ Tests */const Tests=(()=>{const REF=()=>new Date(2026,7,25);const TM={d:"DPN",b:"BSM",
 t:"Highside"};const MS={mdStyle:"emoji",writeBlockIds:true}
-;const VECTORS=[["12 5","2027-05-12"],["12 5 27","2027-05-12"],["1-9-2026","2026-09-01"],["26 8","2026-08-26"],["25 8","2026-08-25"],["24 8","2027-08-24"],["1/9","2026-09-01"],["1 1","2027-01-01"],["29 2 28","2028-02-29"],["29 2","2028-02-29"],["29 2 27",null],["31 4",null],["+3","2026-08-28"],["+1w","2026-09-01"],["+2w","2026-09-08"],["tom","2026-08-26"],["fri","2026-08-28"],["wed","2026-08-26"],["tue","2026-09-01"],["mon","2026-08-31"],["eow","2026-08-28"],["eom","2026-08-31"],["",""],["12 5","2026-05-12",true],["banana",null],["12.5","2027-05-12"],["+1m","2026-09-25"],["+2b","2026-08-27"],["+4b","2026-08-31"],["+0b","2026-08-25"]]
+;const VECTORS=[["12 5","2027-05-12"],["12 5 27","2027-05-12"],["1-9-2026","2026-09-01"],["26 8","2026-08-26"],["25 8","2026-08-25"],["24 8","2027-08-24"],["1/9","2026-09-01"],["1 1","2027-01-01"],["29 2 28","2028-02-29"],["29 2","2028-02-29"],["29 2 27",null],["31 4",null],["+3","2026-08-28"],["+1w","2026-09-01"],["+2w","2026-09-08"],["tom","2026-08-26"],["fri","2026-08-28"],["wed","2026-08-26"],["tue","2026-09-01"],["mon","2026-08-31"],["eow","2026-08-28"],["eom","2026-08-31"],["",""],["12 5","2026-05-12",true],["banana",null],["12.5","2027-05-12"],["+1m","2026-09-25"],["+2b","2026-08-27"],["+4b","2026-08-31"],["+0b","2026-08-25"],["2026-09-06","2026-09-06"],["2026-9-6","2026-09-06"],["2026/9/6","2026-09-06"],["2026.9.6","2026-09-06"],["2026-01-05","2026-01-05"],["2027-02-29",null],["2026-13-01",null],["2026-09",null],["2026-09-123",null]]
 ;const SAMPLE=["# To Do","\x3c!-- Runway v1 · edit freely; the app preserves anything it does not recognise --\x3e","","## Open","- [ ] Send an email to frank #DPN 📅 2027-05-12 ^k3f9qm","- [ ] Patch the jump host #Highside ⏫ 📅 2026-08-26 ^a7b2xd","    Needs change approval before the window opens.","    - [ ] raise CR","    - [x] schedule window","","## Reference","Some prose the app must never touch.","","## No date","- [ ] Buy vinyl inner sleeves ^q8w3ez","","## Completed","- [x] Replace the failing SSD #Highside ✅ 2026-08-18 ^z1x4cv",""].join("\n")
 ;const run=()=>{const results=[];const ok=(name,cond,detail)=>results.push({name:name,pass:!!cond,detail:detail||""})
 ;const d=(input,opts)=>DateParse.parse(input,Object.assign({today:REF()},opts));for(const[inp,want,lit]of VECTORS){const r=d(inp,lit?{literal:true}:null)
@@ -1322,7 +1323,11 @@ t:"Highside"};const MS={mdStyle:"emoji",writeBlockIds:true}
 ;ok("date "+JSON.stringify(inp)+(lit?" literal":""),got===want,"expected "+want+", got "+(got===null?"invalid "+(r.reason||""):got))}
 ok("literal past distance",(()=>{const r=d("12 5",{literal:true});return r.past===true&&Util.daysBetween(Util.parseISO(r.iso),REF())===105})())
 ;ok("reason 31 4",d("31 4").reason==="31 April doesn't exist",d("31 4").reason)
-;ok("reason 29 2 27",d("29 2 27").reason==="2027 isn't a leap year",d("29 2 27").reason);ok("+1m clamps",DateParse.parse("+1m",{today:new Date(2026,0,31)
+;ok("reason 29 2 27",d("29 2 27").reason==="2027 isn't a leap year",d("29 2 27").reason)
+;ok("reason 2027-02-29",d("2027-02-29").reason==="2027 isn't a leap year",d("2027-02-29").reason)
+;ok("reason 2026-09",d("2026-09").reason==="can't read that as a date",d("2026-09").reason)
+;ok("iso prefill parses past",(()=>{const r=d("2026-01-05");return r.kind==="date"&&r.past===true&&r.rolled===false})())
+;ok("+1m clamps",DateParse.parse("+1m",{today:new Date(2026,0,31)
 }).iso==="2026-02-28");const ep=(s,t,tags,pri)=>{const e=EntryParse.parse(s,TM)
 ;ok("entry "+JSON.stringify(s),e.title===t&&e.tags.join()===tags&&e.priority===(pri||0),JSON.stringify(e))};ep("Email frank [d]","Email frank","DPN")
 ;ep("[d] Email frank","Email frank","DPN");ep("Email frank #Personal","Email frank","Personal");ep("Patch host !!!","Patch host","",3)
