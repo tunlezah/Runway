@@ -63,9 +63,11 @@ body{background:var(--surface);color:var(--fg);font:14px/1.45 var(--font-sans)}
 .banner pre{width:100%;max-height:260px;overflow:auto;font:12px/1.5 var(--font-mono);background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:var(--sp-2);margin-top:var(--sp-1)}
 .banner pre .da{color:var(--calm-text)}
 .banner pre .dr{color:var(--due-text);text-decoration:line-through}
-/* tag key */
-.tagkey{display:flex;align-items:center;gap:var(--sp-2);padding:var(--sp-2) 0;border-bottom:1px solid var(--border);flex-wrap:wrap}
-.tagkey .counts{margin-left:auto;font:400 11px var(--font-mono);color:var(--fg-muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+/* filter bar: tag chips, search field, counts */
+.filterbar{display:flex;align-items:center;gap:var(--sp-2);padding:var(--sp-2) 0;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.tagkey{display:flex;align-items:center;gap:var(--sp-2);flex-wrap:wrap}
+.filterbar .counts{font:400 11px var(--font-mono);color:var(--fg-muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.filterbar .counts.filt{color:var(--fg)}
 .tkchip{display:inline-flex;align-items:center;gap:6px;min-height:32px;padding:2px 10px;border:1px solid var(--border);border-radius:var(--radius);font:500 11px var(--font-mono);color:var(--fg)}
 .tkchip .k{color:var(--fg-muted)}
 .tkchip:hover{border-color:var(--accent)}
@@ -91,13 +93,16 @@ body{background:var(--surface);color:var(--fg);font:14px/1.45 var(--font-sans)}
 .date-preview.past,.date-preview.invalid{color:var(--due-text)}
 @container app (max-width:560px){.date-preview{text-align:left}
 }
-/* search */
-.search{display:flex;align-items:center;gap:var(--sp-2);margin-top:var(--sp-2);padding:0 var(--sp-3);background:var(--surface-raised);border:1px solid var(--border);border-radius:var(--radius)}
+/* search (lives in the filter bar, right of the tag chips) */
+.search{display:flex;align-items:center;gap:6px;flex:1 1 200px;min-width:160px;max-width:320px;min-height:32px;margin-left:auto;padding:0 10px;background:var(--surface-raised);border:1px solid var(--border);border-radius:var(--radius)}
 .search svg{width:14px;height:14px;stroke:var(--fg-muted);fill:none;stroke-width:2;flex:none}
-.search input{flex:1;min-width:0;border:none;background:none;padding:8px 0;font:400 13px var(--font-mono);color:var(--fg)}
+.search input{flex:1;min-width:0;border:none;background:none;padding:6px 0;font:400 12px var(--font-mono);color:var(--fg)}
+.search input::placeholder{color:var(--fg-muted);opacity:.8}
 .search input:focus-visible{outline:none}
 .search:focus-within{outline:2px solid var(--accent);outline-offset:2px}
-.search .clr{color:var(--fg-muted);min-width:32px;min-height:32px;display:none}
+.search .hk{flex:none;font:500 10px/16px var(--font-mono);color:var(--fg-muted);border:1px solid var(--border);border-radius:4px;padding:0 5px;background:var(--surface)}
+.search.hasq .hk,.search:focus-within .hk{display:none}
+.search .clr{color:var(--fg-muted);min-width:28px;min-height:32px;display:none}
 .search.hasq .clr{display:inline-flex;align-items:center;justify-content:center}
 .count-line{font:400 11px var(--font-mono);color:var(--fg-muted);padding:var(--sp-1) 2px;font-variant-numeric:tabular-nums}
 /* digest */
@@ -334,7 +339,7 @@ body{background:var(--surface);color:var(--fg);font:14px/1.45 var(--font-sans)}
 #testpanel .fail{color:var(--due-text)}
 /* ============ GeoCities decoration layer ============ */
 [data-theme="geocities"] body,:root[data-theme="geocities"] body{background-color:#000080;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Crect width='16' height='16' fill='%23000080'/%3E%3Crect x='3' y='2' width='1' height='1' fill='%23fff'/%3E%3Crect x='12' y='6' width='1' height='1' fill='%23ccc'/%3E%3Crect x='7' y='11' width='1' height='1' fill='%23fff'/%3E%3Crect x='14' y='14' width='1' height='1' fill='%23888'/%3E%3C/svg%3E")}
-[data-theme="geocities"] .task,[data-theme="geocities"] .sect-h,[data-theme="geocities"] .hdr,[data-theme="geocities"] .tagkey{background:var(--surface)}
+[data-theme="geocities"] .task,[data-theme="geocities"] .sect-h,[data-theme="geocities"] .hdr,[data-theme="geocities"] .filterbar{background:var(--surface)}
 [data-theme="geocities"] .hdr-btn,[data-theme="geocities"] .pill,[data-theme="geocities"] .tkchip,[data-theme="geocities"] .mini-btn,[data-theme="geocities"] .seg-btns button,[data-theme="geocities"] .banner button,[data-theme="geocities"] .cal-nav{border:2px outset #C0C0C0;background:#C0C0C0;color:#000;border-radius:0;font-family:var(--font-title)}
 [data-theme="geocities"] .bcard{border:2px outset #C0C0C0;border-left:6px solid var(--u-bar)}
 [data-theme="geocities"] .bcol{border:2px inset #C0C0C0;border-radius:0}
@@ -368,7 +373,7 @@ to{transform:none}
 <div class="app" id="app">
 <header class="hdr">
 <h1 class="app-title" id="appTitle">Runway</h1>
-<span class="app-ver" title="App version">v1.2.0</span>
+<span class="app-ver" title="App version">v1.2.1</span>
 <div class="seg-btns view-seg" id="viewSeg" role="group" aria-label="View"></div>
 <button id="fileChip" class="pill" hidden><span class="g" aria-hidden="true"></span><span class="lbl"></span></button>
 <span id="saveInd" class="save-ind" hidden><span class="dot"></span><span class="txt"></span></span>
@@ -381,7 +386,17 @@ to{transform:none}
 </button>
 </header>
 <div id="banners"></div>
+<div class="filterbar" role="group" aria-label="Filters">
 <nav class="tagkey" id="tagKey" aria-label="Tag filters"></nav>
+<div class="search" id="searchWrap">
+<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/></svg>
+<label class="sr" for="searchInput">Search or filter</label>
+<input id="searchInput" type="text" placeholder="Search or filter&#8230;" autocomplete="off" spellcheck="false">
+<kbd class="hk" aria-hidden="true">/</kbd>
+<button class="clr" id="searchClear" aria-label="Clear search">&#10005;</button>
+</div>
+<span class="counts" id="countLine"></span>
+</div>
 <div class="entry">
 <label class="sr" for="titleInput">Task title</label>
 <input id="titleInput" type="text" placeholder="What needs doing?" autocomplete="off" spellcheck="false">
@@ -389,13 +404,6 @@ to{transform:none}
 <input id="dateInput" type="text" placeholder="When?" autocomplete="off" spellcheck="false">
 </div>
 <div class="date-preview" id="datePreview" aria-live="polite"></div>
-<div class="search" id="searchWrap">
-<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/></svg>
-<label class="sr" for="searchInput">Search or filter</label>
-<input id="searchInput" type="text" placeholder="Search or filter&#8230;" autocomplete="off" spellcheck="false">
-<button class="clr" id="searchClear" aria-label="Clear search">&#10005;</button>
-</div>
-<div class="count-line" id="countLine" hidden></div>
 <div id="digestWrap"></div>
 <main id="listRoot" aria-label="Task list"></main>
 <div id="completedRoot"></div>
@@ -855,8 +863,8 @@ renderDoneList(root,vc.domain.slice().sort(vc.rankCmp((a,b)=>(a.doneAt||"")<(b.d
 else if(SETTINGS.view==="board")renderBoard(root,vc);else if(SETTINGS.view==="cal")renderCalendar(root,vc);else{renderTimeline(root,vc)
 ;renderList(root,vc)}
 if(state.sel&&!state.visible.includes(state.sel))state.sel=null;if(state.sel){const li=root.querySelector('[data-id="'+state.sel+'"]')
-;if(li)li.classList.add("sel")}renderTagKey(vc.open,vc.recs);renderCompletedToggle();renderCompletedSection()
-;renderCountLine(vc.domain.length,vc.totalOpen,vc.searching);renderDigest(vc.overdueCount,vc.dueTodayCount)
+;if(li)li.classList.add("sel")}renderTagKey(vc.open);renderCompletedToggle();renderCompletedSection()
+;renderCountLine(vc.domain.length,vc.totalOpen,vc.searching,vc.dueTodayCount);renderDigest(vc.overdueCount,vc.dueTodayCount)
 ;document.title=(vc.dueTodayCount+vc.overdueCount>0?"("+(vc.dueTodayCount+vc.overdueCount)+") ":"")+APP_NAME;state.lastAdded=null;refreshViewSeg()}
 ;const renderList=(root,vc)=>{let any=false
 ;for(const[key,label]of sectionsFor()){const list=vc.buckets[key];if(!list.length)continue;any=true;const sect=E("section",{class:"sect"});const h=E("h2",{
@@ -1024,18 +1032,17 @@ inp.classList.add("bad");pv.textContent=r.reason;return}closed=true;onCommit(r.i
 if(e.key==="Enter"){e.preventDefault();commit(e.shiftKey)}else if(e.key==="Escape"){e.stopPropagation();closed=true;onCancel()}});on(inp,"blur",()=>{
 if(!closed){closed=true;onCancel()}});wrap.append(inp,pv);return wrap}
 ;const buildDateEditor=t=>buildDateEditorFor(t.due,async iso=>{state.dateEditId=null;await Actions.patch(t.id,{due:iso},"edit")},()=>{
-if(state.dateEditId===t.id){state.dateEditId=null;render()}});const renderTagKey=(open,recs)=>{const tk=els.tagKey
+if(state.dateEditId===t.id){state.dateEditId=null;render()}});const renderTagKey=open=>{const tk=els.tagKey
 ;tk.textContent="";const entries=Object.entries(SETTINGS.tagMap);entries.forEach(([key,label],i)=>{const count=open.filter(t=>t.tags.includes(label)).length
 ;const chip=E("button",{class:"tkchip","aria-pressed":state.filters.has(label)?"true":"false",disabled:count===0&&!state.filters.has(label),
 title:label+" — press "+(i+1)+" to filter"});chip.append(E("span",{class:"k",text:key}),E("span",{class:"lbl",text:label}))
 ;on(chip,"click",()=>toggleFilter(label));tk.append(chip)});const noneCount=open.filter(t=>t.tags.length===0).length;const noneChip=E("button",{class:"tkchip",
 "aria-pressed":state.filters.has(NONE)?"true":"false",disabled:noneCount===0&&!state.filters.has(NONE),title:"Untagged tasks — 0 clears filters"})
 ;noneChip.append(E("span",{class:"k",text:"·"}),E("span",{class:"lbl",text:"none"}));on(noneChip,"click",()=>toggleFilter(NONE));tk.append(noneChip)
-;const dueToday=open.filter(t=>{const r=recs.get(t.id);return!!r&&r.eff===0}).length
-;tk.append(E("span",{class:"counts",text:open.length+" open · "+dueToday+" today"}))}
+}
 ;const toggleFilter=label=>{if(state.filters.has(label))state.filters.delete(label);else state.filters.add(label);render()};const clearFilters=()=>{
-state.filters.clear();render()};const renderCountLine=(shown,totalOpen,searching)=>{if(searching){els.countLine.hidden=false
-;els.countLine.textContent="showing "+shown+" of "+totalOpen}else els.countLine.hidden=true};const renderDigest=(overdue,today)=>{const w=els.digestWrap
+state.filters.clear();render()};const renderCountLine=(shown,totalOpen,searching,dueToday)=>{const narrowed=searching||state.filters.size>0;const c=els.countLine
+;c.classList.toggle("filt",narrowed);c.textContent=narrowed?"showing "+shown+" of "+totalOpen:totalOpen+" open · "+dueToday+" today"};const renderDigest=(overdue,today)=>{const w=els.digestWrap
 ;w.textContent="";if(state.digestDismissed||!overdue&&!today)return;const div=E("div",{class:"digest",role:"status"});const parts=[]
 ;if(today)parts.push(today+" due today");if(overdue)parts.push(overdue+" overdue");const b=E("b",{text:parts.join(" · ")});const x=E("button",{class:"bx",
 "aria-label":"Dismiss",text:"✕",style:"margin-left:auto;color:var(--fg-muted);min-width:32px;min-height:24px"});on(x,"click",()=>{state.digestDismissed=true
