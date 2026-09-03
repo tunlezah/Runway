@@ -268,6 +268,9 @@ Put `todo.md` in Dropbox/Syncthing/iCloud Drive/git and point each machine's Run
 The mtime + content-hash conflict check catches simultaneous edits and makes you choose, so
 the worst case is a visible conflict banner, not silent loss. Best practice is still: one
 machine actively writing at a time, and folder mode's backups on if you want belt-and-braces.
+The same goes for browser tabs: keep the list open in **one tab** per machine — two tabs on the
+same list can raise that conflict banner against each other, and the choices it offers each drop one
+tab's work (see finding R1 in [`docs/robustness-check-report.md`](docs/robustness-check-report.md)).
 
 ### Privacy
 
@@ -380,4 +383,9 @@ panel (162 checks) — a clean pass rules out the app's own logic.
   `node --expose-gc stress/stress-node.js` (parser/serialiser limits + robustness corpus) and
   `node stress/stress-dom.js` (headless-Chromium UI measurements). See
   [`stress/README.md`](stress/README.md) and [`docs/stress-test-report.md`](docs/stress-test-report.md).
+- The robustness check (v1.2.1) lives next to it: `node stress/robust-fuzz.js` (property-based
+  checks on the parsers and record validation), `node stress/tz-matrix.js` (every day of 2024–2027 in
+  31 time zones) and `node stress/robust-browser.js` (failure injection against the live UI — two tabs,
+  corrupt storage, IME, non-UTF-8 files, unload mid-save…). Findings, severities and proposed fixes:
+  [`docs/robustness-check-report.md`](docs/robustness-check-report.md).
 - Pushes to `main` deploy the app to GitHub Pages via `.github/workflows/pages.yml`.
