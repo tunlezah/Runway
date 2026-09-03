@@ -20,6 +20,10 @@
      S10 unload with autosave pending
      S11 external edit            reload when clean, conflict when dirty
      S12 undo after a reload      undo of a pre-reload action against an externally edited task
+     S13 malformed stored id      a record whose id is not in the app's format, then an edit
+
+   The checks assert the intended behaviour, so a scenario that reports a FINDING on one
+   version and behaves on the next is a fix landing.
 
    Usage: node stress/robust-browser.js [--only S2,S8] [--out results.json]
    Symbols: ✓ behaved · ⚠ FINDING defect demonstrated · ✗ harness error
@@ -170,11 +174,11 @@ const scenarios = {
     await reload(page);
     const bootTitles = await rw.titles(page);
     const quar = (await rw.banners(page)).filter((b) => b.id === "quar");
-    report("S1a the record is quarantined at load like other invalid records", quar.length === 1, quar.length ? quar[0].text : "no quarantine banner; the record was accepted (only `due` is validated, `doneAt` is not)", true);
     await page.click("#completedToggle");
     await sleep(500);
     const after = await rw.titles(page);
     const doneShown = await rw.doneTitles(page);
+    report("S1a the record is quarantined or repaired at load", errors.length === 0 && (quar.length === 1 || doneShown.includes("Broken completed task")), quar.length ? quar[0].text : doneShown.includes("Broken completed task") ? "repaired: the completed list shows it with a valid date" : "neither quarantined nor shown" + (errors.length ? "; " + errors[0] : ""), true);
     report("S1b showing completed tasks keeps the app alive", after.length === bootTitles.length && errors.length === 0, "open rows before/after: " + bootTitles.length + "/" + after.length + ", completed rows: " + doneShown.length + (errors.length ? "; " + errors[0] : ""), true);
     errors.length = 0;
     await page.click("#statsBtn");
@@ -195,13 +199,13 @@ const scenarios = {
     try { await addTask(page, "Added after the crash", "2030-02-02"); added = true; } catch (e) { /* never rendered */ }
     const rowsAfter = await page.evaluate(() => document.querySelectorAll("#listRoot .task").length);
     const idb = await rw.idbAll(page, "tasks");
-    report("S1e the list keeps working while the completed view is open", added && errors.length === 0, "new task rendered: " + added + " (stored in IndexedDB: " + idb.some((t) => t.title === "Added after the crash") + "), open rows shown: " + rowsAfter + (errors.length ? "; " + errors[0] : "") + " — no error banner, no recovery path short of a reload", true);
+    report("S1e the list keeps working while the completed view is open", added && errors.length === 0, "new task rendered: " + added + " (stored in IndexedDB: " + idb.some((t) => t.title === "Added after the crash") + "), open rows shown: " + rowsAfter + (errors.length ? "; " + errors[0] + " — no error banner, no recovery path short of a reload" : ""), true);
     await ctx.close();
   },
 
   async S2(browser, base) {
     console.log("\nS2 two tabs on the same list and file");
-    for (const variant of ["no focus event in the second tab", "second tab regains focus first", "reload from disk instead"]) {
+    for (const variant of ["second tab acts before any focus event", "second tab regains focus first"]) {
       const ctx = await browser.newContext();
       const A = await openApp(ctx, base);
       await rw.connectOpfs(A.page, { name: "todo.md", bytes: bytesOf(FILE(["- [ ] Base task 📅 2030-01-01 ^b00001"])) });
@@ -214,44 +218,50 @@ const scenarios = {
       await waitClean(A.page);
       const file1 = utf8(await rw.readOpfs(A.page, "todo.md"));
       const step1 = file1.includes("Added in tab A") && bTitles0.length === 1;
-      if (variant.startsWith("second tab regains")) {
+      if (variant === "second tab regains focus first") {
         await rw.focusEvent(B.page);
         await sleep(800);
         const bTitles = await rw.titles(B.page);
         const bn = await rw.banners(B.page);
-        report("S2 " + variant + ": tab B picks up tab A's task", step1 && bTitles.includes("Added in tab A"), "B shows " + JSON.stringify(bTitles) + "; banner: " + JSON.stringify(bn.map((b) => b.text)), true);
+        report("S2 " + variant + ": tab B picks up tab A's task", step1 && bTitles.includes("Added in tab A"), "B shows " + JSON.stringify(bTitles) + "; banners: " + JSON.stringify(bn.map((b) => b.id)), true);
         await ctx.close();
         continue;
       }
-      // B acts on its stale model without any focus/visibility event in between
+      // B acts on whatever it has, with no focus/visibility event in between
       await B.page.click('#listRoot .task[data-id="b00001"] .cb');
-      const bn = await waitBanner(B.page, "conflict");
-      const conflict = bn.find((b) => b.id === "conflict");
-      if (variant === "reload from disk instead") {
-        if (conflict) {
-          await B.page.click('#banners .banner[data-bid="conflict"] button:has-text("Reload from disk")');
-          await sleep(1000);
-          const bTitles = await rw.titles(B.page);
-          const idb = await rw.idbAll(B.page, "tasks");
-          const base = idb.find((t) => t.id === "b00001");
-          report("S2 " + variant + ": the banner offers a way to keep both tabs' work", !bTitles.includes("Base task") && base && base.done, "after reload B shows " + JSON.stringify(bTitles) + "; 'Base task' done in IndexedDB: " + !!(base && base.done) + " — 'Keep my version' loses tab A's task, 'Reload from disk' loses tab B's completion; the 'Keep both' merge that the first-connect banner has is not offered here", true);
-        }
-        await ctx.close();
-        continue;
+      const t0 = Date.now();
+      let bn = [];
+      while (Date.now() - t0 < 8000) {
+        bn = await rw.banners(B.page);
+        if (bn.some((b) => b.id === "conflict")) break;
+        if (Date.now() - t0 > 1500 && (await rw.saveState(B.page)) === "clean") break;
+        await sleep(100);
       }
-      report("S2 " + variant + ": tab B is told what actually happened (another Runway tab wrote the file)", !!conflict && /tab|another|Runway/i.test(conflict.text || ""), conflict ? "banner reads: " + JSON.stringify(conflict.text) : "no conflict banner; banners: " + JSON.stringify(bn), true);
-      if (conflict) {
-        await B.page.click('#banners .banner[data-bid="conflict"] button:has-text("Keep my version")');
-        await waitClean(B.page);
+      const conflict = bn.find((b) => b.id === "conflict");
+      if (!conflict) {
         const file2 = utf8(await rw.readOpfs(B.page, "todo.md"));
-        const lostInFile = !file2.includes("Added in tab A");
+        const hasA = file2.includes("Added in tab A"), hasB = /- \[x\] Base task/.test(file2);
+        report("S2 " + variant + ": both tabs' work reaches the file, no conflict raised", step1 && hasA && hasB, "file has tab A's task: " + hasA + ", tab B's completion: " + hasB + "; banners: " + JSON.stringify(bn.map((b) => b.id)), true);
         await rw.focusEvent(A.page);
         await sleep(1200);
         const aTitles = await rw.titles(A.page);
         const idb = await rw.idbAll(A.page, "tasks");
-        const lostEverywhere = lostInFile && !aTitles.includes("Added in tab A") && !idb.some((t) => t.title === "Added in tab A");
-        report("S2 " + variant + ": choosing \"Keep my version\" in tab B keeps tab A's task", !lostInFile, step1 ? (lostInFile ? "tab A's task is gone from the file" + (lostEverywhere ? "; after tab A regains focus it is gone from tab A and from IndexedDB too — loss through in-app actions only" : "") : "kept") : "setup failed", true);
+        report("S2 " + variant + ": tab A shows tab B's completion and nothing is lost", !aTitles.includes("Base task") && aTitles.includes("Added in tab A") && idb.length === 2, "A shows " + JSON.stringify(aTitles) + "; IndexedDB holds " + idb.length + " tasks", true);
+        await ctx.close();
+        continue;
       }
+      const hasKeepBoth = await B.page.$('#banners .banner[data-bid="conflict"] button:has-text("Keep both")');
+      report("S2 " + variant + ": if a conflict is raised it offers Keep both (no forced data loss)", !!hasKeepBoth, "banner reads: " + JSON.stringify(conflict.text) + "; Keep both offered: " + !!hasKeepBoth, true);
+      await B.page.click('#banners .banner[data-bid="conflict"] button:has-text("Keep my version")');
+      await waitClean(B.page);
+      const file2 = utf8(await rw.readOpfs(B.page, "todo.md"));
+      const lostInFile = !file2.includes("Added in tab A");
+      await rw.focusEvent(A.page);
+      await sleep(1200);
+      const aTitles = await rw.titles(A.page);
+      const idb = await rw.idbAll(A.page, "tasks");
+      const lostEverywhere = lostInFile && !aTitles.includes("Added in tab A") && !idb.some((t) => t.title === "Added in tab A");
+      report("S2 " + variant + ": choosing \"Keep my version\" in tab B keeps tab A's task", !lostInFile, lostInFile ? "tab A's task is gone from the file" + (lostEverywhere ? "; after tab A regains focus it is gone from tab A and from IndexedDB too — loss through in-app actions only" : "") : "kept", true);
       await ctx.close();
     }
   },
@@ -268,7 +278,11 @@ const scenarios = {
     await sleep(400);
     const titles = await rw.titles(page);
     const value = await page.inputValue("#titleInput");
-    report("S3 a composing Enter does not add the task", !titles.includes("日本語のタスク"), titles.includes("日本語のタスク") ? "task added and the entry box cleared (value now " + JSON.stringify(value) + ") while the IME was still composing" : "ignored", true);
+    report("S3 a composing Enter does not add the task", !titles.includes("日本語のタスク") && value === "日本語のタスク", titles.includes("日本語のタスク") ? "task added and the entry box cleared (value now " + JSON.stringify(value) + ") while the IME was still composing" : "ignored; the box still holds the composition", true);
+    await page.press("#titleInput", "Enter");
+    await sleep(400);
+    const titles2 = await rw.titles(page);
+    report("S3b a real Enter afterwards adds it", titles2.includes("日本語のタスク"), JSON.stringify(titles2), true);
     await ctx.close();
   },
 
@@ -313,16 +327,29 @@ const scenarios = {
     const latin1 = Buffer.from("# To Do\n\n## Open\n- [ ] Caf\xe9 cr\xe8me ^c0ffee\n\n## Notes\nPr\xe9face: ne pas toucher.\n", "latin1");
     await rw.connectOpfs(page, { name: "todo.md", bytes: Array.from(latin1) });
     await reload(page);
-    await waitClean(page);
+    await waitClean(page, 2500);
     const titles = await rw.titles(page);
     const bn = await rw.banners(page);
     await addTask(page, "Trigger a save", "2030-03-03");
-    await waitClean(page);
+    await waitClean(page, 3000);
     const after = Buffer.from(await rw.readOpfs(page, "todo.md"));
     const replaced = after.includes(Buffer.from([0xef, 0xbf, 0xbd]));
-    const kept = after.includes(Buffer.from("Pr\xe9face", "latin1"));
-    report("S6a the app warns before writing a file it could not decode", bn.some((b) => /utf|encod|decod/i.test(b.text || "")), "banners: " + JSON.stringify(bn.map((b) => b.text)) + "; title shown as " + JSON.stringify(titles[0]), true);
-    report("S6b prose the app never manages survives the save byte-for-byte", kept && !replaced, replaced ? "the file was rewritten as UTF-8 with U+FFFD (EF BF BD) in place of every accented byte, including the '## Notes' prose" : "", true);
+    const kept = after.equals(latin1);
+    report("S6a the app says the file is not UTF-8 instead of showing replacement characters", bn.some((b) => /utf-?8/i.test(b.text || "")) && !titles.some((t) => /�/.test(t)), "banners: " + JSON.stringify(bn.map((b) => b.text && b.text.slice(0, 90))) + "; titles shown: " + JSON.stringify(titles), true);
+    report("S6b the file is left byte-for-byte alone after a change in the app", kept && !replaced, replaced ? "the file was rewritten as UTF-8 with U+FFFD (EF BF BD) in place of every accented byte, including the '## Notes' prose" : kept ? "untouched" : "changed", true);
+    // convert the file to UTF-8 outside the app, then "Check again"
+    await rw.writeOpfs(page, { name: "todo.md", text: "# To Do\n\n## Open\n- [ ] Café crème ^c0ffee\n\n## Notes\nPréface: ne pas toucher.\n" });
+    const again = await page.$('#banners .banner button:has-text("Check again")');
+    if (again) await again.click();
+    // the app's task lived only in the browser while the file was unreadable; connecting the now-readable file
+    // offers the first-connect chooser rather than silently dropping either side — Keep both keeps everything
+    const kb = await waitBanner(page, "conflict", 3000);
+    const keepBoth = kb.some((b) => b.id === "conflict") ? await page.$('#banners .banner[data-bid="conflict"] button:has-text("Keep both")') : null;
+    if (keepBoth) await keepBoth.click();
+    await waitClean(page, 6000);
+    const file3 = utf8(await rw.readOpfs(page, "todo.md"));
+    const t3 = await rw.titles(page);
+    report("S6c after the file is converted, the browser task and the file's tasks are both kept, prose intact", t3.includes("Café crème") && t3.includes("Trigger a save") && file3.includes("Trigger a save") && file3.includes("Préface"), "Keep both offered: " + !!keepBoth + "; titles " + JSON.stringify(t3) + "; file has the app's task: " + file3.includes("Trigger a save") + ", prose intact: " + file3.includes("Préface"), true);
     await ctx.close();
   },
 
@@ -363,6 +390,7 @@ const scenarios = {
     await addTask(page, "Plain task");
     await addTask(page, "Tagged [d] and urgent !!!", "tom", "Tagged and urgent");
     await addTask(page, "Dated +2w task #Ops", "+2w", "Dated +2w task");
+    await addTask(page, "Typed with a date 📅 2030-06-06 inside", undefined, "Typed with a date inside");
     await blurEntry(page);
     await page.click("#listRoot .task .cb");
     await sleep(600);
@@ -418,9 +446,10 @@ const scenarios = {
     await page.waitForSelector("#testpanel strong", { timeout: 60000 });
     const testLine = await page.textContent("#testpanel strong");
     report("S8a no page errors across the scripted session", errors.length === 0, errors.length ? errors.slice(0, 3).join(" | ") : "add/complete/undo/redo/snooze/priority/sub-task/board drag/calendar/search/stats/settings/shortcuts/completed/export", true);
-    report("S8b the file reflects the session (changed lines in bracket style, untouched lines verbatim)", /\[due:: \d{4}-/.test(file) && file.includes("a sub-task") && file.includes("Plain task") && file.includes("^s33d01"), file.split("\n").slice(0, 12).join(" ⏎ ").slice(0, 300), true);
-    report("S8c Ctrl+S with a connected file writes the file (no download)", download === null, download ? "a download was triggered instead" : "", false);
-    report("S8d embedded suite passes in the browser", /^162 \/ 162/.test(testLine || ""), testLine || "", true);
+    report("S8b the file reflects the session and keeps the seeded line verbatim", file.includes("a sub-task") && file.includes("Plain task") && file.includes("Dated +2w task") && file.includes("- [ ] Seeded task 📅 2030-01-01 ^s33d01"), file.split("\n").slice(0, 12).join(" ⏎ ").slice(0, 300), true);
+    report("S8c a 📅 date typed into a title is stored as the due date, not left as title text", /Typed with a date inside (📅 |\[due:: )2030-06-06/.test(file) && !/Typed with a date inside 📅 2030-06-06 📅/.test(file), (file.split("\n").find((l) => l.includes("Typed with a date")) || "line not found"), true);
+    report("S8d Ctrl+S with a connected file writes the file (no download)", download === null, download ? "a download was triggered instead" : "", false);
+    report("S8e embedded suite passes in the browser", /^\d+ \/ \d+ passed$/.test(testLine || "") && testLine.split(" / ")[0] === testLine.split(" / ")[1].split(" ")[0], testLine || "", true);
     await ctx.close();
   },
 
@@ -489,7 +518,11 @@ const scenarios = {
     const bn2 = await rw.banners(page);
     const file = utf8(await rw.readOpfs(page, "todo.md"));
     report("S11b with unsaved changes an external edit raises the conflict banner and the file is untouched", bn2.some((b) => b.id === "conflict") && file.includes("Second external edit") && !file.includes("Unsaved in app"), JSON.stringify(bn2.map((b) => b.id)), true);
-    report("S11c no page errors", errors.length === 0, errors[0] || "", true);
+    const keepBoth = await page.$('#banners .banner[data-bid="conflict"] button:has-text("Keep both")');
+    if (keepBoth) { await keepBoth.click(); await waitClean(page, 8000); }
+    const file2 = utf8(await rw.readOpfs(page, "todo.md"));
+    report("S11c the conflict banner offers Keep both, which merges the file's tasks with the app's new one", !!keepBoth && file2.includes("Second external edit") && file2.includes("Unsaved in app") && file2.includes("Edited in vim"), keepBoth ? "after Keep both the file has all of: external edit " + file2.includes("Second external edit") + ", app task " + file2.includes("Unsaved in app") : "no Keep both button", true);
+    report("S11d no page errors", errors.length === 0, errors[0] || "", true);
     await ctx.close();
   },
 
@@ -514,7 +547,7 @@ const scenarios = {
     await waitClean(page);
     const t2 = await rw.titles(page);
     const file2 = utf8(await rw.readOpfs(page, "todo.md"));
-    report("S12 undo after a reload does not act on stale history", t2.includes("Renamed in an editor, hours of notes") || t2.includes("Ephemeral"), "id " + id + "; after reload: " + JSON.stringify(t1) + "; after Ctrl+Z (undo of the pre-reload 'add'): " + JSON.stringify(t2) + "; the external rename survives in the file: " + file2.includes("Renamed in an editor"), true);
+    report("S12 undo after a reload does not act on stale history", t2.includes("Renamed in an editor, hours of notes") && file2.includes("Renamed in an editor"), "id " + id + "; after reload: " + JSON.stringify(t1) + "; after Ctrl+Z (undo of the pre-reload 'add'): " + JSON.stringify(t2) + "; the external rename survives in the file: " + file2.includes("Renamed in an editor"), true);
     await ctx.close();
   },
 

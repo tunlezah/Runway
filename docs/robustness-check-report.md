@@ -1,6 +1,6 @@
 # Runway robustness check — what breaks when the world is not tidy
 
-**Date:** 2026-09-03 · **App:** runway.html v1.2.1 · **Status:** findings only — nothing in the app was changed on this branch.
+**Date:** 2026-09-03 · **App:** runway.html v1.2.1 (findings) → **v1.3.0 (fixes applied)** · **Status:** the two High findings, all four Medium findings, and a newly found quadratic-parse defect are **fixed and verified on this branch**; see [Fixes applied](#fixes-applied-v130). The remaining Low findings are documented, not yet fixed.
 
 **Method:** a full read of the source, then three new harnesses that run the real code (nothing mocked
 but the inputs): `stress/robust-fuzz.js` (property-based checks on the parser, serialiser, date
@@ -20,37 +20,103 @@ misbehave?**
 
 ## TL;DR
 
-**16 defects, none of them speed-related.** Two can lose or mangle data through ordinary use; four
-change state or break a view in plausible situations; ten are small. Everything the earlier passes
-hardened still holds, and a lot of new ground held too (see *What held*).
+**17 defects, none of them speed-related in normal use — but one is a parser blow-up on hostile
+input.** Two can lose or mangle data through ordinary use; five change state, break a view, or freeze
+the tab in plausible situations; ten are small. Everything the earlier passes hardened still holds, and
+a lot of new ground held too (see *What held*). **The two High, all five Medium, and R17 are fixed and
+verified on this branch (v1.3.0)** — see [Fixes applied](#fixes-applied-v130); the ten Low findings are
+documented and left for a follow-up.
 
-| # | Severity | Finding | Evidence |
-|---|---|---|---|
-| R1 | **High** | The same list open in **two tabs** turns one tab's write into a "changed outside this app" conflict in the other; "Keep my version" then deletes the first tab's task from the file, the browser store and the first tab. Both offered choices lose one side; the "Keep both" merge the code has is not offered. | S2 |
-| R2 | **High** | A **non-UTF-8 file** (Latin-1/Windows-1252, UTF-16, or binary) is decoded with replacement characters, connected silently, and rewritten on the first save — every accented byte becomes `�`, including prose the app promises never to touch. | S6, G8, G9 |
-| R3 | Medium | One stored task with an unreadable completion date passes validation (only `due` is checked) and then **crashes the completed view, the stats panel and `is:done` search** with a blank result, no banner, no quarantine, no recovery short of a reload. | S1, G3, F2, F3 |
-| R4 | Low | A stored record whose id is malformed is repaired in memory only; the first edit stores a second copy and **the task is duplicated** on the next load. | S13 |
-| R5 | Medium | Free text containing **metadata-looking tokens** (`📅 2026-01-01`, `⏫`, `✅ …`, `[due:: …]`, `[priority:: …]`) is re-interpreted on the next load: a title's real due date is replaced, priority is forced, sub-task text is split. The entry field strips `#tag`/`[d]`/`!!` but not these. | G4–G6, B |
-| R6 | Medium | **IME users:** the Enter that confirms a Japanese/Chinese/Korean composition adds the task with the half-composed text and clears the box. No Enter handler checks `isComposing`. | S3 |
-| R7 | Medium | The **undo journal survives a reload from disk**: after an external edit is auto-loaded, Ctrl+Z replays the pre-reload history and can delete or revert the externally edited task — from the file too. | S12 |
-| R8 | Low | With a task selected, **Space on a focused row button** completes the selected task instead of pressing the button (Enter works). Keyboard-only users hit this. | S4 |
-| R9 | Low | Two Enter presses before the first add clears the box add **the task twice**. | S5 |
-| R10 | Low | `[constructor]` or `[__proto__]` in a title is treated as a **tag shortcut**: the word is deleted from the title and a function/object is pushed as a tag (later dropped). Inherited-property lookup on the shortcut map. | G1, G2, D2, D3 |
-| R11 | Low | Tag labels containing `_` or `#` **do not round-trip** (`snake_case` → "snake case", `C#` → tag `C` plus a stray `#` in the title). Settings accept any label. | B tag-hazard |
-| R12 | Low | Importing a settings file whose JSON is not an object (`null`, a string, a list) **silently resets every setting** to defaults instead of refusing. | S7b |
-| R13 | Low | A Unicode line/paragraph separator (U+2028/U+2029) inside a task line makes the **task invisible to the parser** with no "unreadable line" report; inside a sub-task or note line it detaches that line from its task. | G16, G17 |
-| R14 | Low | Byte-preservation edges: a completed line without a `✅` date is rewritten with a synthetic date on the first save after a day passes; trailing whitespace on a hand-written line is trimmed when the id is appended. | G10, G11, A3 |
-| R15 | Low | Four-digit years below 100 (`12 5 0050`, `📅 0050-06-01`) resolve or display as 19xx — the two-digit-year quirk of `new Date(y, m, d)`. | G12, G13, C3 |
-| R16 | Low | With *Write block IDs* off, an undated task whose title ends in a six-character `^token` gets that token as its id on reload and loses it from the title. | G7 |
+| # | Severity | Fixed | Finding | Evidence |
+|---|---|---|---|---|
+| R1 | **High** | ✅ v1.3.0 | The same list open in **two tabs** turns one tab's write into a "changed outside this app" conflict in the other; "Keep my version" then deletes the first tab's task from the file, the browser store and the first tab. Both offered choices lose one side; the "Keep both" merge the code has is not offered. | S2 |
+| R2 | **High** | ✅ v1.3.0 | A **non-UTF-8 file** (Latin-1/Windows-1252, UTF-16, or binary) is decoded with replacement characters, connected silently, and rewritten on the first save — every accented byte becomes `�`, including prose the app promises never to touch. | S6, G8, G9 |
+| R17 | **High** (hostile input) | ✅ v1.3.0 | Two parser regexes are **quadratic on adversarial lines**: a task line followed by ~80,000 spaces takes ~6 s and quadruples per doubling (a 300 KB line ≈ 90 s); a line with thousands of unclosed `[due:: ` fields behaves the same. Reachable through Import, a synced `todo.md`, or a backup. No data lost — the tab just freezes. | R17 probe |
+| R3 | Medium | ✅ v1.3.0 | One stored task with an unreadable completion date passes validation (only `due` is checked) and then **crashes the completed view, the stats panel and `is:done` search** with a blank result, no banner, no quarantine, no recovery short of a reload. | S1, G3, F2, F3 |
+| R5 | Medium | ✅ v1.3.0 | Free text containing **metadata-looking tokens** (`📅 2026-01-01`, `⏫`, `✅ …`, `[due:: …]`, `[priority:: …]`) is re-interpreted on the next load: a title's real due date is replaced, priority is forced, sub-task text is split. The entry field strips `#tag`/`[d]`/`!!` but not these. | G4–G6, B |
+| R6 | Medium | ✅ v1.3.0 | **IME users:** the Enter that confirms a Japanese/Chinese/Korean composition adds the task with the half-composed text and clears the box. No Enter handler checks `isComposing`. | S3 |
+| R7 | Medium | ✅ v1.3.0 | The **undo journal survives a reload from disk**: after an external edit is auto-loaded, Ctrl+Z replays the pre-reload history and can delete or revert the externally edited task — from the file too. | S12 |
+| R4 | Low | — | A stored record whose id is malformed is repaired in memory only; the first edit stores a second copy and **the task is duplicated** on the next load. | S13 |
+| R8 | Low | — | With a task selected, **Space on a focused row button** completes the selected task instead of pressing the button (Enter works). Keyboard-only users hit this. | S4 |
+| R9 | Low | — | Two Enter presses before the first add clears the box add **the task twice**. | S5 |
+| R10 | Low | partial | `[constructor]` or `[__proto__]` in a title is treated as a **tag shortcut**: the word is deleted from the title and a function/object is pushed as a tag. v1.3.0 stops the non-string tag reaching the model (the prototype-pollution risk is gone); the title still loses the bracket word. | G1, G2, D2, D3 |
+| R11 | Low | — | Tag labels containing `_` or `#` **do not round-trip** (`snake_case` → "snake case", `C#` → tag `C` plus a stray `#` in the title). Settings accept any label. | B tag-hazard |
+| R12 | Low | — | Importing a settings file whose JSON is not an object (`null`, a string, a list) **silently resets every setting** to defaults instead of refusing. | S7b |
+| R13 | Low | — | A Unicode line/paragraph separator (U+2028/U+2029) inside a task line makes the **task invisible to the parser** with no "unreadable line" report; inside a sub-task or note line it detaches that line from its task. | G16, G17 |
+| R14 | Low | — | Byte-preservation edges: a completed line without a `✅` date is rewritten with a synthetic date on the first save after a day passes; trailing whitespace on a hand-written line is trimmed when the id is appended. | G10, G11, A3 |
+| R15 | Low | — | Four-digit years below 100 (`12 5 0050`, `📅 0050-06-01`) resolve or display as 19xx — the two-digit-year quirk of `new Date(y, m, d)`. | G12, G13, C3 |
+| R16 | Low | — | With *Write block IDs* off, an undated task whose title ends in a six-character `^token` gets that token as its id on reload and loses it from the title. | G7 |
 
-Severity: **High** = data loss or an unreadable file through ordinary use · **Medium** = state
-silently changes or a feature breaks in a plausible situation, recoverable · **Low** = rare, cosmetic,
-or needs unusual input; fix is small.
+Severity: **High** = data loss, an unreadable file, or a tab freeze through ordinary use or reachable
+hostile input · **Medium** = state silently changes or a feature breaks in a plausible situation,
+recoverable · **Low** = rare, cosmetic, or needs unusual input; fix is small.
 
-**Suggested order:** R2 and R1 first (both are a few dozen lines and close the only data-loss paths
-found), then R3+R4 together (validate what `Model.load` accepts and never let a render exception go
-unreported), R6 (one line per Enter handler), R7 (reset history on adopt), R5 (make the entry field
-and the file parser agree), then the Lows in one sweep.
+---
+
+## Fixes applied (v1.3.0)
+
+Everything below was changed in `runway.html` on this branch and verified by the harnesses named. The
+embedded suite grows from 162 to **180 tests** (`node test.js`, green); the property harness now holds
+**25 / 46** properties (was 12), with the remainder tracking the ten Low findings left open.
+
+- **R17 · quadratic parser regexes (found while fixing R5).** `TASK_RE`'s body group `(.*\S.*)` and the
+  `[due:: …]` field pattern `\[\s*due::\s*([^\]]*)\]` both backtrack quadratically. Measured before:
+  a `- [ ]` line with 40,000 trailing spaces parsed in ~1.5 s (4× per doubling → ~90 s at 300 KB); a
+  line with 8,000 unclosed `[due:: ` tokens, ~0.7 s; the same shape in a `## ` heading and in the
+  serialiser's stale-id trim. **Fix:** the task body group is now `(\S.*)` (identical captures, no
+  backtracking); every `[key:: value]` field is located with a non-backtracking scan
+  (`bracketFields`: match the key, then `indexOf("]")`); the heading is matched by character checks and
+  `trim()`; the serialiser uses `trimEnd()`. **After:** all four cases parse/serialise in **under
+  10 ms at 320,000 characters** — a differential test over 300,000 random strings confirms the new
+  regexes produce byte-identical captures to the old ones. Verified by the "parse and serialise cost
+  stays linear on hostile lines" test in the embedded suite and a timing probe.
+
+- **R5 · reserved syntax in free text now honoured at entry, not re-read on load.** `EntryParse.parse`
+  and the sub-task add/rename paths now run the file's own grammar (`MD.extractBody` / `MD.subDue`), so
+  a `📅 date`, a `⏫`/`[priority:: …]`, a `✅`/`[completion:: …]` or a `[due:: …]` typed into a title or
+  sub-task becomes real metadata immediately and shows as a chip — it is never written into free text
+  for the next parse to reinterpret. `Model.validate` applies the same normalisation as a backstop, so
+  a task reaching the model from any path (import, sync, a hand-edited record) is clean; a title that is
+  *only* a token (e.g. `📅 2026-01-01`) is left intact, and an impossible date (`📅 2026-02-30`) is
+  flagged in the entry chips rather than silently dropped. The two-machine flip-flop is gone: the
+  round-trip regression test drives Pay-invoice-with-a-date and friends through save → load → save and
+  asserts the due date and title are stable. Verified by G4–G6, the B token-hazard tiers (0 changed),
+  S8c, and three new embedded tests.
+
+- **R2 · non-UTF-8 files are refused, never rewritten.** File reads go through `Util.decodeUtf8`, which
+  rejects a UTF-16 BOM, any byte sequence that is not valid UTF-8, and embedded NULs. A file that fails
+  connects **read-only**: a red banner and chip say "todo.md isn't UTF-8 text", the app never marks it
+  dirty and never writes, and the same guard covers Import and backup restore. "Check again" retries
+  after the user converts the file; the browser's own tasks are then offered via the Keep-both chooser
+  rather than dropped. Verified by S6a–c, G8, G9.
+
+- **R1 · other tabs on one origin.** A `BroadcastChannel("runway")` broadcasts every task commit and
+  settings change; a sibling tab refreshes from the shared store and re-renders (deferred while it is
+  mid-edit). Before a write raises a conflict, the app compares the on-disk hash to the shared
+  `fileMeta` record: when the file is exactly what another Runway tab wrote, it reloads from storage and
+  carries on. The conflict banner now offers **Keep both** (the existing merge), and its wording no
+  longer claims an outside program when a sibling tab is the likely cause. Net effect: the focus path
+  self-heals silently, and in the worst-case race the banner appears but every choice — including the
+  new Keep both — keeps both tabs' work. Verified by S2 (both variants) and S11c.
+
+- **R3 · one bad record can no longer blank the app.** `Model.validate` now rejects/repairs an
+  unreadable `doneAt` and coerces non-timestamp `createdAt`/`updatedAt`; `fmtLong`/`fmtShort` return the
+  raw string instead of throwing on an unparseable date; `Stats.throughput` guards its `getDay` call;
+  `Render.render` is wrapped so any drawing error becomes a banner ("Runway couldn't draw the list …
+  Reload / Export") instead of a silent blank; and `window.error` / `unhandledrejection` raise the same
+  banner. Verified by S1a–e, G3, F2, F3.
+
+- **R6 · IME composition Enter.** Every Enter handler (entry title and date, title editor, both date
+  editors, sub-task add and rename) returns early on `e.isComposing || e.keyCode === 229`, so the Enter
+  that confirms a composition no longer adds a half-typed task. Verified by S3/S3b.
+
+- **R7 · undo across a model replacement.** `adopt()` (external reload, first connect, import, restore)
+  now clears the undo journal, so Ctrl+Z after a reload can no longer replay stale snapshots over what
+  the file says. Verified by S12.
+
+**Not changed on this branch (Low, documented below):** R4, R8, R9, R11–R16, and the title-mangling
+half of R10. The security-relevant half of R10 — a non-string tag reaching the model — is closed by the
+validate tag filter (fuzz D2 now holds).
 
 ---
 
@@ -108,7 +174,7 @@ banner (S7c); shortcut keys are limited to 1–3 alphanumerics so the map itself
 
 ## Findings in detail
 
-### R1 · High · Two tabs, one list
+### R1 · High · Two tabs, one list — ✅ fixed in v1.3.0
 
 **What happens.** Open the same origin twice (the hosted copy in two tabs, or a pinned tab plus a new
 one). Tab A adds a task; the app writes it to `todo.md`. Tab B still holds the model it loaded at boot.
@@ -139,7 +205,7 @@ runs only when the tab regains focus — if the user acts first, the race is los
 4. Or the blunt tool: `navigator.locks.request("runway-writer", { ifAvailable: true })` at boot; a tab
    that does not get the lock shows "This list is open in another tab" and stays read-only.
 
-### R2 · High · Files that are not UTF-8
+### R2 · High · Files that are not UTF-8 — ✅ fixed in v1.3.0
 
 **What happens.** `Persist.readText` decodes with a non-fatal `TextDecoder`. A Latin-1/Windows-1252
 file (Notepad "ANSI", many older editors) decodes with `U+FFFD` for every accented byte; the app shows
@@ -155,7 +221,7 @@ keep the handle but treat the connection as read-only (never set `dirty`, never 
 "Choose another file". Apply the same check to **Import .md** and to backup restore. A conversion
 ("Convert to UTF-8 and continue") is fine as an explicit button; never implicit.
 
-### R3 · Medium · One bad stored record breaks three views, silently
+### R3 · Medium · One bad stored record breaks three views, silently — ✅ fixed in v1.3.0
 
 **What happens.** `Model.validate` checks `due` and every sub-task `due` with `validISO`, but accepts
 any truthy `doneAt` and any `createdAt`/`updatedAt`. Seed one record `{done:true, doneAt:"garbage"}`
@@ -181,7 +247,7 @@ writes the repaired record back or deletes the old key. The first edit commits u
 IndexedDB now holds both; the next load shows two tasks (S13). Fix: in `load`, when `validate` changed
 `t.id`, `putAll([t], [oldId])`; or quarantine instead of repairing.
 
-### R5 · Medium · Metadata-looking text is re-interpreted on the next load
+### R5 · Medium · Metadata-looking text is re-interpreted on the next load — ✅ fixed in v1.3.0
 
 **What happens.** The entry field understands `#tag`, `[d]` and `!!` and strips them into metadata, but
 not `📅 2026-01-01`, `✅ …`, `⏫/🔼/🔽`, `[due:: …]`, `[priority:: …]` or `[completion:: …]` — those stay in
@@ -200,7 +266,7 @@ like tags and priority already are. Then the file never sees metadata syntax ins
 Optionally also parse app-written lines from the tail (the app always emits metadata last), which
 protects hand-written lines with a date in the middle of a sentence.
 
-### R6 · Medium · IME composition Enter
+### R6 · Medium · IME composition Enter — ✅ fixed in v1.3.0
 
 `Entry.init`, the title editor, both date editors and the sub-task add/edit inputs all act on
 `keydown` `Enter` without checking `e.isComposing` (or `keyCode === 229`). Chromium, Firefox and Safari all
@@ -208,7 +274,7 @@ deliver the Enter that *confirms* a composition as a keydown with `isComposing: 
 task with whatever the box holds and clears it (S3). Fix: `if (e.isComposing || e.keyCode === 229) return;`
 at the top of each Enter branch — six sites.
 
-### R7 · Medium · Undo history spans a model replacement
+### R7 · Medium · Undo history spans a model replacement — ✅ fixed in v1.3.0
 
 The journal is designed to survive reloads (README: "survives reloads"), and `adopt()` — external
 reload, first connect, import, restore — replaces the model without touching it. After an external
@@ -216,6 +282,32 @@ edit is auto-loaded, Ctrl+Z replays the last pre-reload entry: undoing an "add" 
 external editor just renamed and filled with notes, and the deletion is written to the file (S12).
 Fix: call `Undo.reset()` and clear the `journal` store in `adopt()` (or append a barrier record that
 `undo`/`redo` refuse to cross). A persisted journal is only safe across reloads of the *same* model.
+
+### R17 · High (hostile input) · Quadratic parser regexes — ✅ fixed in v1.3.0
+
+Two patterns backtrack quadratically on adversarial whitespace or unclosed fields, so a single long
+line freezes the tab. `TASK_RE = /^([-*])\s*\[( |x|X)\]\s+(.*\S.*)$/` — the body group `(.*\S.*)` makes
+the engine try every split of a run of trailing spaces looking for a trailing non-space. `\[\s*due::\s*([^\]]*)\]`
+(and its sub-task twin) does the same across thousands of unclosed `[due:: ` starts. The same
+`.*\S.*`-style backtracking sits in the `## ` heading match and in the serialiser's stale-id trim.
+
+Measured on the v1.2.1 code:
+
+| Input | Parse (v1.2.1) | Parse (v1.3.0) |
+|---|---:|---:|
+| `- [ ]` + 40,000 trailing spaces | 1.5 s | < 1 ms |
+| `- [ ]` + 320,000 spaces (extrapolates to ~90 s at 300 KB pre-fix) | ~90 s | 1.6 ms |
+| task line with 8,000 unclosed `[due:: ` | 0.7 s | 4 ms |
+| serialise an id-less line with 40,000 internal spaces | 1.3 s | 0.3 ms |
+
+Reachable through **Import**, a **synced `todo.md`** written by another tool, or a **backup restore** —
+no attacker needed, just a pathological line. Nothing is lost; the tab is unresponsive until the parse
+finishes. **Fix (applied):** the task body group is `(\S.*)` — a leading non-space then anything, which
+captures exactly the same text with no backtracking; `[key:: value]` fields are found by matching the
+key and then `indexOf("]")` (`bracketFields`, O(n)); the heading is matched with two `charCodeAt`
+checks and `trim()`; the serialiser trims with `trimEnd()`. A differential test over 300,000 random
+strings confirms the rewrites capture byte-identically, and the embedded suite asserts every case stays
+under a fixed budget.
 
 ### R8 · Low · Space on a focused button
 
@@ -318,7 +410,7 @@ when ids are off and the rendered line would end in `^[0-9a-z]{6}`, write the re
 node stress/robust-fuzz.js --seed 1 --iters 400 --out stress/results/robust-fuzz.json   # ~40 s
 node stress/tz-matrix.js [--quick]                                                       # ~2 min full
 node stress/robust-browser.js [--only S2,S6] --out stress/results/robust-browser.json   # ~3 min, needs Playwright + Chromium
-node test.js                                                                             # 162/162 on this branch
+node test.js                                                                             # 180/180 on this branch
 ```
 
 Both Node harnesses are deterministic (seeded) and run without a browser; they are cheap enough to

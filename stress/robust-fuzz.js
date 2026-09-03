@@ -190,11 +190,12 @@ function sectionB(app) {
        plain        ordinary words, tag labels without '_' or '#'
        tag-hazard   labels containing '_' (ambiguous with the file's space encoding) or '#'
        token-hazard metadata-looking tokens (📅 …, ⏫, [due:: …], #tag, ^id …) inside free text */
-  const WORDS_SAFE = WORDS.filter((w) => !/[\t ]/.test(w));
+  const WORDS_SAFE = WORDS.filter((w) => !/[\t \u00a0\u2028\u2029]/.test(w)); // tabs, NBSP and Unicode line separators are covered by probes G15–G17
   const TAGS_SAFE = ["DPN", "BSM", "Highside", "Two Words", "ünï", "a-b", "x"];
   const TAGS_HAZ = ["snake_case", "C#", "#lead", "trail#", "1st", "a__b"];
   const TOKENS = HAZARDS.filter((h) => !/^[ \t]+$/.test(h));
-  const text = (n, tier) => { const out = []; for (let i = 0; i < n; i++) out.push(tier === "token-hazard" && chance(0.25) ? pick(TOKENS) : pick(WORDS_SAFE)); return out.join(" "); };
+  const TOKENS_NOTE = TOKENS.filter((h) => !/^[-*] \[/.test(h)); // an indented checkbox line is a sub-task by grammar, never note text
+  const text = (n, tier, forNote) => { const out = []; for (let i = 0; i < n; i++) out.push(tier === "token-hazard" && chance(0.25) ? pick(forNote ? TOKENS_NOTE : TOKENS) : pick(WORDS_SAFE)); return out.join(" "); };
   const genTask = (tier) => {
     const done = chance(0.25);
     const tagPool = tier === "tag-hazard" ? TAGS_HAZ : TAGS_SAFE;
@@ -206,7 +207,7 @@ function sectionB(app) {
       priority: int(0, 3),
       done,
       doneAt: done ? isoRand() : null,
-      note: chance(0.3) ? [text(int(1, 5), tier), text(int(1, 5), tier)].slice(0, int(1, 2)).join("\n") : null,
+      note: chance(0.3) ? [text(int(1, 5), tier, true), text(int(1, 5), tier, true)].slice(0, int(1, 2)).join("\n") : null,
       subtasks: chance(0.4) ? [{ text: text(int(1, 4), tier), done: chance(0.5), due: chance(0.4) ? isoRand() : null }] : [],
       createdAt: "2026-08-01T00:00:00.000Z",
       updatedAt: "2026-08-01T00:00:00.000Z",
@@ -378,7 +379,7 @@ function sectionG(app) {
     report("G4 a title containing a date token keeps its real due date across a save", p.tasks[0].due === "2026-09-10" && p.tasks[0].title === t.title, "due " + t.due + " → " + p.tasks[0].due + ", title → " + JSON.stringify(p.tasks[0].title), true); }
   { const t = Model.validate({ id: "zz0002", title: "Rotate ⏫ certs" });
     const p = MD.parse(MD.serialise([t], { blocks: [], eol: "\n" }, SETTINGS), opts);
-    report("G5 a title containing a priority emoji keeps its priority across a save", p.tasks[0].priority === 0 && p.tasks[0].title === t.title, "priority 0 → " + p.tasks[0].priority + ", title → " + JSON.stringify(p.tasks[0].title), true); }
+    report("G5 a title containing a priority emoji round-trips exactly as the model holds it", p.tasks[0].priority === t.priority && p.tasks[0].title === t.title, "model priority " + t.priority + " → " + p.tasks[0].priority + ", title " + JSON.stringify(t.title) + " → " + JSON.stringify(p.tasks[0].title), true); }
   { const t = Model.validate({ id: "zz0003", title: "P", subtasks: [{ text: "call 📅 2026-01-01 bob", done: false, due: null }] });
     const p = MD.parse(MD.serialise([t], { blocks: [], eol: "\n" }, SETTINGS), opts);
     report("G6 a sub-task whose text contains a date token round-trips", JSON.stringify(p.tasks[0].subtasks[0]) === JSON.stringify(t.subtasks[0]), "→ " + JSON.stringify(p.tasks[0].subtasks[0]), true); }
@@ -387,15 +388,17 @@ function sectionG(app) {
     const line = MD.serialise([t], { blocks: [], eol: "\n" }, S2);
     const p = MD.parse(line, opts);
     report("G7 writeBlockIds=off: an undated title ending in ^token keeps its title", p.tasks[0].title === t.title, JSON.stringify(line.trim().split("\n").pop()) + " → title " + JSON.stringify(p.tasks[0].title) + ", id " + p.tasks[0].id, true); }
-  { const dec = new TextDecoder("utf-8", { ignoreBOM: true });
+  { /* the app's own decoder (Util.decodeUtf8, v1.3.0) or, on older builds, the lenient decoder it used */
+    const decode = (buf) => { if (!Util.decodeUtf8) return { text: new TextDecoder("utf-8", { ignoreBOM: true }).decode(buf) }; try { return { text: Util.decodeUtf8(buf) }; } catch (e) { return { refused: e.name + ": " + (e.reason || e.message) }; } };
     const latin1 = Buffer.from("## Open\n- [ ] Caf\xe9 ^aaaaaa\nPr\xe9face\n", "latin1");
-    const text = dec.decode(latin1);
-    const p = MD.parse(text, opts);
-    const out = Buffer.from(MD.serialise(p.tasks, { blocks: p.blocks, eol: p.eol }, SETTINGS), "utf8");
-    report("G8 a Latin-1 file is not rewritten with U+FFFD replacement characters", out.equals(latin1), "decoder yields " + JSON.stringify(text.split("\n")[1]) + "; a save writes " + out.length + " bytes vs " + latin1.length + " original", true);
+    const d1 = decode(latin1);
+    let ok8 = !!d1.refused, detail8 = d1.refused ? "refused: " + d1.refused : "";
+    if (!d1.refused) { const p = MD.parse(d1.text, opts); const out = Buffer.from(MD.serialise(p.tasks, { blocks: p.blocks, eol: p.eol }, SETTINGS), "utf8"); ok8 = out.equals(latin1); detail8 = "decoder yields " + JSON.stringify(d1.text.split("\n")[1]) + "; a save writes " + out.length + " bytes vs " + latin1.length + " original"; }
+    report("G8 a Latin-1 file is refused, never rewritten with U+FFFD replacement characters", ok8, detail8, true);
     const utf16 = Buffer.concat([Buffer.from([0xff, 0xfe]), Buffer.from("## Open\n- [ ] Hello ^aaaaaa\n", "utf16le")]);
-    const p16 = MD.parse(dec.decode(utf16), opts);
-    report("G9 a UTF-16 file is recognised (or refused) rather than read as an empty task list", p16.tasks.length === 1, "decoded as UTF-8 it yields " + p16.tasks.length + " tasks and " + p16.blocks.length + " raw lines of NUL-laced text that a first connect would write back", true); }
+    const d16 = decode(utf16);
+    const n16 = d16.refused ? null : MD.parse(d16.text, opts).tasks.length;
+    report("G9 a UTF-16 file is recognised (or refused) rather than read as an empty task list", !!d16.refused || n16 === 1, d16.refused ? "refused: " + d16.refused : "decoded as UTF-8 it yields " + n16 + " tasks of NUL-laced text that a first connect would write back", true); }
   { const RealDate = Date;
     const at = (iso) => { const fixed = new RealDate(iso + "T12:00:00"); global.Date = class extends RealDate { constructor(...a) { super(...(a.length ? a : [fixed.getTime()])); } static now() { return fixed.getTime(); } }; };
     const src = "## Completed\n- [x] done but undated ^d0d0d0\n";

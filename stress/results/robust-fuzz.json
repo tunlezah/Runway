@@ -2,7 +2,7 @@
   "meta": {
     "seed": 1,
     "iters": 400,
-    "date": "2026-09-03T10:34:44.804Z"
+    "date": "2026-09-03T15:17:52.452Z"
   },
   "checks": [
     {
@@ -21,7 +21,7 @@
       "name": "A3 id-less lines change only by the appended ^id",
       "ok": false,
       "finding": true,
-      "detail": "281 files gained ids only; 72 also lost trailing whitespace on the id-less line, e.g. {\"text\":\"- [ ] café ✅ 2026-01-01 payload review [priority:: high] [due:: 2030-10-27]\\r\\n      \\r\\n    - [x] cert schedule triage 📅 2024-08-04\\r\\n        naïve kernel merge deploy\\r\\n- [ ] cert cluster ^00000n\\r\\n- [x] kernel token build [completion:: 2030-03-04] [b] 📅 2030-01-01 ^00000o\\r\\n## Open"
+      "detail": "280 files gained ids only; 72 also lost trailing whitespace on the id-less line, e.g. {\"text\":\"- [ ] café ✅ 2026-01-01 payload review [priority:: high] [due:: 2030-10-27]\\r\\n      \\r\\n    - [x] cert schedule triage 📅 2024-08-04\\r\\n        naïve kernel merge deploy\\r\\n- [ ] cert cluster ^00000n\\r\\n- [x] kernel token build [completion:: 2030-03-04] [b] 📅 2030-01-01 ^00000o\\r\\n## Open"
     },
     {
       "name": "A4 second parse→serialise cycle is idempotent",
@@ -43,75 +43,75 @@
     },
     {
       "name": "B emoji ids · plain",
-      "ok": false,
-      "finding": true,
-      "detail": "65 of 1200 tasks changed (note:40 subtasks:36); e.g. \"- [x] triage emoji😀 #BSM ⏫ ✅ 2030-10-13 ^0002pf\" → [] (was [{\"text\":\"sensor Ünïcödé\",\"done\":false,\"due\":null}])"
+      "ok": true,
+      "finding": false,
+      "detail": "1200 tasks unchanged"
     },
     {
       "name": "B emoji ids · tag-hazard",
       "ok": false,
       "finding": true,
-      "detail": "307 of 400 tasks changed (tags:304 title:184 subtasks:17 note:10); e.g. \"- [ ] merge ##lead ^0003mr\" → \"merge ##lead\" (was \"merge\")"
+      "detail": "324 of 400 tasks changed (tags:324 title:197); e.g. \"- [ ] test ##lead ^0003mr\" → \"test ##lead\" (was \"test\")"
     },
     {
       "name": "B emoji ids · token-hazard",
       "ok": false,
       "finding": true,
-      "detail": "165 of 400 tasks changed (title:147 tags:40 due:30 priority:22 subtasks:19 note:9 doneAt:6); e.g. \"- [ ] audit #tag verify schedule [constructor] #Two_Words ^0003xw\" → \"audit verify schedule\" (was \"audit #tag verify schedule [constructor]\")"
+      "detail": "400 tasks unchanged"
     },
     {
       "name": "B bracket ids · plain",
-      "ok": false,
-      "finding": true,
-      "detail": "57 of 1200 tasks changed (subtasks:40 note:29); e.g. \"- [ ] sign endpoint sign #a-b [priority:: low] ^00049s\" → [] (was [{\"text\":\"patch audit ls x\",\"done\":false,\"due\":\"2027-04-07\"}])"
+      "ok": true,
+      "finding": false,
+      "detail": "1200 tasks unchanged"
     },
     {
       "name": "B bracket ids · tag-hazard",
       "ok": false,
       "finding": true,
-      "detail": "314 of 400 tasks changed (tags:311 title:186 note:18 subtasks:6); e.g. \"- [ ] review build emoji😀 ##lead [priority:: high] [due:: 2029-09-22] ^00056c\" → \"review build emoji😀 ##lead\" (was \"review build emoji😀\")"
+      "detail": "342 of 400 tasks changed (tags:342 title:207); e.g. \"- [ ] patch build 日本語 ##lead [priority:: high] [due:: 2029-09-22] ^00056c\" → \"patch build 日本語 ##lead\" (was \"patch build 日本語\")"
     },
     {
       "name": "B bracket ids · token-hazard",
       "ok": false,
       "finding": true,
-      "detail": "170 of 400 tasks changed (title:156 tags:40 priority:30 due:21 subtasks:18 note:14 doneAt:7); e.g. \"- [ ] review ✅ 2026-01-01 naïve merge payload cluster #Highside [priority:: medium] ^0005hg\" → \"review naïve merge payload cluster\" (was \"review ✅ 2026-01-01 naïve merge payload cluster\")"
+      "detail": "400 tasks unchanged"
     },
     {
       "name": "B emoji no-ids · plain",
-      "ok": false,
-      "finding": true,
-      "detail": "58 of 1200 tasks changed (subtasks:38 note:31); e.g. \"- [ ] scan review console emoji😀 #a-b\" → [] (was [{\"text\":\"rtlעברית registry ls x\",\"done\":false,\"due\":null}])"
+      "ok": true,
+      "finding": false,
+      "detail": "1200 tasks unchanged"
     },
     {
       "name": "B emoji no-ids · tag-hazard",
       "ok": false,
       "finding": true,
-      "detail": "307 of 400 tasks changed (tags:301 title:197 subtasks:24 note:16); e.g. \"- [ ] vault sign audit payload tunnel kernel ##lead\" → \"vault sign audit payload tunnel kernel ##lead\" (was \"vault sign audit payload tunnel kernel\")"
+      "detail": "330 of 400 tasks changed (tags:330 title:217); e.g. \"- [ ] vault sign rotate sandbox tunnel endpoint ##lead\" → \"vault sign rotate sandbox tunnel endpoint ##lead\" (was \"vault sign rotate sandbox tunnel endpoint\")"
     },
     {
       "name": "B emoji no-ids · token-hazard",
       "ok": false,
       "finding": true,
-      "detail": "180 of 400 tasks changed (title:159 tags:48 priority:31 subtasks:28 due:26 note:24 doneAt:8); e.g. \"- [x] merge ⏫ [due:: 2026-01-01] sign merge <!-- c --> ⏫ 📅 2026-08-25 ✅ 2030-10-18\" → \"merge sign merge <!-- c -->\" (was \"merge ⏫ [due:: 2026-01-01] sign merge <!-- c -->\")"
+      "detail": "1 of 400 tasks changed (title:1); e.g. \"- [ ] audit invoice scan brief ^abcdef\" → \"audit invoice scan brief\" (was \"audit invoice scan brief ^abcdef\")"
     },
     {
       "name": "B bracket no-ids · plain",
-      "ok": false,
-      "finding": true,
-      "detail": "49 of 1200 tasks changed (subtasks:36 note:24); e.g. \"- [ ] build tunnel kernel deploy combininǵ [due:: 2026-12-03]\" → [] (was [{\"text\":\"brief ls x firewall\",\"done\":true,\"due\":null}])"
+      "ok": true,
+      "finding": false,
+      "detail": "1200 tasks unchanged"
     },
     {
       "name": "B bracket no-ids · tag-hazard",
       "ok": false,
       "finding": true,
-      "detail": "311 of 400 tasks changed (tags:310 title:193 subtasks:12 note:6); e.g. \"- [x] restore zwj👩‍💻 tunnel #C# [priority:: high] [due:: 2027-07-03] [completion:: 2029-08-20]\" → \"restore zwj👩‍💻 tunnel #\" (was \"restore zwj👩‍💻 tunnel\")"
+      "detail": "338 of 400 tasks changed (tags:338 title:206); e.g. \"- [x] restore emoji😀 tunnel #C# [priority:: high] [due:: 2027-07-03] [completion:: 2029-08-20]\" → \"restore emoji😀 tunnel #\" (was \"restore emoji😀 tunnel\")"
     },
     {
       "name": "B bracket no-ids · token-hazard",
       "ok": false,
       "finding": true,
-      "detail": "160 of 400 tasks changed (title:144 tags:37 priority:32 due:22 subtasks:18 note:10 doneAt:5); e.g. \"- [ ] [priority:: high] verify #Highside [priority:: low]\" → \"verify [priority:: low]\" (was \"[priority:: high] verify\")"
+      "detail": "400 tasks unchanged"
     },
     {
       "name": "C1 DateParse never throws",
@@ -145,15 +145,15 @@
     },
     {
       "name": "D2 every parsed tag is a string",
-      "ok": false,
-      "finding": true,
-      "detail": "1246 results carried a non-string tag, e.g. {\"s\":\"schedule tunnel tab\\tsep ✅ 2026-01-01 [constructor] payload\",\"tags\":[\"function\"]}"
+      "ok": true,
+      "finding": false,
+      "detail": ""
     },
     {
       "name": "D3 [word] survives in the title unless word is a configured shortcut",
       "ok": false,
       "finding": true,
-      "detail": "836 titles lost a bracket token, e.g. {\"s\":\"schedule tunnel tab\\tsep ✅ 2026-01-01 [constructor] payload\",\"title\":\"schedule tunnel tab sep ✅ 2026-01-01 payload\"}"
+      "detail": "836 titles lost a bracket token, e.g. {\"s\":\"schedule tunnel tab\\tsep ✅ 2026-01-01 [constructor] payload\",\"title\":\"schedule tunnel tab sep payload\"}"
     },
     {
       "name": "E1 Filter.parseQuery/match never throw",
@@ -165,25 +165,25 @@
       "name": "F1 Model.validate never throws on hostile records",
       "ok": true,
       "finding": false,
-      "detail": "4000 records, 2177 accepted"
+      "detail": "4000 records, 2183 accepted"
     },
     {
       "name": "F2 records validate() accepts cannot crash the renderer's date helpers",
-      "ok": false,
-      "finding": true,
-      "detail": "314 accepted records throw when rendered, e.g. {\"rec\":{\"id\":\"000000\",\"title\":\"x\",\"tags\":[],\"due\":null,\"priority\":0,\"done\":true,\"doneAt\":true,\"note\":null,\"subtasks\":[],\"createdAt\":\"Infinity\",\"constructor\":\"2026-01-01\",\"updatedAt\":\"Infinity\"},\"accepted\":{\"done\":true,\"doneAt\":true},\"err\":\"TypeError: Cannot read properties of null (reading 'getDay')\"}"
+      "ok": true,
+      "finding": false,
+      "detail": ""
     },
     {
       "name": "F3 records validate() accepts have finite ages (createdAt/updatedAt)",
-      "ok": false,
-      "finding": true,
-      "detail": "511 accepted records give NaN ages in stats, e.g. {\"createdAt\":\"Infinity\",\"updatedAt\":\"Infinity\"}"
+      "ok": true,
+      "finding": false,
+      "detail": ""
     },
     {
       "name": "G1 [constructor] in a title is not treated as a tag shortcut",
       "ok": false,
       "finding": true,
-      "detail": "got title \"Fix handling\", tags [\"function\"]"
+      "detail": "got title \"Fix handling\", tags []"
     },
     {
       "name": "G2 [__proto__] in a file line stays in the title",
@@ -193,26 +193,26 @@
     },
     {
       "name": "G3 validate() rejects or repairs an unreadable doneAt",
-      "ok": false,
-      "finding": true,
-      "detail": "validate kept doneAt=\"garbage\"; fmtLong throws TypeError (the completed list and stats render this)"
+      "ok": true,
+      "finding": false,
+      "detail": "validate kept doneAt=\"2026-09-03\""
     },
     {
       "name": "G4 a title containing a date token keeps its real due date across a save",
-      "ok": false,
-      "finding": true,
-      "detail": "due 2026-09-10 → 2026-01-01, title → \"Watch movie 📅 2026-09-10\""
+      "ok": true,
+      "finding": false,
+      "detail": "due 2026-09-10 → 2026-09-10, title → \"Watch movie\""
     },
     {
-      "name": "G5 a title containing a priority emoji keeps its priority across a save",
-      "ok": false,
-      "finding": true,
-      "detail": "priority 0 → 3, title → \"Rotate certs\""
+      "name": "G5 a title containing a priority emoji round-trips exactly as the model holds it",
+      "ok": true,
+      "finding": false,
+      "detail": "model priority 3 → 3, title \"Rotate certs\" → \"Rotate certs\""
     },
     {
       "name": "G6 a sub-task whose text contains a date token round-trips",
-      "ok": false,
-      "finding": true,
+      "ok": true,
+      "finding": false,
       "detail": "→ {\"text\":\"call bob\",\"done\":false,\"due\":\"2026-01-01\"}"
     },
     {
@@ -222,16 +222,16 @@
       "detail": "\"- [ ] See block ^k9k9k9\" → title \"See block\", id k9k9k9"
     },
     {
-      "name": "G8 a Latin-1 file is not rewritten with U+FFFD replacement characters",
-      "ok": false,
-      "finding": true,
-      "detail": "decoder yields \"- [ ] Caf� ^aaaaaa\"; a save writes 39 bytes vs 35 original"
+      "name": "G8 a Latin-1 file is refused, never rewritten with U+FFFD replacement characters",
+      "ok": true,
+      "finding": false,
+      "detail": "refused: EncodingError: it contains bytes that are not valid UTF-8 — an ANSI/Latin-1 or binary file?"
     },
     {
       "name": "G9 a UTF-16 file is recognised (or refused) rather than read as an empty task list",
-      "ok": false,
-      "finding": true,
-      "detail": "decoded as UTF-8 it yields 0 tasks and 3 raw lines of NUL-laced text that a first connect would write back"
+      "ok": true,
+      "finding": false,
+      "detail": "refused: EncodingError: it is UTF-16 encoded"
     },
     {
       "name": "G10 an unchanged completed line without a ✅ date stays byte-identical across days",
@@ -243,7 +243,7 @@
       "name": "G11 an id-less line keeps its trailing whitespace when the id is appended",
       "ok": false,
       "finding": true,
-      "detail": "wrote \"- [ ] trailing spaces ^s9h6vg\" (README: the only thing added to a hand-written line is its ^id)"
+      "detail": "wrote \"- [ ] trailing spaces ^0u67g5\" (README: the only thing added to a hand-written line is its ^id)"
     },
     {
       "name": "G15 tabs/NBSP inside a title are preserved in the model",
@@ -285,7 +285,7 @@
   "A": {
     "threw": 0,
     "byteDiff": 0,
-    "idOnlyDiff": 281,
+    "idOnlyDiff": 280,
     "wsTrim": 72,
     "blankLayout": 3,
     "notIdem": 0,
@@ -294,7 +294,7 @@
     "examples": {
       "wsTrim": {
         "text": "- [ ] café ✅ 2026-01-01 payload review [priority:: high] [due:: 2030-10-27]\r\n      \r\n    - [x] cert schedule triage 📅 2024-08-04\r\n        naïve kernel merge deploy\r\n- [ ] cert cluster ^00000n\r\n- [x] kernel token build [completion:: 2030-03-04] [b] 📅 2030-01-01 ^00000o\r\n## Open\r\n-[ ] no space\r\ntriage payload token [due:: 2026-01-01] 日本語 cert\r\n- [ ] endpoint cluster !! ✅ 2026-01-01 token 📅 2024-09-27 ^00000p\r\n        - [x] test emoji😀\r\n    - [ ] 🔽\r\n- [x]\r\n## Open \r\npayload Ünïcödé rtlעברית [constructor] audit\r\n- [x] ✅ 2028-04-02 #Highside firewall registry\r\n- [ ] combininǵ [constructor]\r\n- [ ] 📅 2024-06-14 [priority:: high] firewall ^00000q\r\n        [constructor] review scan\r\n      - [x] review backup patch registry 📅 2029-06-01\r\n\t- [x] review verify schedule 📅 2026-10-18\r\n  emoji😀 nbsp x\r\n## Open \r\n* [x] token payload [priority:: high] console ✅ 2027-03-09 📅 2024-04-10 ^00000r\r\n    - [x] audit Ünïcödé deploy\r\n  renew brief sign\r\n## Open\r\n- plain bullet\r\n- [ ] cert [d] zwj👩‍💻 📅 2024-09-04 ^00000s\r\n    triage brief Ünïcödé [priority:: high] rtlעברית emoji😀\r\n      - [x] ^k9k9k9 sign <!-- c --> registry 📅 2027-07-08\r\n      - [ ] brief 📅 2026-06-05\r\n\t- [x] emoji😀\r\n- [X] brief zwj👩‍💻 ^00000t\r\n        - [x] merge restore zwj👩‍💻\r\n- [x] deploy firewall 📅 2026-01-02 ✅ 2025-09-17 ⏫\r\n## No date\r\n- [ ] cert parser #ünï ^00000u  \r\n- [ ] sign café !!!   \r\n- [ ] ✅ 2026-01-01 cert combininǵ verify parser ^00000v  \r\n- [ ] backup vault patch build #snake_case ^00000w\r\n# Title\r\n",
-        "out": "- [ ] café ✅ 2026-01-01 payload review [priority:: high] [due:: 2030-10-27] ^c2c1my\r\n      \r\n    - [x] cert schedule triage 📅 2024-08-04\r\n        naïve kernel merge deploy\r\n- [ ] cert cluster ^00000n\r\n- [x] kernel token build [completion:: 2030-03-04] [b] 📅 2030-01-01 ^00000o\r\n## Open\r\n-[ ] no space ^2q59xs\r\ntriage payload token [due:: 2026-01-01] 日本語 cert\r\n- [ ] endpoint cluster !! ✅ 2026-01-01 token 📅 2024-09-27 ^00000p\r\n        - [x] test emoji😀\r\n    - [ ] 🔽\r\n- [x]\r\n## Open \r\npayload Ünïcödé rtlעברית [constructor] audit\r\n- [x] ✅ 2028-04-02 #Highside firewall registry ^ww42se\r\n- [ ] combininǵ [constructor] ^djwvx1\r\n- [ ] 📅 2024-06-14 [priority:: high] firewall ^00000q\r\n        [constructor] review scan\r\n      - [x] review backup patch registry 📅 2029-06-01\r\n\t- [x] review verify schedule 📅 2026-10-18\r\n  emoji😀 nbsp x\r\n## Open \r\n* [x] token payload [priority:: high] console ✅ 2027-03-09 📅 2024-04-10 ^00000r\r\n    - [x] audit Ünïcödé deploy\r\n  renew brief sign\r\n## Open\r\n- plain bullet\r\n- [ ] cert [d] zwj👩‍💻 📅 2024-09-04 ^00000s\r\n    triage brief Ünïcödé [priority:: high] rtlעברית emoji😀\r\n      - [x] ^k9k9k9 sign <!-- c --> registry 📅 2027-07-08\r\n      - [ ] brief 📅 2026-06-05\r\n\t- [x] emoji😀\r\n- [X] brief zwj👩‍💻 ^00000t\r\n        - [x] merge restore zwj👩‍💻\r\n- [x] deploy firewall 📅 2026-01-02 ✅ 2025-09-17 ⏫ ^ngc40z\r\n## No date\r\n- [ ] cert parser #ünï ^00000u  \r\n- [ ] sign café !!! ^lqhqv4\r\n- [ ] ✅ 2026-01-01 cert combininǵ verify parser ^00000v  \r\n- [ ] backup vault patch build #snake_case ^00000w\r\n# Title\r\n"
+        "out": "- [ ] café ✅ 2026-01-01 payload review [priority:: high] [due:: 2030-10-27] ^zrl7r1\r\n      \r\n    - [x] cert schedule triage 📅 2024-08-04\r\n        naïve kernel merge deploy\r\n- [ ] cert cluster ^00000n\r\n- [x] kernel token build [completion:: 2030-03-04] [b] 📅 2030-01-01 ^00000o\r\n## Open\r\n-[ ] no space ^sm33jh\r\ntriage payload token [due:: 2026-01-01] 日本語 cert\r\n- [ ] endpoint cluster !! ✅ 2026-01-01 token 📅 2024-09-27 ^00000p\r\n        - [x] test emoji😀\r\n    - [ ] 🔽\r\n- [x]\r\n## Open \r\npayload Ünïcödé rtlעברית [constructor] audit\r\n- [x] ✅ 2028-04-02 #Highside firewall registry ^to0tqn\r\n- [ ] combininǵ [constructor] ^pckp9t\r\n- [ ] 📅 2024-06-14 [priority:: high] firewall ^00000q\r\n        [constructor] review scan\r\n      - [x] review backup patch registry 📅 2029-06-01\r\n\t- [x] review verify schedule 📅 2026-10-18\r\n  emoji😀 nbsp x\r\n## Open \r\n* [x] token payload [priority:: high] console ✅ 2027-03-09 📅 2024-04-10 ^00000r\r\n    - [x] audit Ünïcödé deploy\r\n  renew brief sign\r\n## Open\r\n- plain bullet\r\n- [ ] cert [d] zwj👩‍💻 📅 2024-09-04 ^00000s\r\n    triage brief Ünïcödé [priority:: high] rtlעברית emoji😀\r\n      - [x] ^k9k9k9 sign <!-- c --> registry 📅 2027-07-08\r\n      - [ ] brief 📅 2026-06-05\r\n\t- [x] emoji😀\r\n- [X] brief zwj👩‍💻 ^00000t\r\n        - [x] merge restore zwj👩‍💻\r\n- [x] deploy firewall 📅 2026-01-02 ✅ 2025-09-17 ⏫ ^bopclh\r\n## No date\r\n- [ ] cert parser #ünï ^00000u  \r\n- [ ] sign café !!! ^f4k2i6\r\n- [ ] ✅ 2026-01-01 cert combininǵ verify parser ^00000v  \r\n- [ ] backup vault patch build #snake_case ^00000w\r\n# Title\r\n"
       }
     }
   },
@@ -302,69 +302,25 @@
     "emoji ids": {
       "plain": {
         "n": 1200,
-        "threw": 95,
-        "mismatched": 65,
-        "byField": {
-          "note": 40,
-          "subtasks": 36
-        },
-        "examples": {
-          "note": {
-            "in": "review ls x\nemoji😀 vault rotate verify",
-            "out": null,
-            "line": [
-              "- [x] triage emoji😀 #BSM ⏫ ✅ 2030-10-13 ^0002pf",
-              "    - [ ] sensor Ünïcödé"
-            ]
-          },
-          "subtasks": {
-            "in": [
-              {
-                "text": "sensor Ünïcödé",
-                "done": false,
-                "due": null
-              }
-            ],
-            "out": [],
-            "line": [
-              "- [x] triage emoji😀 #BSM ⏫ ✅ 2030-10-13 ^0002pf",
-              "    - [ ] sensor Ünïcödé"
-            ]
-          },
-          "threw": {
-            "t": {
-              "id": "0002pn",
-              "title": "café ls x zwj👩‍💻",
-              "tags": [],
-              "due": null,
-              "priority": 3,
-              "done": false,
-              "doneAt": null,
-              "note": null,
-              "subtasks": [],
-              "createdAt": "2026-08-01T00:00:00.000Z",
-              "updatedAt": "2026-08-01T00:00:00.000Z"
-            },
-            "err": "Error: no task parsed back from \"# To Do\\n<!-- Runway v1 · edit freely; the app preserves anything it does not recognise -->\\n\\n## No date\\n- [ ] café ls x zwj👩‍💻 ⏫ ^0002pn\\n\""
-          }
-        }
+        "threw": 0,
+        "mismatched": 0,
+        "byField": {},
+        "examples": {}
       },
       "tag-hazard": {
         "n": 400,
-        "threw": 27,
-        "mismatched": 307,
+        "threw": 0,
+        "mismatched": 324,
         "byField": {
-          "title": 184,
-          "tags": 304,
-          "subtasks": 17,
-          "note": 10
+          "title": 197,
+          "tags": 324
         },
         "examples": {
           "title": {
-            "in": "merge",
-            "out": "merge ##lead",
+            "in": "test",
+            "out": "test ##lead",
             "line": [
-              "- [ ] merge ##lead ^0003mr"
+              "- [ ] test ##lead ^0003mr"
             ]
           },
           "tags": {
@@ -373,150 +329,38 @@
             ],
             "out": [],
             "line": [
-              "- [ ] merge ##lead ^0003mr"
-            ]
-          },
-          "threw": {
-            "t": {
-              "id": "0003ms",
-              "title": "invoice ls x console",
-              "tags": [
-                "a__b"
-              ],
-              "due": null,
-              "priority": 0,
-              "done": false,
-              "doneAt": null,
-              "note": null,
-              "subtasks": [],
-              "createdAt": "2026-08-01T00:00:00.000Z",
-              "updatedAt": "2026-08-01T00:00:00.000Z"
-            },
-            "err": "Error: no task parsed back from \"# To Do\\n<!-- Runway v1 · edit freely; the app preserves anything it does not recognise -->\\n\\n## No date\\n- [ ] invoice ls x console #a__b ^0003ms\\n\""
-          },
-          "subtasks": {
-            "in": [
-              {
-                "text": "test ls x patch",
-                "done": true,
-                "due": null
-              }
-            ],
-            "out": [],
-            "line": [
-              "- [ ] restore merge firewall kernel build #1st ⏫ 📅 2028-09-13 ^0003na",
-              "    - [x] test ls x patch"
-            ]
-          },
-          "note": {
-            "in": "parser\ncluster parser triage ls x",
-            "out": "parser",
-            "line": [
-              "- [x] console sandbox ##lead ⏫ 📅 2024-07-10 ✅ 2026-11-12 ^0003nb"
+              "- [ ] test ##lead ^0003mr"
             ]
           }
         }
       },
       "token-hazard": {
         "n": 400,
-        "threw": 38,
-        "mismatched": 165,
-        "byField": {
-          "title": 147,
-          "tags": 40,
-          "due": 30,
-          "priority": 22,
-          "doneAt": 6,
-          "subtasks": 19,
-          "note": 9
-        },
+        "threw": 12,
+        "mismatched": 0,
+        "byField": {},
         "examples": {
-          "title": {
-            "in": "audit #tag verify schedule [constructor]",
-            "out": "audit verify schedule",
-            "line": [
-              "- [ ] audit #tag verify schedule [constructor] #Two_Words ^0003xw"
-            ]
-          },
-          "tags": {
-            "in": [
-              "Two Words"
-            ],
-            "out": [
-              "tag",
-              "Two Words"
-            ],
-            "line": [
-              "- [ ] audit #tag verify schedule [constructor] #Two_Words ^0003xw"
-            ]
-          },
-          "due": {
-            "in": null,
-            "out": "2026-01-01",
-            "line": [
-              "- [ ] vault café scan [due:: 2026-01-01] combininǵ #BSM ^0003xx"
-            ]
-          },
-          "priority": {
-            "in": 1,
-            "out": 3,
-            "line": [
-              "- [ ] token 日本語 patch !!! ⏫ 🔽 📅 2029-02-05 ^0003xz"
-            ]
-          },
-          "doneAt": {
-            "in": "2026-03-20",
-            "out": "2026-01-01",
-            "line": [
-              "- [x] merge vault [completion:: 2026-01-01] [completion:: 2026-01-01] backup 🔽 ✅ 2026-03-20 ^0003y6",
-              "    - [x] console schedule firewall 📅 2026-01-16"
-            ]
-          },
-          "subtasks": {
-            "in": [
-              {
-                "text": "sandbox 📅 2026-01-01 rtlעברית",
-                "done": false,
-                "due": null
-              }
-            ],
-            "out": [
-              {
-                "text": "sandbox rtlעברית",
-                "done": false,
-                "due": "2026-01-01"
-              }
-            ],
-            "line": [
-              "- [ ] verify triage ⏫ 📅 2026-10-01 ^0003yc",
-              "    - [ ] sandbox 📅 2026-01-01 rtlעברית"
-            ]
-          },
-          "note": {
-            "in": "[constructor] ls x scan",
-            "out": null,
-            "line": [
-              "- [x] 📅 2026-02-30 🔽 📅 2030-01-16 ✅ 2025-11-22 ^0003yd",
-              "    - [ ] zwj👩‍💻 [due:: 2026-01-01] combininǵ"
-            ]
-          },
           "threw": {
             "t": {
-              "id": "0003yj",
-              "title": "[priority:: high]",
-              "tags": [
-                "Two Words"
+              "id": "0003yd",
+              "title": "📅 2026-02-30",
+              "tags": [],
+              "due": "2030-01-16",
+              "priority": 1,
+              "done": true,
+              "doneAt": "2025-11-22",
+              "note": "[d] combininǵ scan",
+              "subtasks": [
+                {
+                  "text": "emoji😀 rtlעברית",
+                  "done": false,
+                  "due": "2026-01-01"
+                }
               ],
-              "due": null,
-              "priority": 0,
-              "done": false,
-              "doneAt": null,
-              "note": "brief schedule tunnel payload\nfirewall - [ ] inner console",
-              "subtasks": [],
               "createdAt": "2026-08-01T00:00:00.000Z",
               "updatedAt": "2026-08-01T00:00:00.000Z"
             },
-            "err": "Error: no task parsed back from \"# To Do\\n<!-- Runway v1 · edit freely; the app preserves anything it does not recognise -->\\n\\n## No date\\n- [ ] [priority:: high] #Two_Words ^0003yj\\n    brief schedule tunnel payload\\n    firewall - [ ] inner console\\n\""
+            "err": "Error: no task parsed back from \"# To Do\\n<!-- Runway v1 · edit freely; the app preserves anything it does not recognise -->\\n\\n## Completed\\n- [x] 📅 2026-02-30 🔽 📅 2030-01-16 ✅ 2025-11-22 ^0003yd\\n    [d] combininǵ scan\\n    - [ ] emoji😀 rtlעברית 📅 2026-01-01\\n\""
           }
         }
       }
@@ -524,63 +368,18 @@
     "bracket ids": {
       "plain": {
         "n": 1200,
-        "threw": 100,
-        "mismatched": 57,
-        "byField": {
-          "subtasks": 40,
-          "note": 29
-        },
-        "examples": {
-          "threw": {
-            "t": {
-              "id": "000499",
-              "title": "cert combininǵ restore ls x",
-              "tags": [
-                "Highside"
-              ],
-              "due": null,
-              "priority": 3,
-              "done": false,
-              "doneAt": null,
-              "note": null,
-              "subtasks": [],
-              "createdAt": "2026-08-01T00:00:00.000Z",
-              "updatedAt": "2026-08-01T00:00:00.000Z"
-            },
-            "err": "Error: no task parsed back from \"# To Do\\n<!-- Runway v1 · edit freely; the app preserves anything it does not recognise -->\\n\\n## No date\\n- [ ] cert combininǵ restore ls x #Highside [priority:: high] ^000499\\n\""
-          },
-          "subtasks": {
-            "in": [
-              {
-                "text": "patch audit ls x",
-                "done": false,
-                "due": "2027-04-07"
-              }
-            ],
-            "out": [],
-            "line": [
-              "- [ ] sign endpoint sign #a-b [priority:: low] ^00049s",
-              "    - [ ] patch audit ls x [due:: 2027-04-07]"
-            ]
-          },
-          "note": {
-            "in": "ls x rotate",
-            "out": null,
-            "line": [
-              "- [ ] naïve schedule #BSM [priority:: medium] [due:: 2025-07-20] ^0004b5"
-            ]
-          }
-        }
+        "threw": 0,
+        "mismatched": 0,
+        "byField": {},
+        "examples": {}
       },
       "tag-hazard": {
         "n": 400,
-        "threw": 36,
-        "mismatched": 314,
+        "threw": 0,
+        "mismatched": 342,
         "byField": {
-          "tags": 311,
-          "title": 186,
-          "subtasks": 6,
-          "note": 18
+          "tags": 342,
+          "title": 207
         },
         "examples": {
           "tags": {
@@ -591,76 +390,23 @@
               "snake case"
             ],
             "line": [
-              "- [ ] café restore patch cluster triage rtlעברית #snake_case [priority:: low] [due:: 2029-02-19] ^00056b"
+              "- [ ] vault restore patch cluster triage zwj👩‍💻 #snake_case [priority:: low] [due:: 2029-02-19] ^00056b"
             ]
           },
           "title": {
-            "in": "review build emoji😀",
-            "out": "review build emoji😀 ##lead",
+            "in": "patch build 日本語",
+            "out": "patch build 日本語 ##lead",
             "line": [
-              "- [ ] review build emoji😀 ##lead [priority:: high] [due:: 2029-09-22] ^00056c"
-            ]
-          },
-          "threw": {
-            "t": {
-              "id": "00056j",
-              "title": "ls x",
-              "tags": [
-                "trail#"
-              ],
-              "due": null,
-              "priority": 0,
-              "done": false,
-              "doneAt": null,
-              "note": null,
-              "subtasks": [
-                {
-                  "text": "token",
-                  "done": false,
-                  "due": "2028-12-19"
-                }
-              ],
-              "createdAt": "2026-08-01T00:00:00.000Z",
-              "updatedAt": "2026-08-01T00:00:00.000Z"
-            },
-            "err": "Error: no task parsed back from \"# To Do\\n<!-- Runway v1 · edit freely; the app preserves anything it does not recognise -->\\n\\n## No date\\n- [ ] ls x #trail# ^00056j\\n    - [ ] token [due:: 2028-12-19]\\n\""
-          },
-          "subtasks": {
-            "in": [
-              {
-                "text": "ls x café triage sign",
-                "done": true,
-                "due": null
-              }
-            ],
-            "out": [],
-            "line": [
-              "- [x] sandbox zwj👩‍💻 verify invoice brief 日本語 #snake_case [priority:: high] [due:: 2026-07-04] [completion:: 2025-03-03] ^000571",
-              "    - [x] ls x café triage sign"
-            ]
-          },
-          "note": {
-            "in": "ls x restore\nrenew firewall scan Ünïcödé",
-            "out": null,
-            "line": [
-              "- [ ] merge build #C# [priority:: low] [due:: 2024-10-26] ^00057b"
+              "- [ ] patch build 日本語 ##lead [priority:: high] [due:: 2029-09-22] ^00056c"
             ]
           }
         }
       },
       "token-hazard": {
         "n": 400,
-        "threw": 39,
-        "mismatched": 170,
-        "byField": {
-          "title": 156,
-          "note": 14,
-          "subtasks": 18,
-          "tags": 40,
-          "priority": 30,
-          "doneAt": 7,
-          "due": 21
-        },
+        "threw": 14,
+        "mismatched": 0,
+        "byField": {},
         "examples": {
           "threw": {
             "t": {
@@ -676,7 +422,7 @@
               "note": null,
               "subtasks": [
                 {
-                  "text": "[__proto__] zwj👩‍💻 registry naïve",
+                  "text": "[__proto__] emoji😀 registry café",
                   "done": false,
                   "due": null
                 }
@@ -684,65 +430,7 @@
               "createdAt": "2026-08-01T00:00:00.000Z",
               "updatedAt": "2026-08-01T00:00:00.000Z"
             },
-            "err": "Error: no task parsed back from \"# To Do\\n<!-- Runway v1 · edit freely; the app preserves anything it does not recognise -->\\n\\n## No date\\n- [ ] [completion:: 2026-01-01] #Highside [priority:: medium] ^0005hf\\n    - [ ] [__proto__] zwj👩‍💻 registry naïve\\n\""
-          },
-          "title": {
-            "in": "review ✅ 2026-01-01 naïve merge payload cluster",
-            "out": "review naïve merge payload cluster",
-            "line": [
-              "- [ ] review ✅ 2026-01-01 naïve merge payload cluster #Highside [priority:: medium] ^0005hg"
-            ]
-          },
-          "note": {
-            "in": "review #Two_Words review\nls x schedule",
-            "out": "review #Two_Words review",
-            "line": [
-              "- [ ] review ✅ 2026-01-01 naïve merge payload cluster #Highside [priority:: medium] ^0005hg"
-            ]
-          },
-          "subtasks": {
-            "in": [
-              {
-                "text": "ls x firewall console",
-                "done": false,
-                "due": null
-              }
-            ],
-            "out": [],
-            "line": [
-              "- [ ] !!! cluster renew #ünï [priority:: low] [due:: 2025-08-12] ^0005hj",
-              "    - [ ] ls x firewall console"
-            ]
-          },
-          "tags": {
-            "in": [],
-            "out": [
-              "Two Words"
-            ],
-            "line": [
-              "- [ ] scan triage !!! 日本語 #Two_Words [due:: 2025-08-28] ^0005hm"
-            ]
-          },
-          "priority": {
-            "in": 0,
-            "out": 1,
-            "line": [
-              "- [ ] 📅 2026-02-30 🔽 renew scan #a-b [due:: 2030-01-22] ^0005hn"
-            ]
-          },
-          "doneAt": {
-            "in": "2030-09-23",
-            "out": "2026-01-01",
-            "line": [
-              "- [x] [completion:: 2026-01-01] sandbox #Two_Words 📅 2026-02-30 #Two_Words deploy [priority:: low] [completion:: 2030-09-23] ^0005id"
-            ]
-          },
-          "due": {
-            "in": "2028-05-15",
-            "out": "2026-01-01",
-            "line": [
-              "- [x] token [due:: 2026-01-01] endpoint deploy #tag #Two_Words #Two_Words [priority:: high] [due:: 2028-05-15] [completion:: 2028-07-23] ^0005ih"
-            ]
+            "err": "Error: no task parsed back from \"# To Do\\n<!-- Runway v1 · edit freely; the app preserves anything it does not recognise -->\\n\\n## No date\\n- [ ] [completion:: 2026-01-01] #Highside [priority:: medium] ^0005hf\\n    - [ ] [__proto__] emoji😀 registry café\\n\""
           }
         }
       }
@@ -750,76 +438,25 @@
     "emoji no-ids": {
       "plain": {
         "n": 1200,
-        "threw": 97,
-        "mismatched": 58,
-        "byField": {
-          "note": 31,
-          "subtasks": 38
-        },
-        "examples": {
-          "note": {
-            "in": "ls x deploy registry",
-            "out": null,
-            "line": [
-              "- [ ] sandbox token scan firewall #x 🔽"
-            ]
-          },
-          "threw": {
-            "t": {
-              "id": "0005tn",
-              "title": "ls x triage vault",
-              "tags": [
-                "a-b"
-              ],
-              "due": "2024-11-17",
-              "priority": 2,
-              "done": false,
-              "doneAt": null,
-              "note": "rtlעברית",
-              "subtasks": [
-                {
-                  "text": "parser sandbox",
-                  "done": true,
-                  "due": "2028-12-11"
-                }
-              ],
-              "createdAt": "2026-08-01T00:00:00.000Z",
-              "updatedAt": "2026-08-01T00:00:00.000Z"
-            },
-            "err": "Error: no task parsed back from \"# To Do\\n<!-- Runway v1 · edit freely; the app preserves anything it does not recognise -->\\n\\n## Open\\n- [ ] ls x triage vault #a-b 🔼 📅 2024-11-17\\n    rtlעברית\\n    - [x] parser sandbox 📅 2028-12-11\\n\""
-          },
-          "subtasks": {
-            "in": [
-              {
-                "text": "rtlעברית registry ls x",
-                "done": false,
-                "due": null
-              }
-            ],
-            "out": [],
-            "line": [
-              "- [ ] scan review console emoji😀 #a-b",
-              "    - [ ] rtlעברית registry ls x"
-            ]
-          }
-        }
+        "threw": 0,
+        "mismatched": 0,
+        "byField": {},
+        "examples": {}
       },
       "tag-hazard": {
         "n": 400,
-        "threw": 34,
-        "mismatched": 307,
+        "threw": 0,
+        "mismatched": 330,
         "byField": {
-          "title": 197,
-          "tags": 301,
-          "note": 16,
-          "subtasks": 24
+          "title": 217,
+          "tags": 330
         },
         "examples": {
           "title": {
-            "in": "vault sign audit payload tunnel kernel",
-            "out": "vault sign audit payload tunnel kernel ##lead",
+            "in": "vault sign rotate sandbox tunnel endpoint",
+            "out": "vault sign rotate sandbox tunnel endpoint ##lead",
             "line": [
-              "- [ ] vault sign audit payload tunnel kernel ##lead"
+              "- [ ] vault sign rotate sandbox tunnel endpoint ##lead"
             ]
           },
           "tags": {
@@ -828,18 +465,26 @@
             ],
             "out": [],
             "line": [
-              "- [ ] vault sign audit payload tunnel kernel ##lead"
+              "- [ ] vault sign rotate sandbox tunnel endpoint ##lead"
             ]
-          },
+          }
+        }
+      },
+      "token-hazard": {
+        "n": 400,
+        "threw": 9,
+        "mismatched": 1,
+        "byField": {
+          "title": 1
+        },
+        "examples": {
           "threw": {
             "t": {
-              "id": "0006q5",
-              "title": "endpoint endpoint ls x brief",
-              "tags": [
-                "#lead"
-              ],
-              "due": null,
-              "priority": 0,
+              "id": "00071a",
+              "title": "[completion:: 2026-01-01]",
+              "tags": [],
+              "due": "2024-12-17",
+              "priority": 3,
               "done": false,
               "doneAt": null,
               "note": null,
@@ -847,133 +492,13 @@
               "createdAt": "2026-08-01T00:00:00.000Z",
               "updatedAt": "2026-08-01T00:00:00.000Z"
             },
-            "err": "Error: no task parsed back from \"# To Do\\n<!-- Runway v1 · edit freely; the app preserves anything it does not recognise -->\\n\\n## No date\\n- [ ] endpoint endpoint ls x brief ##lead\\n\""
+            "err": "Error: no task parsed back from \"# To Do\\n<!-- Runway v1 · edit freely; the app preserves anything it does not recognise -->\\n\\n## Open\\n- [ ] [completion:: 2026-01-01] ⏫ 📅 2024-12-17\\n\""
           },
-          "note": {
-            "in": "scan build registry\nls x",
-            "out": "scan build registry",
-            "line": [
-              "- [x] patch brief Ünïcödé #trail# ⏫ ✅ 2028-10-27"
-            ]
-          },
-          "subtasks": {
-            "in": [
-              {
-                "text": "ls x verify rotate",
-                "done": true,
-                "due": null
-              }
-            ],
-            "out": [],
-            "line": [
-              "- [ ] audit kernel ##lead 🔽 📅 2028-12-21",
-              "    - [x] ls x verify rotate"
-            ]
-          }
-        }
-      },
-      "token-hazard": {
-        "n": 400,
-        "threw": 35,
-        "mismatched": 180,
-        "byField": {
-          "title": 159,
-          "due": 26,
-          "subtasks": 28,
-          "tags": 48,
-          "note": 24,
-          "priority": 31,
-          "doneAt": 8
-        },
-        "examples": {
           "title": {
-            "in": "merge ⏫ [due:: 2026-01-01] sign merge <!-- c -->",
-            "out": "merge sign merge <!-- c -->",
+            "in": "audit invoice scan brief ^abcdef",
+            "out": "audit invoice scan brief",
             "line": [
-              "- [x] merge ⏫ [due:: 2026-01-01] sign merge <!-- c --> ⏫ 📅 2026-08-25 ✅ 2030-10-18",
-              "    - [x] console !!! [due:: 2026-01-01]"
-            ]
-          },
-          "due": {
-            "in": "2026-08-25",
-            "out": "2026-01-01",
-            "line": [
-              "- [x] merge ⏫ [due:: 2026-01-01] sign merge <!-- c --> ⏫ 📅 2026-08-25 ✅ 2030-10-18",
-              "    - [x] console !!! [due:: 2026-01-01]"
-            ]
-          },
-          "subtasks": {
-            "in": [
-              {
-                "text": "console !!! [due:: 2026-01-01]",
-                "done": true,
-                "due": null
-              }
-            ],
-            "out": [
-              {
-                "text": "console !!!",
-                "done": true,
-                "due": "2026-01-01"
-              }
-            ],
-            "line": [
-              "- [x] merge ⏫ [due:: 2026-01-01] sign merge <!-- c --> ⏫ 📅 2026-08-25 ✅ 2030-10-18",
-              "    - [x] console !!! [due:: 2026-01-01]"
-            ]
-          },
-          "threw": {
-            "t": {
-              "id": "000711",
-              "title": "backup cert ls x",
-              "tags": [
-                "BSM"
-              ],
-              "due": "2025-11-16",
-              "priority": 1,
-              "done": false,
-              "doneAt": null,
-              "note": null,
-              "subtasks": [
-                {
-                  "text": "cluster merge 🔽 scan",
-                  "done": true,
-                  "due": null
-                }
-              ],
-              "createdAt": "2026-08-01T00:00:00.000Z",
-              "updatedAt": "2026-08-01T00:00:00.000Z"
-            },
-            "err": "Error: no task parsed back from \"# To Do\\n<!-- Runway v1 · edit freely; the app preserves anything it does not recognise -->\\n\\n## Open\\n- [ ] backup cert ls x #BSM 🔽 📅 2025-11-16\\n    - [x] cluster merge 🔽 scan\\n\""
-          },
-          "tags": {
-            "in": [],
-            "out": [
-              "Two Words"
-            ],
-            "line": [
-              "- [ ] invoice #Two_Words 📅 2025-09-01"
-            ]
-          },
-          "note": {
-            "in": "deploy ls x patch restore 🔼\n🔽 rtlעברית 🔽 rotate",
-            "out": null,
-            "line": [
-              "- [ ] 📅 2026-01-01 日本語 kernel #BSM 🔽 📅 2026-05-22"
-            ]
-          },
-          "priority": {
-            "in": 1,
-            "out": 3,
-            "line": [
-              "- [ ] renew invoice vault ⏫ 🔽"
-            ]
-          },
-          "doneAt": {
-            "in": "2026-06-15",
-            "out": "2026-01-01",
-            "line": [
-              "- [x] [completion:: 2026-01-01] kernel console sandbox 🔽 ✅ 2026-06-15"
+              "- [ ] audit invoice scan brief ^abcdef"
             ]
           }
         }
@@ -982,71 +507,25 @@
     "bracket no-ids": {
       "plain": {
         "n": 1200,
-        "threw": 102,
-        "mismatched": 49,
-        "byField": {
-          "subtasks": 36,
-          "note": 24
-        },
-        "examples": {
-          "threw": {
-            "t": {
-              "id": "0007cg",
-              "title": "build sandbox ls x",
-              "tags": [
-                "ünï"
-              ],
-              "due": "2025-07-14",
-              "priority": 2,
-              "done": false,
-              "doneAt": null,
-              "note": "patch rotate",
-              "subtasks": [],
-              "createdAt": "2026-08-01T00:00:00.000Z",
-              "updatedAt": "2026-08-01T00:00:00.000Z"
-            },
-            "err": "Error: no task parsed back from \"# To Do\\n<!-- Runway v1 · edit freely; the app preserves anything it does not recognise -->\\n\\n## Open\\n- [ ] build sandbox ls x #ünï [priority:: medium] [due:: 2025-07-14]\\n    patch rotate\\n\""
-          },
-          "subtasks": {
-            "in": [
-              {
-                "text": "brief ls x firewall",
-                "done": true,
-                "due": null
-              }
-            ],
-            "out": [],
-            "line": [
-              "- [ ] build tunnel kernel deploy combininǵ [due:: 2026-12-03]",
-              "    - [x] brief ls x firewall"
-            ]
-          },
-          "note": {
-            "in": "payload ls x",
-            "out": null,
-            "line": [
-              "- [ ] build [due:: 2024-05-27]",
-              "    - [x] merge"
-            ]
-          }
-        }
+        "threw": 0,
+        "mismatched": 0,
+        "byField": {},
+        "examples": {}
       },
       "tag-hazard": {
         "n": 400,
-        "threw": 36,
-        "mismatched": 311,
+        "threw": 0,
+        "mismatched": 338,
         "byField": {
-          "title": 193,
-          "tags": 310,
-          "subtasks": 12,
-          "note": 6
+          "title": 206,
+          "tags": 338
         },
         "examples": {
           "title": {
-            "in": "restore zwj👩‍💻 tunnel",
-            "out": "restore zwj👩‍💻 tunnel #",
+            "in": "restore emoji😀 tunnel",
+            "out": "restore emoji😀 tunnel #",
             "line": [
-              "- [x] restore zwj👩‍💻 tunnel #C# [priority:: high] [due:: 2027-07-03] [completion:: 2029-08-20]"
+              "- [x] restore emoji😀 tunnel #C# [priority:: high] [due:: 2027-07-03] [completion:: 2029-08-20]"
             ]
           },
           "tags": {
@@ -1057,69 +536,16 @@
               "C"
             ],
             "line": [
-              "- [x] restore zwj👩‍💻 tunnel #C# [priority:: high] [due:: 2027-07-03] [completion:: 2029-08-20]"
-            ]
-          },
-          "threw": {
-            "t": {
-              "id": "00089l",
-              "title": "ls x sandbox",
-              "tags": [
-                "1st"
-              ],
-              "due": "2029-08-04",
-              "priority": 1,
-              "done": false,
-              "doneAt": null,
-              "note": null,
-              "subtasks": [
-                {
-                  "text": "emoji😀 日本語",
-                  "done": true,
-                  "due": null
-                }
-              ],
-              "createdAt": "2026-08-01T00:00:00.000Z",
-              "updatedAt": "2026-08-01T00:00:00.000Z"
-            },
-            "err": "Error: no task parsed back from \"# To Do\\n<!-- Runway v1 · edit freely; the app preserves anything it does not recognise -->\\n\\n## Open\\n- [ ] ls x sandbox #1st [priority:: low] [due:: 2029-08-04]\\n    - [x] emoji😀 日本語\\n\""
-          },
-          "subtasks": {
-            "in": [
-              {
-                "text": "ls x",
-                "done": true,
-                "due": null
-              }
-            ],
-            "out": [],
-            "line": [
-              "- [x] schedule #snake_case [priority:: high] [due:: 2025-06-12] [completion:: 2030-06-03]",
-              "    - [x] ls x"
-            ]
-          },
-          "note": {
-            "in": "tunnel\n日本語 ls x",
-            "out": "tunnel",
-            "line": [
-              "- [ ] audit #C# [due:: 2029-01-01]"
+              "- [x] restore emoji😀 tunnel #C# [priority:: high] [due:: 2027-07-03] [completion:: 2029-08-20]"
             ]
           }
         }
       },
       "token-hazard": {
         "n": 400,
-        "threw": 42,
-        "mismatched": 160,
-        "byField": {
-          "title": 144,
-          "priority": 32,
-          "subtasks": 18,
-          "tags": 37,
-          "due": 22,
-          "note": 10,
-          "doneAt": 5
-        },
+        "threw": 15,
+        "mismatched": 0,
+        "byField": {},
         "examples": {
           "threw": {
             "t": {
@@ -1135,7 +561,7 @@
               "note": null,
               "subtasks": [
                 {
-                  "text": "[__proto__] [priority:: high] naïve Ünïcödé",
+                  "text": "[__proto__] [priority:: high] café naïve",
                   "done": true,
                   "due": null
                 }
@@ -1143,73 +569,7 @@
               "createdAt": "2026-08-01T00:00:00.000Z",
               "updatedAt": "2026-08-01T00:00:00.000Z"
             },
-            "err": "Error: no task parsed back from \"# To Do\\n<!-- Runway v1 · edit freely; the app preserves anything it does not recognise -->\\n\\n## Open\\n- [ ] [completion:: 2026-01-01] #Two_Words [priority:: low] [due:: 2027-02-18]\\n    - [x] [__proto__] [priority:: high] naïve Ünïcödé\\n\""
-          },
-          "title": {
-            "in": "[priority:: high] verify",
-            "out": "verify [priority:: low]",
-            "line": [
-              "- [ ] [priority:: high] verify #Highside [priority:: low]"
-            ]
-          },
-          "priority": {
-            "in": 1,
-            "out": 3,
-            "line": [
-              "- [ ] [priority:: high] verify #Highside [priority:: low]"
-            ]
-          },
-          "subtasks": {
-            "in": [
-              {
-                "text": "café scan 📅 2026-01-01",
-                "done": true,
-                "due": "2026-06-26"
-              }
-            ],
-            "out": [
-              {
-                "text": "café scan [due:: 2026-06-26]",
-                "done": true,
-                "due": "2026-01-01"
-              }
-            ],
-            "line": [
-              "- [ ] triage registry test café 📅 2026-01-01 [priority:: high] [due:: 2030-09-22]",
-              "    - [x] café scan 📅 2026-01-01 [due:: 2026-06-26]"
-            ]
-          },
-          "tags": {
-            "in": [],
-            "out": [
-              "DPN"
-            ],
-            "line": [
-              "- [x] endpoint cluster scan [d] !!! [priority:: high] [due:: 2024-12-26] [completion:: 2026-08-11]"
-            ]
-          },
-          "due": {
-            "in": "2026-12-28",
-            "out": "2026-01-01",
-            "line": [
-              "- [ ] schedule deploy [due:: 2026-01-01] 🔽 firewall #DPN [priority:: low] [due:: 2026-12-28]"
-            ]
-          },
-          "note": {
-            "in": "schedule vault zwj👩‍💻 payload\nzwj👩‍💻 ls x !!! ^k9k9k9",
-            "out": "schedule vault zwj👩‍💻 payload",
-            "line": [
-              "- [ ] vault registry #ünï [priority:: low] [due:: 2024-02-03]",
-              "    - [x] sign"
-            ]
-          },
-          "doneAt": {
-            "in": "2027-01-13",
-            "out": "2026-01-01",
-            "line": [
-              "- [x] console naïve [completion:: 2026-01-01] café build #BSM [priority:: medium] [completion:: 2027-01-13]",
-              "    - [x] patch #tag"
-            ]
+            "err": "Error: no task parsed back from \"# To Do\\n<!-- Runway v1 · edit freely; the app preserves anything it does not recognise -->\\n\\n## Open\\n- [ ] [completion:: 2026-01-01] #Two_Words [priority:: low] [due:: 2027-02-18]\\n    - [x] [__proto__] [priority:: high] café naïve\\n\""
           }
         }
       }
@@ -1233,18 +593,12 @@
   },
   "D": {
     "threw": 0,
-    "nonString": 1246,
+    "nonString": 0,
     "lostBracket": 836,
     "ex": {
-      "nonString": {
-        "s": "schedule tunnel tab\tsep ✅ 2026-01-01 [constructor] payload",
-        "tags": [
-          "function"
-        ]
-      },
       "lostBracket": {
         "s": "schedule tunnel tab\tsep ✅ 2026-01-01 [constructor] payload",
-        "title": "schedule tunnel tab sep ✅ 2026-01-01 payload"
+        "title": "schedule tunnel tab sep payload"
       }
     }
   },
@@ -1254,35 +608,9 @@
   },
   "F": {
     "threw": 0,
-    "accepted": 2177,
-    "renderCrash": 314,
-    "nanAge": 511,
-    "ex": {
-      "renderCrash": {
-        "rec": {
-          "id": "000000",
-          "title": "x",
-          "tags": [],
-          "due": null,
-          "priority": 0,
-          "done": true,
-          "doneAt": true,
-          "note": null,
-          "subtasks": [],
-          "createdAt": "Infinity",
-          "constructor": "2026-01-01",
-          "updatedAt": "Infinity"
-        },
-        "accepted": {
-          "done": true,
-          "doneAt": true
-        },
-        "err": "TypeError: Cannot read properties of null (reading 'getDay')"
-      },
-      "nanAge": {
-        "createdAt": "Infinity",
-        "updatedAt": "Infinity"
-      }
-    }
+    "accepted": 2183,
+    "renderCrash": 0,
+    "nanAge": 0,
+    "ex": {}
   }
 }

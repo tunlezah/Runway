@@ -1,68 +1,68 @@
 {
   "meta": {
-    "date": "2026-09-03T10:34:10.184Z",
+    "date": "2026-09-03T15:16:52.893Z",
     "chromium": "141.0.7390.37"
   },
   "checks": [
     {
-      "name": "S1a the record is quarantined at load like other invalid records",
-      "ok": false,
-      "finding": true,
-      "detail": "no quarantine banner; the record was accepted (only `due` is validated, `doneAt` is not)"
+      "name": "S1a the record is quarantined or repaired at load",
+      "ok": true,
+      "finding": false,
+      "detail": "repaired: the completed list shows it with a valid date"
     },
     {
       "name": "S1b showing completed tasks keeps the app alive",
-      "ok": false,
-      "finding": true,
-      "detail": "open rows before/after: 1/1, completed rows: 0; pageerror: Cannot read properties of null (reading 'getDay')"
+      "ok": true,
+      "finding": false,
+      "detail": "open rows before/after: 1/1, completed rows: 1"
     },
     {
       "name": "S1c the stats panel opens",
-      "ok": false,
-      "finding": true,
-      "detail": "pageerror: Cannot read properties of null (reading 'getDay')"
+      "ok": true,
+      "finding": false,
+      "detail": ""
     },
     {
       "name": "S1d searching is:done lists completed tasks",
-      "ok": false,
-      "finding": true,
-      "detail": "rows 0; pageerror: Cannot read properties of null (reading 'getDate')"
+      "ok": true,
+      "finding": false,
+      "detail": "rows 1"
     },
     {
       "name": "S1e the list keeps working while the completed view is open",
-      "ok": false,
-      "finding": true,
-      "detail": "new task rendered: true (stored in IndexedDB: true), open rows shown: 2; pageerror: Cannot read properties of null (reading 'getDay') — no error banner, no recovery path short of a reload"
+      "ok": true,
+      "finding": false,
+      "detail": "new task rendered: true (stored in IndexedDB: true), open rows shown: 2"
     },
     {
-      "name": "S2 no focus event in the second tab: tab B is told what actually happened (another Runway tab wrote the file)",
-      "ok": false,
-      "finding": true,
-      "detail": "banner reads: \"todo.md changed outside this app while you had unsaved changes. Choose which version to keep — nothing is merged automatically.\""
+      "name": "S2 second tab acts before any focus event: if a conflict is raised it offers Keep both (no forced data loss)",
+      "ok": true,
+      "finding": false,
+      "detail": "banner reads: \"todo.md changed on disk while you had unsaved changes — another program or a sync client wrote it. Keep both takes the file's version of the tasks it has and adds this app's other tasks; the two other choices each drop one side.\"; Keep both offered: true"
     },
     {
-      "name": "S2 no focus event in the second tab: choosing \"Keep my version\" in tab B keeps tab A's task",
-      "ok": false,
-      "finding": true,
-      "detail": "tab A's task is gone from the file; after tab A regains focus it is gone from tab A and from IndexedDB too — loss through in-app actions only"
+      "name": "S2 second tab acts before any focus event: choosing \"Keep my version\" in tab B keeps tab A's task",
+      "ok": true,
+      "finding": false,
+      "detail": "kept"
     },
     {
       "name": "S2 second tab regains focus first: tab B picks up tab A's task",
       "ok": true,
       "finding": false,
-      "detail": "B shows [\"Base task\",\"Added in tab A\"]; banner: [\"todo.md changed on disk and was reloaded.\"]"
-    },
-    {
-      "name": "S2 reload from disk instead: the banner offers a way to keep both tabs' work",
-      "ok": false,
-      "finding": true,
-      "detail": "after reload B shows [\"Base task\",\"Added in tab A\"]; 'Base task' done in IndexedDB: false — 'Keep my version' loses tab A's task, 'Reload from disk' loses tab B's completion; the 'Keep both' merge that the first-connect banner has is not offered here"
+      "detail": "B shows [\"Base task\",\"Added in tab A\"]; banners: []"
     },
     {
       "name": "S3 a composing Enter does not add the task",
-      "ok": false,
-      "finding": true,
-      "detail": "task added and the entry box cleared (value now \"\") while the IME was still composing"
+      "ok": true,
+      "finding": false,
+      "detail": "ignored; the box still holds the composition"
+    },
+    {
+      "name": "S3b a real Enter afterwards adds it",
+      "ok": true,
+      "finding": false,
+      "detail": "[\"日本語のタスク\"]"
     },
     {
       "name": "S4 Space activates the focused button (snooze menu) rather than completing the task",
@@ -77,16 +77,22 @@
       "detail": "2 tasks titled \"Pressed twice\""
     },
     {
-      "name": "S6a the app warns before writing a file it could not decode",
-      "ok": false,
-      "finding": true,
-      "detail": "banners: []; title shown as \"Caf� cr�me\""
+      "name": "S6a the app says the file is not UTF-8 instead of showing replacement characters",
+      "ok": true,
+      "finding": false,
+      "detail": "banners: [\"todo.md isn't UTF-8 text (it contains bytes that are not valid UTF-8 — an ANSI/Latin-1 or \"]; titles shown: []"
     },
     {
-      "name": "S6b prose the app never manages survives the save byte-for-byte",
-      "ok": false,
-      "finding": true,
-      "detail": "the file was rewritten as UTF-8 with U+FFFD (EF BF BD) in place of every accented byte, including the '## Notes' prose"
+      "name": "S6b the file is left byte-for-byte alone after a change in the app",
+      "ok": true,
+      "finding": false,
+      "detail": "untouched"
+    },
+    {
+      "name": "S6c after the file is converted, the browser task and the file's tasks are both kept, prose intact",
+      "ok": true,
+      "finding": false,
+      "detail": "Keep both offered: true; titles [\"Trigger a save\",\"Café crème\"]; file has the app's task: true, prose intact: true"
     },
     {
       "name": "S7a hostile keys do not pollute Object.prototype and the app keeps working",
@@ -113,22 +119,28 @@
       "detail": "add/complete/undo/redo/snooze/priority/sub-task/board drag/calendar/search/stats/settings/shortcuts/completed/export"
     },
     {
-      "name": "S8b the file reflects the session (changed lines in bracket style, untouched lines verbatim)",
+      "name": "S8b the file reflects the session and keeps the seeded line verbatim",
       "ok": true,
       "finding": false,
-      "detail": "# To Do ⏎  ⏎ ## Open ⏎ - [ ] Seeded task 📅 2030-01-01 ^s33d01 ⏎ - [ ] Tagged and urgent #DPN ⏫ 📅 2026-09-04 ^ajolqd ⏎ - [ ] Dated +2w task #Ops [priority:: low] [due:: 2026-09-17] ^sg3dp3 ⏎     - [ ] a sub-task 📅 2030-05-05 ⏎  ⏎ ## No date ⏎ - [ ] Plain task ^93oiel ⏎ "
+      "detail": "# To Do ⏎  ⏎ ## Open ⏎ - [ ] Seeded task 📅 2030-01-01 ^s33d01 ⏎ - [ ] Tagged and urgent #DPN ⏫ 📅 2026-09-04 ^vb08gt ⏎ - [ ] Dated +2w task #Ops 🔽 📅 2026-09-17 ^26w441 ⏎     - [ ] a sub-task 📅 2030-05-05 ⏎ - [ ] Typed with a date inside 📅 2030-06-06 ^66uujx ⏎  ⏎ ## No date ⏎ - [ ] Plain task ^5"
     },
     {
-      "name": "S8c Ctrl+S with a connected file writes the file (no download)",
+      "name": "S8c a 📅 date typed into a title is stored as the due date, not left as title text",
+      "ok": true,
+      "finding": false,
+      "detail": "- [ ] Typed with a date inside 📅 2030-06-06 ^66uujx"
+    },
+    {
+      "name": "S8d Ctrl+S with a connected file writes the file (no download)",
       "ok": true,
       "finding": false,
       "detail": ""
     },
     {
-      "name": "S8d embedded suite passes in the browser",
+      "name": "S8e embedded suite passes in the browser",
       "ok": true,
       "finding": false,
-      "detail": "162 / 162 passed"
+      "detail": "180 / 180 passed"
     },
     {
       "name": "S9a IndexedDB throwing at boot → tier-3 banner and a working in-memory list",
@@ -161,22 +173,28 @@
       "detail": "[\"conflict\"]"
     },
     {
-      "name": "S11c no page errors",
+      "name": "S11c the conflict banner offers Keep both, which merges the file's tasks with the app's new one",
+      "ok": true,
+      "finding": false,
+      "detail": "after Keep both the file has all of: external edit true, app task true"
+    },
+    {
+      "name": "S11d no page errors",
       "ok": true,
       "finding": false,
       "detail": ""
     },
     {
       "name": "S12 undo after a reload does not act on stale history",
-      "ok": false,
-      "finding": true,
-      "detail": "id u7yad8; after reload: [\"Base task\",\"Renamed in an editor, hours of notes\"]; after Ctrl+Z (undo of the pre-reload 'add'): [\"Base task\"]; the external rename survives in the file: false"
+      "ok": true,
+      "finding": false,
+      "detail": "id 1wdb8t; after reload: [\"Base task\",\"Renamed in an editor, hours of notes\"]; after Ctrl+Z (undo of the pre-reload 'add'): [\"Base task\",\"Renamed in an editor, hours of notes\"]; the external rename survives in the file: true"
     },
     {
       "name": "S13 repairing a malformed id does not leave a second copy behind",
       "ok": false,
       "finding": true,
-      "detail": "before: [\"Odd id task\"]; IndexedDB after the rename: BAD-ID:Odd id task, mxccmz:Odd id task renamed; after a reload the list shows [\"Odd id task\",\"Odd id task renamed\"]"
+      "detail": "before: [\"Odd id task\"]; IndexedDB after the rename: BAD-ID:Odd id task, douumu:Odd id task renamed; after a reload the list shows [\"Odd id task\",\"Odd id task renamed\"]"
     }
   ]
 }
