@@ -3,7 +3,7 @@
 **A to-do list that lives in one HTML file and saves to a markdown file you own.**
 
 [![Tests](https://github.com/tunlezah/Runway/actions/workflows/test.yml/badge.svg)](https://github.com/tunlezah/Runway/actions/workflows/test.yml)
-&nbsp;Current version: **v1.2.0**
+&nbsp;Current version: **v1.2.1**
 
 Runway is a fast, keyboard-friendly task list with due dates, tags, priorities, notes and
 sub-tasks — and a runway-style view of what's landing when. It is deliberately small:
@@ -114,8 +114,9 @@ The thresholds are yours to change (*Settings → Urgency*, with a live preview)
 
 Above the list, a **runway timeline** shows the next four weeks as columns of dots (one per
 task, coloured by urgency, with a "late" column on the left). Click a dot to jump to its task.
-The tag row under the header filters by tag (keyboard <kbd>1</kbd>/<kbd>2</kbd>/<kbd>3</kbd>,
-<kbd>0</kbd> clears); a digest bar summarises "N overdue · M due today" until you dismiss it.
+The filter row under the header holds the tag chips (keyboard <kbd>1</kbd>/<kbd>2</kbd>/<kbd>3</kbd>,
+<kbd>0</kbd> clears) and the search field (<kbd>/</kbd>); while the list is narrowed its count reads
+"showing N of M". A digest bar summarises "N overdue · M due today" until you dismiss it.
 
 ### Working a task
 
