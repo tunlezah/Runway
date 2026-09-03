@@ -1,6 +1,6 @@
 {
   "meta": {
-    "date": "2026-09-03T15:16:52.893Z",
+    "date": "2026-09-03T20:42:45.257Z",
     "chromium": "141.0.7390.37"
   },
   "checks": [
@@ -122,13 +122,13 @@
       "name": "S8b the file reflects the session and keeps the seeded line verbatim",
       "ok": true,
       "finding": false,
-      "detail": "# To Do ⏎  ⏎ ## Open ⏎ - [ ] Seeded task 📅 2030-01-01 ^s33d01 ⏎ - [ ] Tagged and urgent #DPN ⏫ 📅 2026-09-04 ^vb08gt ⏎ - [ ] Dated +2w task #Ops 🔽 📅 2026-09-17 ^26w441 ⏎     - [ ] a sub-task 📅 2030-05-05 ⏎ - [ ] Typed with a date inside 📅 2030-06-06 ^66uujx ⏎  ⏎ ## No date ⏎ - [ ] Plain task ^5"
+      "detail": "# To Do ⏎  ⏎ ## Open ⏎ - [ ] Seeded task 📅 2030-01-01 ^s33d01 ⏎ - [ ] Tagged and urgent #DPN ⏫ 📅 2026-09-04 ^fg2duc ⏎ - [ ] Dated +2w task #Ops 🔽 📅 2026-09-17 ^e1g6sm ⏎     - [ ] a sub-task 📅 2030-05-05 ⏎ - [ ] Typed with a date inside 📅 2030-06-06 ^1qay9u ⏎  ⏎ ## No date ⏎ - [ ] Plain task ^v"
     },
     {
       "name": "S8c a 📅 date typed into a title is stored as the due date, not left as title text",
       "ok": true,
       "finding": false,
-      "detail": "- [ ] Typed with a date inside 📅 2030-06-06 ^66uujx"
+      "detail": "- [ ] Typed with a date inside 📅 2030-06-06 ^1qay9u"
     },
     {
       "name": "S8d Ctrl+S with a connected file writes the file (no download)",
@@ -140,7 +140,7 @@
       "name": "S8e embedded suite passes in the browser",
       "ok": true,
       "finding": false,
-      "detail": "180 / 180 passed"
+      "detail": "186 / 186 passed"
     },
     {
       "name": "S9a IndexedDB throwing at boot → tier-3 banner and a working in-memory list",
@@ -188,13 +188,13 @@
       "name": "S12 undo after a reload does not act on stale history",
       "ok": true,
       "finding": false,
-      "detail": "id 1wdb8t; after reload: [\"Base task\",\"Renamed in an editor, hours of notes\"]; after Ctrl+Z (undo of the pre-reload 'add'): [\"Base task\",\"Renamed in an editor, hours of notes\"]; the external rename survives in the file: true"
+      "detail": "id b5xkr1; after reload: [\"Base task\",\"Renamed in an editor, hours of notes\"]; after Ctrl+Z (undo of the pre-reload 'add'): [\"Base task\",\"Renamed in an editor, hours of notes\"]; the external rename survives in the file: true"
     },
     {
       "name": "S13 repairing a malformed id does not leave a second copy behind",
       "ok": false,
       "finding": true,
-      "detail": "before: [\"Odd id task\"]; IndexedDB after the rename: BAD-ID:Odd id task, douumu:Odd id task renamed; after a reload the list shows [\"Odd id task\",\"Odd id task renamed\"]"
+      "detail": "before: [\"Odd id task\"]; IndexedDB after the rename: 8csrtl:Odd id task renamed, BAD-ID:Odd id task; after a reload the list shows [\"Odd id task renamed\",\"Odd id task\"]"
     }
   ]
 }

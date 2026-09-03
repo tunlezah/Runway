@@ -1,6 +1,6 @@
 # Runway robustness check — what breaks when the world is not tidy
 
-**Date:** 2026-09-03 · **App:** runway.html v1.2.1 (findings) → **v1.3.0 (fixes applied)** · **Status:** the two High findings, all four Medium findings, and a newly found quadratic-parse defect are **fixed and verified on this branch**; see [Fixes applied](#fixes-applied-v130). The remaining Low findings are documented, not yet fixed.
+**Date:** 2026-09-03 · **App:** runway.html v1.2.1 (findings) → **v1.3.0 / v1.3.1 (fixes applied)** · **Status:** the two High findings, all four Medium findings, a newly found quadratic-parse defect (v1.3.0), and two data-touching Low findings R11 and R13 (v1.3.1) are **fixed and verified on this branch**; see [Fixes applied](#fixes-applied-v130). The remaining Low findings are documented, not yet fixed.
 
 **Method:** a full read of the source, then three new harnesses that run the real code (nothing mocked
 but the inputs): `stress/robust-fuzz.js` (property-based checks on the parser, serialiser, date
@@ -24,8 +24,9 @@ misbehave?**
 input.** Two can lose or mangle data through ordinary use; five change state, break a view, or freeze
 the tab in plausible situations; ten are small. Everything the earlier passes hardened still holds, and
 a lot of new ground held too (see *What held*). **The two High, all five Medium, and R17 are fixed and
-verified on this branch (v1.3.0)** — see [Fixes applied](#fixes-applied-v130); the ten Low findings are
-documented and left for a follow-up.
+verified on this branch (v1.3.0), and two Low findings that touch stored data — R11 and R13 — are fixed
+in a v1.3.1 follow-up.** See [Fixes applied](#fixes-applied-v130); the remaining eight Low findings are
+documented and left for later.
 
 | # | Severity | Fixed | Finding | Evidence |
 |---|---|---|---|---|
@@ -40,9 +41,9 @@ documented and left for a follow-up.
 | R8 | Low | — | With a task selected, **Space on a focused row button** completes the selected task instead of pressing the button (Enter works). Keyboard-only users hit this. | S4 |
 | R9 | Low | — | Two Enter presses before the first add clears the box add **the task twice**. | S5 |
 | R10 | Low | partial | `[constructor]` or `[__proto__]` in a title is treated as a **tag shortcut**: the word is deleted from the title and a function/object is pushed as a tag. v1.3.0 stops the non-string tag reaching the model (the prototype-pollution risk is gone); the title still loses the bracket word. | G1, G2, D2, D3 |
-| R11 | Low | — | Tag labels containing `_` or `#` **do not round-trip** (`snake_case` → "snake case", `C#` → tag `C` plus a stray `#` in the title). Settings accept any label. | B tag-hazard |
+| R11 | Low (data) | ✅ v1.3.1 | A tag label containing `#` **corrupts on the file round-trip**: `C#` → tag becomes `C` and a stray `#` lands in the title; `lead#tag` → two tags. (The `_`→space mapping is the documented tag encoding, not a bug.) | B tag-hazard |
 | R12 | Low | — | Importing a settings file whose JSON is not an object (`null`, a string, a list) **silently resets every setting** to defaults instead of refusing. | S7b |
-| R13 | Low | — | A Unicode line/paragraph separator (U+2028/U+2029) inside a task line makes the **task invisible to the parser** with no "unreadable line" report; inside a sub-task or note line it detaches that line from its task. | G16, G17 |
+| R13 | Low | ✅ v1.3.1 | A Unicode line/paragraph separator (U+2028/U+2029) inside a task line made the **task vanish from the app** unreported (bytes stayed safe in the file); inside a sub-task or note line it detached that line from its task. | G16, G17 |
 | R14 | Low | — | Byte-preservation edges: a completed line without a `✅` date is rewritten with a synthetic date on the first save after a day passes; trailing whitespace on a hand-written line is trimmed when the id is appended. | G10, G11, A3 |
 | R15 | Low | — | Four-digit years below 100 (`12 5 0050`, `📅 0050-06-01`) resolve or display as 19xx — the two-digit-year quirk of `new Date(y, m, d)`. | G12, G13, C3 |
 | R16 | Low | — | With *Write block IDs* off, an undated task whose title ends in a six-character `^token` gets that token as its id on reload and loses it from the title. | G7 |
@@ -56,8 +57,8 @@ recoverable · **Low** = rare, cosmetic, or needs unusual input; fix is small.
 ## Fixes applied (v1.3.0)
 
 Everything below was changed in `runway.html` on this branch and verified by the harnesses named. The
-embedded suite grows from 162 to **180 tests** (`node test.js`, green); the property harness now holds
-**25 / 46** properties (was 12), with the remainder tracking the ten Low findings left open.
+embedded suite grows from 162 to **186 tests** (`node test.js`, green); the property harness now holds
+**27 / 46** properties (was 12), with the remainder tracking the Low findings left open.
 
 - **R17 · quadratic parser regexes (found while fixing R5).** `TASK_RE`'s body group `(.*\S.*)` and the
   `[due:: …]` field pattern `\[\s*due::\s*([^\]]*)\]` both backtrack quadratically. Measured before:
@@ -114,8 +115,27 @@ embedded suite grows from 162 to **180 tests** (`node test.js`, green); the prop
   now clears the undo journal, so Ctrl+Z after a reload can no longer replay stale snapshots over what
   the file says. Verified by S12.
 
-**Not changed on this branch (Low, documented below):** R4, R8, R9, R11–R16, and the title-mangling
-half of R10. The security-relevant half of R10 — a non-string tag reaching the model — is closed by the
+### Fixed in the v1.3.1 follow-up
+
+Two Low findings that quietly touch stored data were fixed after the checks above confirmed the
+remaining Lows; the embedded suite adds 6 more tests (180 → **186**).
+
+- **R11 · tag labels with `#`.** A single `Util.normTag` (strip `#`, collapse whitespace) is applied
+  at the model chokepoint (`Model.validate`, so any tag from any path is clean) and wherever the tag
+  map is built (settings import/load, the tag table, the add-tag prompt). A `C#` tag now stores and
+  round-trips as `C` with nothing leaking into the title; `lead#tag` collapses to one clean tag. The
+  documented `_`↔space encoding is unchanged. Verified by three round-trip tests and the B tag-hazard
+  tiers dropping from ~330/400 to ~127/400 (the remainder are the intended `_`→space transform).
+
+- **R13 · Unicode line separators.** `MD.parse` normalises U+2028/U+2029 to a space **for matching
+  only** (`line.replace(NL_RE," ")`), while the raw line is kept verbatim — so a task or sub-task
+  carrying a separator now parses and stays visible, and an id'd line still round-trips byte-identical
+  (an id-less line just gains its `^id`, as any recognised line does). The separator is folded to a
+  space only if the task is later edited. No quadratic cost is introduced (R17 timings unchanged).
+  Verified by G16/G17 flipping to green and three new tests.
+
+**Fixed in the v1.3.1 follow-up:** R11 and R13 (above). **Still open (Low, documented below):** R4,
+R8, R9, R10 (title half), R12, R14, R15, R16. The security-relevant half of R10 — a non-string tag reaching the model — is closed by the
 validate tag filter (fuzz D2 now holds).
 
 ---
@@ -331,13 +351,17 @@ function (or `Object.prototype`) is pushed into `tags` (G1, G2; 1,246 of 8,000 f
 title and a `function Object() …` chip in the entry preview. Fix: `Object.prototype.hasOwnProperty.call(tagMap, key)`,
 or build the map with `Object.create(null)`.
 
-### R11 · Low · Tag labels with `_` or `#`
+### R11 · Low (data) · Tag labels with `#` — ✅ fixed in v1.3.1
 
 The file encodes spaces in tags as `_` and decodes `_` as a space, and a label may itself contain `_`
 or `#` (settings accept anything). `snake_case` comes back as "snake case", `C#` as tag `C` with a `#`
 left in the title, a label starting with `#` never matches again (B, tag-hazard tier: ~77 % of such
 tasks changed). Fix: normalise labels when saved (`_` → space, strip `#`), and say so in the settings
 hint.
+
+**Fixed in v1.3.1:** a `Util.normTag` helper (strip `#`, collapse whitespace) is applied in
+`Model.validate` and at every tag-map intake, so `C#` → `C` with no title leak and `lead#tag` → one
+tag. The `_`→space mapping stays as documented.
 
 ### R12 · Low · Settings import of a non-object resets everything
 
@@ -346,7 +370,7 @@ at the `corrupt` flag (S7b). A file containing `null` or a stray string wipes th
 week and thresholds with no message. Fix: refuse non-objects (and objects with no known key) with the
 existing "couldn't be read" banner; surface the `corrupt` count when some keys were dropped.
 
-### R13 · Low · Unicode line separators
+### R13 · Low · Unicode line separators — ✅ fixed in v1.3.1
 
 `text.split(/\r\n|\n|\r/)` keeps U+2028/U+2029 inside a line, but `.` in `TASK_RE`/`CONT_RE` does not
 match them, so the regexes fail: a task line containing one becomes an unrecognised raw line (the task
@@ -354,6 +378,10 @@ disappears from the app, and because it is not "a task with a bad field" it is n
 problems banner either — G16); a sub-task or note line containing one drops out of its task (G17). The
 entry field collapses these characters, so only pasted/imported text is affected. Fix: normalise
 `[]` to a space (or split on them) before parsing.
+
+**Fixed in v1.3.1:** `MD.parse` normalises the separators to a space for matching only, keeping the raw
+line verbatim, so the task/sub-task parses and stays visible while an id'd line still round-trips
+byte-identical. No quadratic cost is added.
 
 ### R14 · Low · Byte-preservation edges
 
@@ -410,7 +438,7 @@ when ids are off and the rendered line would end in `^[0-9a-z]{6}`, write the re
 node stress/robust-fuzz.js --seed 1 --iters 400 --out stress/results/robust-fuzz.json   # ~40 s
 node stress/tz-matrix.js [--quick]                                                       # ~2 min full
 node stress/robust-browser.js [--only S2,S6] --out stress/results/robust-browser.json   # ~3 min, needs Playwright + Chromium
-node test.js                                                                             # 180/180 on this branch
+node test.js                                                                             # 186/186 on this branch
 ```
 
 Both Node harnesses are deterministic (seeded) and run without a browser; they are cheap enough to

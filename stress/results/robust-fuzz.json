@@ -2,7 +2,7 @@
   "meta": {
     "seed": 1,
     "iters": 400,
-    "date": "2026-09-03T15:17:52.452Z"
+    "date": "2026-09-03T20:41:51.271Z"
   },
   "checks": [
     {
@@ -21,7 +21,7 @@
       "name": "A3 id-less lines change only by the appended ^id",
       "ok": false,
       "finding": true,
-      "detail": "280 files gained ids only; 72 also lost trailing whitespace on the id-less line, e.g. {\"text\":\"- [ ] café ✅ 2026-01-01 payload review [priority:: high] [due:: 2030-10-27]\\r\\n      \\r\\n    - [x] cert schedule triage 📅 2024-08-04\\r\\n        naïve kernel merge deploy\\r\\n- [ ] cert cluster ^00000n\\r\\n- [x] kernel token build [completion:: 2030-03-04] [b] 📅 2030-01-01 ^00000o\\r\\n## Open"
+      "detail": "280 files gained ids only; 75 also lost trailing whitespace on the id-less line, e.g. {\"text\":\"- [ ] café ✅ 2026-01-01 payload review [priority:: high] [due:: 2030-10-27]\\r\\n      \\r\\n    - [x] cert schedule triage 📅 2024-08-04\\r\\n        naïve kernel merge deploy\\r\\n- [ ] cert cluster ^00000n\\r\\n- [x] kernel token build [completion:: 2030-03-04] [b] 📅 2030-01-01 ^00000o\\r\\n## Open"
     },
     {
       "name": "A4 second parse→serialise cycle is idempotent",
@@ -51,7 +51,7 @@
       "name": "B emoji ids · tag-hazard",
       "ok": false,
       "finding": true,
-      "detail": "324 of 400 tasks changed (tags:324 title:197); e.g. \"- [ ] test ##lead ^0003mr\" → \"test ##lead\" (was \"test\")"
+      "detail": "127 of 400 tasks changed (tags:127); e.g. \"- [ ] invoice combininǵ console #a__b ^0003ms\" → [\"a b\"] (was [\"a__b\"])"
     },
     {
       "name": "B emoji ids · token-hazard",
@@ -69,7 +69,7 @@
       "name": "B bracket ids · tag-hazard",
       "ok": false,
       "finding": true,
-      "detail": "342 of 400 tasks changed (tags:342 title:207); e.g. \"- [ ] patch build 日本語 ##lead [priority:: high] [due:: 2029-09-22] ^00056c\" → \"patch build 日本語 ##lead\" (was \"patch build 日本語\")"
+      "detail": "135 of 400 tasks changed (tags:135); e.g. \"- [ ] vault restore patch cluster triage zwj👩‍💻 #snake_case [priority:: low] [due:: 2029-02-19] ^00056b\" → [\"snake case\"] (was [\"snake_case\"])"
     },
     {
       "name": "B bracket ids · token-hazard",
@@ -87,13 +87,13 @@
       "name": "B emoji no-ids · tag-hazard",
       "ok": false,
       "finding": true,
-      "detail": "330 of 400 tasks changed (tags:330 title:217); e.g. \"- [ ] vault sign rotate sandbox tunnel endpoint ##lead\" → \"vault sign rotate sandbox tunnel endpoint ##lead\" (was \"vault sign rotate sandbox tunnel endpoint\")"
+      "detail": "113 of 400 tasks changed (tags:113); e.g. \"- [ ] kernel #a__b\" → [\"a b\"] (was [\"a__b\"])"
     },
     {
       "name": "B emoji no-ids · token-hazard",
       "ok": false,
       "finding": true,
-      "detail": "1 of 400 tasks changed (title:1); e.g. \"- [ ] audit invoice scan brief ^abcdef\" → \"audit invoice scan brief\" (was \"audit invoice scan brief ^abcdef\")"
+      "detail": "400 tasks unchanged"
     },
     {
       "name": "B bracket no-ids · plain",
@@ -105,7 +105,7 @@
       "name": "B bracket no-ids · tag-hazard",
       "ok": false,
       "finding": true,
-      "detail": "338 of 400 tasks changed (tags:338 title:206); e.g. \"- [x] restore emoji😀 tunnel #C# [priority:: high] [due:: 2027-07-03] [completion:: 2029-08-20]\" → \"restore emoji😀 tunnel #\" (was \"restore emoji😀 tunnel\")"
+      "detail": "132 of 400 tasks changed (tags:132); e.g. \"- [ ] tunnel café #snake_case [priority:: high] [due:: 2030-12-04]\" → [\"snake case\"] (was [\"snake_case\"])"
     },
     {
       "name": "B bracket no-ids · token-hazard",
@@ -243,7 +243,7 @@
       "name": "G11 an id-less line keeps its trailing whitespace when the id is appended",
       "ok": false,
       "finding": true,
-      "detail": "wrote \"- [ ] trailing spaces ^0u67g5\" (README: the only thing added to a hand-written line is its ^id)"
+      "detail": "wrote \"- [ ] trailing spaces ^2ioy0h\" (README: the only thing added to a hand-written line is its ^id)"
     },
     {
       "name": "G15 tabs/NBSP inside a title are preserved in the model",
@@ -265,15 +265,15 @@
     },
     {
       "name": "G16 a U+2028 line separator inside a title does not make the task vanish",
-      "ok": false,
-      "finding": true,
-      "detail": "parsed back 0 task(s), 0 problem(s) reported — the line is kept as raw text, so the task disappears from the app without a warning"
+      "ok": true,
+      "finding": false,
+      "detail": "parsed back 1 task(s), 0 problem(s) reported — the line is kept as raw text, so the task disappears from the app without a warning"
     },
     {
       "name": "G17 a U+2028 inside a sub-task keeps the sub-task attached to its task",
-      "ok": false,
-      "finding": true,
-      "detail": "sub-tasks back: 0"
+      "ok": true,
+      "finding": false,
+      "detail": "sub-tasks back: 1"
     },
     {
       "name": "G14 a whitespace-only line inside a note ends the task's continuation (documented limit)",
@@ -286,7 +286,7 @@
     "threw": 0,
     "byteDiff": 0,
     "idOnlyDiff": 280,
-    "wsTrim": 72,
+    "wsTrim": 75,
     "blankLayout": 3,
     "notIdem": 0,
     "countDiff": 0,
@@ -294,7 +294,7 @@
     "examples": {
       "wsTrim": {
         "text": "- [ ] café ✅ 2026-01-01 payload review [priority:: high] [due:: 2030-10-27]\r\n      \r\n    - [x] cert schedule triage 📅 2024-08-04\r\n        naïve kernel merge deploy\r\n- [ ] cert cluster ^00000n\r\n- [x] kernel token build [completion:: 2030-03-04] [b] 📅 2030-01-01 ^00000o\r\n## Open\r\n-[ ] no space\r\ntriage payload token [due:: 2026-01-01] 日本語 cert\r\n- [ ] endpoint cluster !! ✅ 2026-01-01 token 📅 2024-09-27 ^00000p\r\n        - [x] test emoji😀\r\n    - [ ] 🔽\r\n- [x]\r\n## Open \r\npayload Ünïcödé rtlעברית [constructor] audit\r\n- [x] ✅ 2028-04-02 #Highside firewall registry\r\n- [ ] combininǵ [constructor]\r\n- [ ] 📅 2024-06-14 [priority:: high] firewall ^00000q\r\n        [constructor] review scan\r\n      - [x] review backup patch registry 📅 2029-06-01\r\n\t- [x] review verify schedule 📅 2026-10-18\r\n  emoji😀 nbsp x\r\n## Open \r\n* [x] token payload [priority:: high] console ✅ 2027-03-09 📅 2024-04-10 ^00000r\r\n    - [x] audit Ünïcödé deploy\r\n  renew brief sign\r\n## Open\r\n- plain bullet\r\n- [ ] cert [d] zwj👩‍💻 📅 2024-09-04 ^00000s\r\n    triage brief Ünïcödé [priority:: high] rtlעברית emoji😀\r\n      - [x] ^k9k9k9 sign <!-- c --> registry 📅 2027-07-08\r\n      - [ ] brief 📅 2026-06-05\r\n\t- [x] emoji😀\r\n- [X] brief zwj👩‍💻 ^00000t\r\n        - [x] merge restore zwj👩‍💻\r\n- [x] deploy firewall 📅 2026-01-02 ✅ 2025-09-17 ⏫\r\n## No date\r\n- [ ] cert parser #ünï ^00000u  \r\n- [ ] sign café !!!   \r\n- [ ] ✅ 2026-01-01 cert combininǵ verify parser ^00000v  \r\n- [ ] backup vault patch build #snake_case ^00000w\r\n# Title\r\n",
-        "out": "- [ ] café ✅ 2026-01-01 payload review [priority:: high] [due:: 2030-10-27] ^zrl7r1\r\n      \r\n    - [x] cert schedule triage 📅 2024-08-04\r\n        naïve kernel merge deploy\r\n- [ ] cert cluster ^00000n\r\n- [x] kernel token build [completion:: 2030-03-04] [b] 📅 2030-01-01 ^00000o\r\n## Open\r\n-[ ] no space ^sm33jh\r\ntriage payload token [due:: 2026-01-01] 日本語 cert\r\n- [ ] endpoint cluster !! ✅ 2026-01-01 token 📅 2024-09-27 ^00000p\r\n        - [x] test emoji😀\r\n    - [ ] 🔽\r\n- [x]\r\n## Open \r\npayload Ünïcödé rtlעברית [constructor] audit\r\n- [x] ✅ 2028-04-02 #Highside firewall registry ^to0tqn\r\n- [ ] combininǵ [constructor] ^pckp9t\r\n- [ ] 📅 2024-06-14 [priority:: high] firewall ^00000q\r\n        [constructor] review scan\r\n      - [x] review backup patch registry 📅 2029-06-01\r\n\t- [x] review verify schedule 📅 2026-10-18\r\n  emoji😀 nbsp x\r\n## Open \r\n* [x] token payload [priority:: high] console ✅ 2027-03-09 📅 2024-04-10 ^00000r\r\n    - [x] audit Ünïcödé deploy\r\n  renew brief sign\r\n## Open\r\n- plain bullet\r\n- [ ] cert [d] zwj👩‍💻 📅 2024-09-04 ^00000s\r\n    triage brief Ünïcödé [priority:: high] rtlעברית emoji😀\r\n      - [x] ^k9k9k9 sign <!-- c --> registry 📅 2027-07-08\r\n      - [ ] brief 📅 2026-06-05\r\n\t- [x] emoji😀\r\n- [X] brief zwj👩‍💻 ^00000t\r\n        - [x] merge restore zwj👩‍💻\r\n- [x] deploy firewall 📅 2026-01-02 ✅ 2025-09-17 ⏫ ^bopclh\r\n## No date\r\n- [ ] cert parser #ünï ^00000u  \r\n- [ ] sign café !!! ^f4k2i6\r\n- [ ] ✅ 2026-01-01 cert combininǵ verify parser ^00000v  \r\n- [ ] backup vault patch build #snake_case ^00000w\r\n# Title\r\n"
+        "out": "- [ ] café ✅ 2026-01-01 payload review [priority:: high] [due:: 2030-10-27] ^8wlgal\r\n      \r\n    - [x] cert schedule triage 📅 2024-08-04\r\n        naïve kernel merge deploy\r\n- [ ] cert cluster ^00000n\r\n- [x] kernel token build [completion:: 2030-03-04] [b] 📅 2030-01-01 ^00000o\r\n## Open\r\n-[ ] no space ^fjys17\r\ntriage payload token [due:: 2026-01-01] 日本語 cert\r\n- [ ] endpoint cluster !! ✅ 2026-01-01 token 📅 2024-09-27 ^00000p\r\n        - [x] test emoji😀\r\n    - [ ] 🔽\r\n- [x]\r\n## Open \r\npayload Ünïcödé rtlעברית [constructor] audit\r\n- [x] ✅ 2028-04-02 #Highside firewall registry ^kzjnyg\r\n- [ ] combininǵ [constructor] ^nv1or9\r\n- [ ] 📅 2024-06-14 [priority:: high] firewall ^00000q\r\n        [constructor] review scan\r\n      - [x] review backup patch registry 📅 2029-06-01\r\n\t- [x] review verify schedule 📅 2026-10-18\r\n  emoji😀 nbsp x\r\n## Open \r\n* [x] token payload [priority:: high] console ✅ 2027-03-09 📅 2024-04-10 ^00000r\r\n    - [x] audit Ünïcödé deploy\r\n  renew brief sign\r\n## Open\r\n- plain bullet\r\n- [ ] cert [d] zwj👩‍💻 📅 2024-09-04 ^00000s\r\n    triage brief Ünïcödé [priority:: high] rtlעברית emoji😀\r\n      - [x] ^k9k9k9 sign <!-- c --> registry 📅 2027-07-08\r\n      - [ ] brief 📅 2026-06-05\r\n\t- [x] emoji😀\r\n- [X] brief zwj👩‍💻 ^00000t\r\n        - [x] merge restore zwj👩‍💻\r\n- [x] deploy firewall 📅 2026-01-02 ✅ 2025-09-17 ⏫ ^62mazb\r\n## No date\r\n- [ ] cert parser #ünï ^00000u  \r\n- [ ] sign café !!! ^t4ei52\r\n- [ ] ✅ 2026-01-01 cert combininǵ verify parser ^00000v  \r\n- [ ] backup vault patch build #snake_case ^00000w\r\n# Title\r\n"
       }
     }
   },
@@ -310,26 +310,20 @@
       "tag-hazard": {
         "n": 400,
         "threw": 0,
-        "mismatched": 324,
+        "mismatched": 127,
         "byField": {
-          "title": 197,
-          "tags": 324
+          "tags": 127
         },
         "examples": {
-          "title": {
-            "in": "test",
-            "out": "test ##lead",
-            "line": [
-              "- [ ] test ##lead ^0003mr"
-            ]
-          },
           "tags": {
             "in": [
-              "#lead"
+              "a__b"
             ],
-            "out": [],
+            "out": [
+              "a b"
+            ],
             "line": [
-              "- [ ] test ##lead ^0003mr"
+              "- [ ] invoice combininǵ console #a__b ^0003ms"
             ]
           }
         }
@@ -376,10 +370,9 @@
       "tag-hazard": {
         "n": 400,
         "threw": 0,
-        "mismatched": 342,
+        "mismatched": 135,
         "byField": {
-          "tags": 342,
-          "title": 207
+          "tags": 135
         },
         "examples": {
           "tags": {
@@ -391,13 +384,6 @@
             ],
             "line": [
               "- [ ] vault restore patch cluster triage zwj👩‍💻 #snake_case [priority:: low] [due:: 2029-02-19] ^00056b"
-            ]
-          },
-          "title": {
-            "in": "patch build 日本語",
-            "out": "patch build 日本語 ##lead",
-            "line": [
-              "- [ ] patch build 日本語 ##lead [priority:: high] [due:: 2029-09-22] ^00056c"
             ]
           }
         }
@@ -446,26 +432,20 @@
       "tag-hazard": {
         "n": 400,
         "threw": 0,
-        "mismatched": 330,
+        "mismatched": 113,
         "byField": {
-          "title": 217,
-          "tags": 330
+          "tags": 113
         },
         "examples": {
-          "title": {
-            "in": "vault sign rotate sandbox tunnel endpoint",
-            "out": "vault sign rotate sandbox tunnel endpoint ##lead",
-            "line": [
-              "- [ ] vault sign rotate sandbox tunnel endpoint ##lead"
-            ]
-          },
           "tags": {
             "in": [
-              "#lead"
+              "a__b"
             ],
-            "out": [],
+            "out": [
+              "a b"
+            ],
             "line": [
-              "- [ ] vault sign rotate sandbox tunnel endpoint ##lead"
+              "- [ ] kernel #a__b"
             ]
           }
         }
@@ -473,10 +453,8 @@
       "token-hazard": {
         "n": 400,
         "threw": 9,
-        "mismatched": 1,
-        "byField": {
-          "title": 1
-        },
+        "mismatched": 0,
+        "byField": {},
         "examples": {
           "threw": {
             "t": {
@@ -493,13 +471,6 @@
               "updatedAt": "2026-08-01T00:00:00.000Z"
             },
             "err": "Error: no task parsed back from \"# To Do\\n<!-- Runway v1 · edit freely; the app preserves anything it does not recognise -->\\n\\n## Open\\n- [ ] [completion:: 2026-01-01] ⏫ 📅 2024-12-17\\n\""
-          },
-          "title": {
-            "in": "audit invoice scan brief ^abcdef",
-            "out": "audit invoice scan brief",
-            "line": [
-              "- [ ] audit invoice scan brief ^abcdef"
-            ]
           }
         }
       }
@@ -515,28 +486,21 @@
       "tag-hazard": {
         "n": 400,
         "threw": 0,
-        "mismatched": 338,
+        "mismatched": 132,
         "byField": {
-          "title": 206,
-          "tags": 338
+          "tags": 132
         },
         "examples": {
-          "title": {
-            "in": "restore emoji😀 tunnel",
-            "out": "restore emoji😀 tunnel #",
-            "line": [
-              "- [x] restore emoji😀 tunnel #C# [priority:: high] [due:: 2027-07-03] [completion:: 2029-08-20]"
-            ]
-          },
           "tags": {
             "in": [
-              "C#"
+              "snake_case"
             ],
             "out": [
-              "C"
+              "snake case"
             ],
             "line": [
-              "- [x] restore emoji😀 tunnel #C# [priority:: high] [due:: 2027-07-03] [completion:: 2029-08-20]"
+              "- [ ] tunnel café #snake_case [priority:: high] [due:: 2030-12-04]",
+              "    - [ ] review audit parser zwj👩‍💻"
             ]
           }
         }

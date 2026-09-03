@@ -3,7 +3,7 @@
 **A to-do list that lives in one HTML file and saves to a markdown file you own.**
 
 [![Tests](https://github.com/tunlezah/Runway/actions/workflows/test.yml/badge.svg)](https://github.com/tunlezah/Runway/actions/workflows/test.yml)
-&nbsp;Current version: **v1.3.0**
+&nbsp;Current version: **v1.3.1**
 
 Runway is a fast, keyboard-friendly task list with due dates, tags, priorities, notes and
 sub-tasks — and a runway-style view of what's landing when. It is deliberately small:
@@ -59,6 +59,7 @@ Everything can be typed in one line. The title box understands:
 | `Email frank [d]` | tag shortcut — `[d]` becomes your mapped tag (editable in *Settings → Tags*) |
 | `Rotate the certs !!` | priority: `!` low · `!!` medium · `!!!` high |
 | `Renew the cert 📅 2027-05-12` | a `📅` date, `⏫`/`🔼`/`🔽` priority, or a `[due:: …]` / `[priority:: …]` field typed in the title is understood too |
+| `Patch the box #C_sharp` | tag labels can't contain `#` (it starts a new tag); a `#` in a label is dropped, and `_` shows as a space |
 
 Live chips under the box show the tags, priority and date it detected. The same tokens the file
 uses (`📅`, `✅`, priority emoji, `[key:: value]`) are recognised in the title so that whatever you
@@ -387,7 +388,7 @@ panel (162 checks) — a clean pass rules out the app's own logic.
   `node --expose-gc stress/stress-node.js` (parser/serialiser limits + robustness corpus) and
   `node stress/stress-dom.js` (headless-Chromium UI measurements). See
   [`stress/README.md`](stress/README.md) and [`docs/stress-test-report.md`](docs/stress-test-report.md).
-- The robustness check (v1.2.1 → fixes in v1.3.0) lives next to it: `node stress/robust-fuzz.js` (property-based
+- The robustness check (v1.2.1 → fixes in v1.3.0 and v1.3.1) lives next to it: `node stress/robust-fuzz.js` (property-based
   checks on the parsers and record validation), `node stress/tz-matrix.js` (every day of 2024–2027 in
   31 time zones) and `node stress/robust-browser.js` (failure injection against the live UI — two tabs,
   corrupt storage, IME, non-UTF-8 files, unload mid-save…). Findings, severities and proposed fixes:

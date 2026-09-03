@@ -1,58 +1,58 @@
 tz-matrix · node v22.22.2 · 31 zones · full
 
 zone                      offset  days   invariants                          test.js
-UTC                       0       1461   all held                            180 / 180 passed
-Etc/GMT+12                -12     1461   all held                            180 / 180 passed
-Etc/GMT-14                14      1461   all held                            180 / 180 passed
-America/New_York          -4      1461   all held                            180 / 180 passed
-America/Los_Angeles       -7      1461   all held                            180 / 180 passed
-America/St_Johns          -2.5    1461   all held                            180 / 180 passed
-America/Sao_Paulo         -3      1461   all held                            180 / 180 passed
-America/Santiago          -4      1461   all held                            180 / 180 passed
-America/Asuncion          -3      1461   all held                            180 / 180 passed
-America/Havana            -4      1461   all held                            180 / 180 passed
-America/Nuuk              -1      1461   all held                            180 / 180 passed
-America/Scoresbysund      -1      1461   all held                            180 / 180 passed
-Europe/London             1       1461   all held                            180 / 180 passed
-Europe/Dublin             1       1461   all held                            180 / 180 passed
-Europe/Berlin             2       1461   all held                            180 / 180 passed
-Europe/Moscow             3       1461   all held                            180 / 180 passed
-Africa/Casablanca         1       1461   all held                            180 / 180 passed
-Africa/Cairo              3       1461   all held                            180 / 180 passed
-Asia/Gaza                 3       1461   all held                            180 / 180 passed
-Asia/Amman                3       1461   all held                            180 / 180 passed
-Asia/Tehran               3.5     1461   all held                            180 / 180 passed
-Asia/Kolkata              5.5     1461   all held                            180 / 180 passed
-Asia/Kathmandu            5.75    1461   all held                            180 / 180 passed
-Asia/Tokyo                9       1461   all held                            180 / 180 passed
-Australia/Lord_Howe       10.5    1461   all held                            180 / 180 passed
-Australia/Sydney          10      1461   all held                            180 / 180 passed
-Pacific/Chatham           12.75   1461   all held                            180 / 180 passed
-Pacific/Apia              13      1461   all held                            180 / 180 passed
-Pacific/Kiritimati        14      1461   all held                            180 / 180 passed
-Pacific/Norfolk           11      1461   all held                            180 / 180 passed
-Antarctica/Troll          2       1461   all held                            180 / 180 passed
+UTC                       0       1461   all held                            186 / 186 passed
+Etc/GMT+12                -12     1461   all held                            186 / 186 passed
+Etc/GMT-14                14      1461   all held                            186 / 186 passed
+America/New_York          -4      1461   all held                            186 / 186 passed
+America/Los_Angeles       -7      1461   all held                            186 / 186 passed
+America/St_Johns          -2.5    1461   all held                            186 / 186 passed
+America/Sao_Paulo         -3      1461   all held                            186 / 186 passed
+America/Santiago          -4      1461   all held                            186 / 186 passed
+America/Asuncion          -3      1461   all held                            186 / 186 passed
+America/Havana            -4      1461   all held                            186 / 186 passed
+America/Nuuk              -1      1461   all held                            186 / 186 passed
+America/Scoresbysund      -1      1461   all held                            186 / 186 passed
+Europe/London             1       1461   all held                            186 / 186 passed
+Europe/Dublin             1       1461   all held                            186 / 186 passed
+Europe/Berlin             2       1461   all held                            186 / 186 passed
+Europe/Moscow             3       1461   all held                            186 / 186 passed
+Africa/Casablanca         1       1461   all held                            186 / 186 passed
+Africa/Cairo              3       1461   all held                            186 / 186 passed
+Asia/Gaza                 3       1461   all held                            186 / 186 passed
+Asia/Amman                3       1461   all held                            186 / 186 passed
+Asia/Tehran               3.5     1461   all held                            186 / 186 passed
+Asia/Kolkata              5.5     1461   all held                            186 / 186 passed
+Asia/Kathmandu            5.75    1461   all held                            186 / 186 passed
+Asia/Tokyo                9       1461   all held                            186 / 186 passed
+Australia/Lord_Howe       10.5    1461   all held                            186 / 186 passed
+Australia/Sydney          10      1461   all held                            186 / 186 passed
+Pacific/Chatham           12.75   1461   all held                            186 / 186 passed
+Pacific/Apia              13      1461   all held                            186 / 186 passed
+Pacific/Kiritimati        14      1461   all held                            186 / 186 passed
+Pacific/Norfolk           11      1461   all held                            186 / 186 passed
+Antarctica/Troll          2       1461   all held                            186 / 186 passed
 
 embedded suite with the clock frozen (Date patched before the app loads):
-  America/New_York      2026-03-08T02:30:00  180 / 180 passed       (US DST gap (non-existent local time in US zones))
-  America/New_York      2026-12-31T23:59:59  180 / 180 passed       (New Year's Eve, one second before midnight)
-  America/New_York      2028-02-29T12:00:00  180 / 180 passed       (leap day)
-  America/New_York      2026-10-25T01:30:00  180 / 180 passed       (EU fall-back hour (ambiguous local time))
-  Europe/Berlin         2026-03-08T02:30:00  180 / 180 passed       (US DST gap (non-existent local time in US zones))
-  Europe/Berlin         2026-12-31T23:59:59  180 / 180 passed       (New Year's Eve, one second before midnight)
-  Europe/Berlin         2028-02-29T12:00:00  180 / 180 passed       (leap day)
-  Europe/Berlin         2026-10-25T01:30:00  180 / 180 passed       (EU fall-back hour (ambiguous local time))
-  America/Santiago      2026-03-08T02:30:00  180 / 180 passed       (US DST gap (non-existent local time in US zones))
-  America/Santiago      2026-12-31T23:59:59  180 / 180 passed       (New Year's Eve, one second before midnight)
-  America/Santiago      2028-02-29T12:00:00  180 / 180 passed       (leap day)
-  America/Santiago      2026-10-25T01:30:00  180 / 180 passed       (EU fall-back hour (ambiguous local time))
-  Pacific/Kiritimati    2026-03-08T02:30:00  180 / 180 passed       (US DST gap (non-existent local time in US zones))
-  Pacific/Kiritimati    2026-12-31T23:59:59  180 / 180 passed       (New Year's Eve, one second before midnight)
-  Pacific/Kiritimati    2028-02-29T12:00:00  180 / 180 passed       (leap day)
-  Pacific/Kiritimati    2026-10-25T01:30:00  180 / 180 passed       (EU fall-back hour (ambiguous local time))
-  Etc/GMT+12            2026-03-08T02:30:00  180 / 180 passed       (US DST gap (non-existent local time in US zones))
-  Etc/GMT+12            2026-12-31T23:59:59  180 / 180 passed       (New Year's Eve, one second before midnight)
-  Etc/GMT+12            2028-02-29T12:00:00  180 / 180 passed       (leap day)
-  Etc/GMT+12            2026-10-25T01:30:00  180 / 180 passed       (EU fall-back hour (ambiguous local time))
+  America/New_York      2026-03-08T02:30:00  186 / 186 passed       (US DST gap (non-existent local time in US zones))
+  America/New_York      2026-12-31T23:59:59  186 / 186 passed       (New Year's Eve, one second before midnight)
+  America/New_York      2028-02-29T12:00:00  186 / 186 passed       (leap day)
+  America/New_York      2026-10-25T01:30:00  186 / 186 passed       (EU fall-back hour (ambiguous local time))
+  Europe/Berlin         2026-03-08T02:30:00  186 / 186 passed       (US DST gap (non-existent local time in US zones))
+  Europe/Berlin         2026-12-31T23:59:59  186 / 186 passed       (New Year's Eve, one second before midnight)
+  Europe/Berlin         2028-02-29T12:00:00  186 / 186 passed       (leap day)
+  Europe/Berlin         2026-10-25T01:30:00  186 / 186 passed       (EU fall-back hour (ambiguous local time))
+  America/Santiago      2026-03-08T02:30:00  186 / 186 passed       (US DST gap (non-existent local time in US zones))
+  America/Santiago      2026-12-31T23:59:59  186 / 186 passed       (New Year's Eve, one second before midnight)
+  America/Santiago      2028-02-29T12:00:00  186 / 186 passed       (leap day)
+  America/Santiago      2026-10-25T01:30:00  186 / 186 passed       (EU fall-back hour (ambiguous local time))
+  Pacific/Kiritimati    2026-03-08T02:30:00  186 / 186 passed       (US DST gap (non-existent local time in US zones))
+  Pacific/Kiritimati    2026-12-31T23:59:59  186 / 186 passed       (New Year's Eve, one second before midnight)
+  Pacific/Kiritimati    2028-02-29T12:00:00  186 / 186 passed       (leap day)
+  Pacific/Kiritimati    2026-10-25T01:30:00  186 / 186 passed       (EU fall-back hour (ambiguous local time))
+  Etc/GMT+12            2026-03-08T02:30:00  186 / 186 passed       (US DST gap (non-existent local time in US zones))
+  Etc/GMT+12            2026-12-31T23:59:59  186 / 186 passed       (New Year's Eve, one second before midnight)
+  Etc/GMT+12            2028-02-29T12:00:00  186 / 186 passed       (leap day)
+  Etc/GMT+12            2026-10-25T01:30:00  186 / 186 passed       (EU fall-back hour (ambiguous local time))
 
 every invariant held in every zone

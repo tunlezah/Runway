@@ -373,7 +373,7 @@ to{transform:none}
 <div class="app" id="app">
 <header class="hdr">
 <h1 class="app-title" id="appTitle">Runway</h1>
-<span class="app-ver" title="App version">v1.3.0</span>
+<span class="app-ver" title="App version">v1.3.1</span>
 <div class="seg-btns view-seg" id="viewSeg" role="group" aria-label="View"></div>
 <button id="fileChip" class="pill" hidden><span class="g" aria-hidden="true"></span><span class="lbl"></span></button>
 <span id="saveInd" class="save-ind" hidden><span class="dot"></span><span class="txt"></span></span>
@@ -446,9 +446,10 @@ if(v===null||v===undefined||v===false)continue
 ;/* File bytes are text only once they decode as UTF-8 without loss: a Latin-1/ANSI or UTF-16 file decoded leniently would be written back with U+FFFD in place of every accented byte. */
 const encodingError=why=>{const e=new Error("not UTF-8 text: "+why);e.name="EncodingError";e.reason=why;return e}
 ;const decodeUtf8=buf=>{const b=buf instanceof Uint8Array?buf:new Uint8Array(buf);if(b.length>=2&&(b[0]===255&&b[1]===254||b[0]===254&&b[1]===255))throw encodingError("it is UTF-16 encoded")
-;let text;try{text=new TextDecoder("utf-8",{fatal:true,ignoreBOM:true}).decode(b)}catch(e){throw encodingError("it contains bytes that are not valid UTF-8 — an ANSI/Latin-1 or binary file?")}if(text.indexOf("\0")>=0)throw encodingError("it contains NUL bytes");return text};return{MONTHS:MONTHS,MON3:MON3,DAYS3:DAYS3,pad2:pad2,isLeap:isLeap,
+;let text;try{text=new TextDecoder("utf-8",{fatal:true,ignoreBOM:true}).decode(b)}catch(e){throw encodingError("it contains bytes that are not valid UTF-8 — an ANSI/Latin-1 or binary file?")}if(text.indexOf("\0")>=0)throw encodingError("it contains NUL bytes");return text}
+;/* a tag round-trips through the file as #Word_With_Underscores, so a literal # in a label would split or truncate it and leak a stray # into the title. Strip # and collapse whitespace so what is stored is what round-trips. */const normTag=s=>String(s==null?"":s).replace(/#/g,"").replace(/\s+/g," ").trim();return{MONTHS:MONTHS,MON3:MON3,DAYS3:DAYS3,pad2:pad2,isLeap:isLeap,
 daysInMonth:daysInMonth,midnight:midnight,daysBetween:daysBetween,workDaysBetween:workDaysBetween,addWorkDays:addWorkDays,isoOf:isoOf,parseISO:parseISO,validISO:validISO,fmtLong:fmtLong,fmtShort:fmtShort,
-debounce:debounce,hash:hash,fuzzy:fuzzy,el:el,svgIcon:svgIcon,snap:snap,composing:composing,decodeUtf8:decodeUtf8}})();const E=Util.el;
+debounce:debounce,hash:hash,fuzzy:fuzzy,el:el,svgIcon:svgIcon,snap:snap,composing:composing,decodeUtf8:decodeUtf8,normTag:normTag}})();const E=Util.el;
 /* ================================================================ DB */const DB=(()=>{let db=null;let failed=false;const open=()=>new Promise(resolve=>{
 if(!CAPS.idb){failed=true;resolve(false);return}let req;try{req=indexedDB.open("runway",1)}catch(e){failed=true;resolve(false);return}req.onupgradeneeded=e=>{
 const d=e.target.result;if(!d.objectStoreNames.contains("tasks"))d.createObjectStore("tasks",{keyPath:"id"})
@@ -478,9 +479,9 @@ const post=m=>{if(!bc)return;try{bc.postMessage(Object.assign({from:me},m))}catc
 updatedAt:nowISO()},f||{});const validate=t=>{if(!t||typeof t!=="object")return null;if(typeof t.title!=="string"||!t.title.trim())return null
 ;t.title=t.title.trim();if(typeof t.id!=="string"||!/^[0-9a-z]{6}$/.test(t.id))t.id=newId();if(t.due!=null&&!Util.validISO(t.due))t.due=null
 ;if(t.due===undefined)t.due=null;t.priority=[0,1,2,3].includes(t.priority)?t.priority:0;t.done=!!t.done
-;t.tags=Array.isArray(t.tags)?[...new Set(t.tags.filter(x=>typeof x==="string"&&x.trim()))]:[]
+;t.tags=Array.isArray(t.tags)?[...new Set(t.tags.filter(x=>typeof x==="string").map(x=>Util.normTag(x)).filter(x=>x))]:[]
 ;/* reserved syntax never stays in free text: the file parser would read it back as metadata on the next load (a second due date, a forced priority). The file grammar is applied here too, so storage, entry and file agree. A title that is nothing but a token is left alone. */
-if(MD.hasReserved(t.title)){const r=MD.extractBody(t.title,SETTINGS.tagMap,{noId:true});if(r&&r.title){t.title=r.title;for(const x of r.tags)if(typeof x==="string"&&x.trim()&&!t.tags.includes(x))t.tags.push(x);if(t.due===null&&r.due)t.due=r.due;t.priority=Math.max(t.priority,r.priority)}}
+if(MD.hasReserved(t.title)){const r=MD.extractBody(t.title,SETTINGS.tagMap,{noId:true});if(r&&r.title){t.title=r.title;for(const x of r.tags){const nx=Util.normTag(x);if(nx&&!t.tags.includes(nx))t.tags.push(nx)};if(t.due===null&&r.due)t.due=r.due;t.priority=Math.max(t.priority,r.priority)}}
 if(t.done&&!Util.validISO(t.doneAt))t.doneAt=Util.isoOf(new Date);if(!t.done)t.doneAt=null;if(typeof t.note!=="string"||!t.note)t.note=null
 ;t.subtasks=Array.isArray(t.subtasks)?t.subtasks.filter(s=>s&&typeof s.text==="string"&&s.text.trim()).map(s=>{const sd=MD.hasReserved(s.text)?MD.subDue(s.text):null
 ;return{text:sd&&sd.text?sd.text:s.text,done:!!s.done,due:s.due!=null&&Util.validISO(s.due)?s.due:sd&&sd.due||null}}):[]
@@ -546,15 +547,15 @@ s=s.replace(/📅\s*([0-9]{4}-[0-9]{1,2}-[0-9]{1,2})/g,(all,g)=>{const r=normDat
 ;s=bracketFields(s,PRI_KEY,(all,g)=>{const v=g.trim().toLowerCase();if(v==="high"||v==="highest")priority=3;else if(v==="medium"||v==="med")priority=Math.max(priority,2);else if(v==="low"||v==="lowest")priority=Math.max(priority,1);return" "})
 ;s=s.replace(/(^|\s)#([^\s#]+)/g,(all,pre,t)=>{tags.push(t.replace(/_/g," "));return pre});s=s.replace(/\[([^\[\]\s:]+)\]/g,(all,k)=>{const label=tagMap[k.toLowerCase()];if(label!==undefined){tags.push(label);return" "}return all})
 ;const title=s.replace(/\s+/g," ").trim();if(!title)return null;return{title:title,tags:[...new Set(tags)],due:due,doneAt:doneAt,priority:priority,id:id,badDate:badDate}}
-;/* the body group is \S.* rather than .*\S.*: the latter backtracks quadratically on a line whose body is only whitespace */const TASK_RE=/^([-*])\s*\[( |x|X)\]\s+(\S.*)$/
+;/* the body group is \S.* rather than .*\S.*: the latter backtracks quadratically on a line whose body is only whitespace */const NL_RE=/[\u2028\u2029]/g;const TASK_RE=/^([-*])\s*\[( |x|X)\]\s+(\S.*)$/
 ;const CONT_RE=/^(?: {2,}|\t+)(.*)$/;const parse=(text,opts)=>{opts=opts||{};const tagMap=opts.tagMap||{};let hadBOM=false;if(text.charCodeAt(0)===65279){
 hadBOM=true;text=text.slice(1)}const crlf=(text.match(/\r\n/g)||[]).length;const total=(text.match(/\n/g)||[]).length;const eol=crlf>total-crlf?"\r\n":"\n"
 ;const lines=text.split(/\r\n|\n|\r/);const blocks=[];const tasks=[];const problems=[];const seenIds=new Set;let section=null;const nowISO=Model.nowISO()
 ;for(let i=0;i<lines.length;i++){const line=lines[i];const hname=line.charCodeAt(0)===35&&line.charCodeAt(1)===35&&line.length>2&&/\s/.test(line[2])?line.slice(2).trim():"";if(hname){const name=hname;if(MANAGED.has(name)){section=name
 ;blocks.push({kind:"heading",section:name,raw:line})}else{section=null;blocks.push({kind:"raw",raw:line,section:null})}continue}if(/^#{1,6}\s/.test(line)){
-section=null;blocks.push({kind:"raw",raw:line,section:null});continue}const tm=TASK_RE.exec(line);if(tm&&!/^\s/.test(line)){
+section=null;blocks.push({kind:"raw",raw:line,section:null});continue}const mline=line.replace(NL_RE," ");const tm=TASK_RE.exec(mline);if(tm&&!/^\s/.test(line)){
 const parsed=extractBody(tm[3],tagMap);if(!parsed){problems.push({line:i+1,text:line,msg:"empty title"});blocks.push({kind:"raw",raw:line,section:section})
-;continue}const rawLines=[line];const noteLines=[];const subtasks=[];while(i+1<lines.length){const cm=CONT_RE.exec(lines[i+1]);if(!cm||!cm[1].trim())break;i++
+;continue}const rawLines=[line];const noteLines=[];const subtasks=[];while(i+1<lines.length){const cm=CONT_RE.exec(lines[i+1].replace(NL_RE," "));if(!cm||!cm[1].trim())break;i++
 ;rawLines.push(lines[i]);const sm=TASK_RE.exec(cm[1].trim());if(sm){const sd=subDue(sm[3].trim())
 ;subtasks.push({text:sd.text,done:sm[2]!==" ",due:sd.due})}else noteLines.push(cm[1].trimEnd())}if(parsed.badDate)problems.push({line:i+1-rawLines.length+1,text:line,msg:"unreadable date — treated as undated"})
 ;let id=parsed.id,hadId=!!parsed.id;if(id&&(!/^[0-9a-z]{6}$/.test(id)||seenIds.has(id))){
@@ -1240,7 +1241,7 @@ const ww=[...new Set(raw.workWeek.filter(v=>Number.isInteger(v)&&v>=0&&v<=6))].s
 ;take("folderMode",v=>typeof v==="boolean");take("backupRetain",v=>Number.isInteger(v)&&v>=5&&v<=100);if(raw.urgency&&typeof raw.urgency==="object"){
 const u=raw.urgency;if([u.soon,u.near].every(Number.isInteger)&&u.soon>u.near&&u.near>0)s.urgency={calm:u.calm||u.soon,soon:u.soon,near:u.near,due:0
 };else corrupt=true}if(raw.tagMap&&typeof raw.tagMap==="object"){const tm={}
-;for(const[k,v]of Object.entries(raw.tagMap))if(/^[a-z0-9]{1,3}$/i.test(k)&&typeof v==="string"&&v.trim())tm[k.toLowerCase()]=v.trim();s.tagMap=tm}return{s:s,
+;for(const[k,v]of Object.entries(raw.tagMap))if(/^[a-z0-9]{1,3}$/i.test(k)&&typeof v==="string"&&Util.normTag(v))tm[k.toLowerCase()]=Util.normTag(v);s.tagMap=tm}return{s:s,
 corrupt:corrupt}};const load=async()=>{let raw;try{raw=await DB.metaGet("settings")}catch(e){raw=undefined}const{s:s,corrupt:corrupt}=sanitize(raw)
 ;Object.assign(SETTINGS,s);if(corrupt)setTimeout(()=>Render.showBanner("badset",{cls:"warn",closable:true,
 msg:"Some saved settings couldn't be read and were reset to defaults. Your tasks are untouched."}),0);applyTheme();applyDensity()};const set=async(key,value)=>{
@@ -1315,15 +1316,15 @@ text:count}));on(b,"click",()=>{closePanel();Persist.restoreBackup(e)});bl.appen
 ;sample.textContent=mdSample()})));md.append(sample);md.append(checkbox("Write block IDs (^id)",SETTINGS.writeBlockIds,async v=>{await set("writeBlockIds",v)
 ;sample.textContent=mdSample()}));body.append(md);const tg=E("div",{class:"set-sect"},E("h3",{text:"Tags"}));const table=E("table",{class:"tagmap-table"})
 ;const rebuildTagTable=()=>{table.textContent="";table.append(E("tr",null,E("td",{class:"hint",text:"key"}),E("td",{class:"hint",text:"label"}),E("td",null)))
-;const rows=[];const commitAll=()=>{const tm={};for(const[ki,li]of rows){const k=ki.value.trim().toLowerCase(),l=li.value.trim()
+;const rows=[];const commitAll=()=>{const tm={};for(const[ki,li]of rows){const k=ki.value.trim().toLowerCase(),l=Util.normTag(li.value)
 ;if(/^[a-z0-9]{1,3}$/.test(k)&&l)tm[k]=l}set("tagMap",tm)};const addRow=(k,v)=>{const ki=E("input",{type:"text","aria-label":"Tag key",maxlength:"3"})
 ;ki.value=k;const li=E("input",{type:"text","aria-label":"Tag label"});li.value=v;const pair=[ki,li];rows.push(pair);const rm=E("button",{
 class:"mini-btn danger",text:"✕","aria-label":"Remove tag "+(v||"row")});on(rm,"click",()=>{rows.splice(rows.indexOf(pair),1);commitAll();rebuildTagTable()})
 ;for(const inp of pair)on(inp,"change",commitAll);table.append(E("tr",null,E("td",null,ki),E("td",null,li),E("td",null,rm)))}
 ;for(const[k,v]of Object.entries(SETTINGS.tagMap))addRow(k,v)};rebuildTagTable();tg.append(table);const addWrap=E("div",{class:"set-row"})
 ;const addBtn=E("button",{class:"mini-btn",text:"+ Add tag"});on(addBtn,"click",()=>{const k=window.prompt("Short key (1–3 letters):","")
-;if(!k||!/^[a-z0-9]{1,3}$/i.test(k.trim()))return;const l=window.prompt("Tag label:","");if(!l||!l.trim())return;const tm=Util.snap(SETTINGS.tagMap)
-;tm[k.trim().toLowerCase()]=l.trim();set("tagMap",tm).then(rebuildTagTable)});addWrap.append(addBtn)
+;if(!k||!/^[a-z0-9]{1,3}$/i.test(k.trim()))return;const l=window.prompt("Tag label:","");if(!l||!Util.normTag(l))return;const tm=Util.snap(SETTINGS.tagMap)
+;tm[k.trim().toLowerCase()]=Util.normTag(l);set("tagMap",tm).then(rebuildTagTable)});addWrap.append(addBtn)
 ;tg.append(addWrap,row(null,null,"Type [key] in the title field to apply the tag. Both #Label and [key] are understood in the file."));body.append(tg)
 ;const ad=E("div",{class:"set-sect"},E("h3",{text:"Advanced"}));const deb=E("input",{type:"number",min:"100",max:"60000",step:"100",
 "aria-label":"Autosave debounce (ms)"});deb.value=SETTINGS.autosaveDebounceMs
@@ -1619,6 +1620,14 @@ const e1=EntryParse.parse("Pay invoice 📅 2026-01-01",TM);ok("entry 📅 date 
 ;const b=t(()=>MD.parse("## Open\n- [ ] t "+"[due:: ".repeat(30000)+"\n",{tagMap:TM}));const c=t(()=>MD.parse("## Title"+sp+"y\n- [ ] t ^aaaaaa\n",{tagMap:TM}));const p=MD.parse("## Open\n- [ ] x"+sp+"y\n",{tagMap:TM});const d=t(()=>rtOf(p));return a<500&&b<500&&c<500&&d<500})())
 ;ok("decodeUtf8 accepts UTF-8 (BOM kept) and refuses Latin-1, UTF-16 and NUL bytes",(()=>{const dec=Util.decodeUtf8;const okay=dec(new Uint8Array([239,187,191,35,32,84]))==="﻿# T"
 ;const refuses=bytes=>{try{dec(new Uint8Array(bytes));return false}catch(e){return e.name==="EncodingError"}};return okay&&refuses([67,97,102,233])&&refuses([255,254,35,0])&&refuses([35,0,35])})())
+;/* R11: a tag label containing # is normalised so it can never truncate or leak into the title */
+ok("tag label with # normalises and round-trips without a title leak",(()=>{const t=Model.validate({id:"cs0001",title:"job",tags:["C#"]});if(t.tags.join()!=="C")return false;const l=MD.serialise([t],{blocks:[],eol:"\n"},MS);const p=MD.parse(l,{tagMap:TM});return p.tasks[0].title==="job"&&p.tasks[0].tags.join()==="C"&&MD.serialise(p.tasks,{blocks:p.blocks,eol:p.eol},MS)===l})())
+;ok("tag labels without # (C++, spaced) round-trip unchanged",(()=>{const t=Model.validate({id:"cs0002",title:"job",tags:["C++","two words"]});const l=MD.serialise([t],{blocks:[],eol:"\n"},MS);const p=MD.parse(l,{tagMap:TM});return p.tasks[0].tags.join()==="C++,two words"&&p.tasks[0].title==="job"})())
+;ok("lead#tag label collapses to one clean tag, no stray #",(()=>{const t=Model.validate({id:"cs0003",title:"job",tags:["lead#tag"]});return t.tags.join()==="leadtag"})())
+;/* R13: a U+2028/U+2029 separator inside a line no longer makes the task or sub-task vanish */
+ok("U+2028 in a task line: parses, stays visible, id line byte-identical",(()=>{const LS=String.fromCharCode(8232);const src="## Open\n- [ ] second"+LS+"half 📅 2026-09-10 ^b2b2b2\n";const p=MD.parse(src,{tagMap:TM});return p.tasks.length===1&&p.tasks[0].title==="second half"&&p.problems.length===0&&rtOf(p)===src})())
+;ok("U+2029 in an id-less task line: parses, only the id is added",(()=>{const PS=String.fromCharCode(8233);const p=MD.parse("## Open\n- [ ] alpha"+PS+"beta\n",{tagMap:TM});return p.tasks.length===1&&p.tasks[0].title==="alpha beta"&&rtOf(p)==="## Open\n- [ ] alpha"+PS+"beta ^"+p.tasks[0].id+"\n"})())
+;ok("U+2028 in a continuation keeps the sub-task attached, byte-identical",(()=>{const LS=String.fromCharCode(8232);const src="## Open\n- [ ] Parent ^p1p1p1\n    - [ ] child"+LS+"step 📅 2026-09-01\n";const p=MD.parse(src,{tagMap:TM});return p.tasks[0].subtasks.length===1&&p.tasks[0].subtasks[0].text==="child step"&&p.tasks[0].subtasks[0].due==="2026-09-01"&&rtOf(p)===src})())
 ;return results};const runInPage=()=>{const results=run();const old=document.getElementById("testpanel");if(old)old.remove();const panel=E("div",{
 id:"testpanel",role:"log"});const passed=results.filter(r=>r.pass).length;panel.append(E("div",null,E("strong",{text:passed+" / "+results.length+" passed"})))
 ;for(const r of results)panel.append(E("div",{class:r.pass?"pass":"fail",text:(r.pass?"✓ ":"✗ ")+r.name+(r.pass||!r.detail?"":" — "+r.detail)}))
