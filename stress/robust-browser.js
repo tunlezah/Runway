@@ -95,7 +95,13 @@ const PAGE_HELPERS = `window.__rw = (() => {
     },
     async readOpfs(name) {
       const fh = await (await root()).getFileHandle(name);
-      return Array.from(new Uint8Array(await (await fh.getFile()).arrayBuffer()));
+      // The app writes atomically (temp file, then swap). A File snapshot taken just before the swap reads as
+      // NotReadableError ("permission problems that have occurred after a reference to a file was acquired"), so a
+      // poll that lands on the swap must take a fresh snapshot rather than fail the scenario.
+      for (let attempt = 0; ; attempt++) {
+        try { return Array.from(new Uint8Array(await (await fh.getFile()).arrayBuffer())); }
+        catch (e) { if (attempt < 40 && e && e.name === "NotReadableError") { await new Promise((r) => setTimeout(r, 25)); continue; } throw e; }
+      }
     },
     async writeOpfs({ name, text }) {
       const fh = await (await root()).getFileHandle(name, { create: true });
@@ -696,9 +702,18 @@ const scenarios = {
     report("S16 the current version of a shared task is kept and the new task is added", titles.includes("Report v2 final") && titles.includes("Restored task") && !titles.includes("Report v1") && file.includes("Report v2 final") && file.includes("Restored task") && !file.includes("Report v1") && bn.some((b) => b.id === "import" && /kept/.test(b.text || "")), JSON.stringify(titles) + "; banner: " + JSON.stringify(bn.filter((b) => b.id === "import").map((b) => b.text)), true);
     await blurEntry(page);
     await page.keyboard.press("Control+z");
+    // The undo commits to IndexedDB before it re-renders and marks the file dirty, so right after the keypress the
+    // indicator still reads clean from before it, and waitClean alone returns at once (CI showed the check running
+    // 6-13 ms after the previous one, with the list or the file not yet updated). Wait for the outcome itself.
+    let titles2 = [], file2 = "";
+    const t2 = Date.now();
+    while (Date.now() - t2 < 8000) {
+      titles2 = await rw.titles(page); file2 = utf8(await rw.readOpfs(page, "todo.md"));
+      if (!titles2.includes("Restored task") && !file2.includes("Restored task")) break;
+      await sleep(100);
+    }
     await waitClean(page);
-    const titles2 = await rw.titles(page);
-    const file2 = utf8(await rw.readOpfs(page, "todo.md"));
+    titles2 = await rw.titles(page); file2 = utf8(await rw.readOpfs(page, "todo.md"));
     report("S16 Ctrl+Z undoes the import", !titles2.includes("Restored task") && titles2.includes("Report v2 final") && !file2.includes("Restored task") && errors.length === 0, JSON.stringify(titles2) + (errors.length ? "; " + errors[0] : ""), true);
     await ctx.close();
   },
