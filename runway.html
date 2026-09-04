@@ -329,8 +329,67 @@ body{background:var(--surface);color:var(--fg);font:14px/1.45 var(--font-sans)}
 .sc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:var(--sp-4)}
 .sc-grid h3{font:600 11px var(--font-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--fg-muted);margin-bottom:var(--sp-1)}
 .sc-grid dl{display:grid;grid-template-columns:auto 1fr;gap:3px var(--sp-3);font-size:13px}
-.sc-grid dt{font:500 12px var(--font-mono);color:var(--fg);background:var(--surface-raised);border:1px solid var(--border);border-radius:4px;padding:0 6px;text-align:center;min-width:28px;justify-self:start}
+.sc-grid dt{font:500 12px var(--font-mono);color:var(--fg);background:var(--surface-raised);border:1px solid var(--border);border-radius:4px;padding:0 6px;text-align:center;min-width:28px;justify-self:start;align-self:start}
 .sc-grid dd{color:var(--fg-muted)}
+/* help dialog: a tabbed page inside the shortcuts box */
+.shortcuts.help{width:min(760px,calc(100vw - 32px));max-height:min(86vh,760px);padding:0;overflow:hidden;display:flex;flex-direction:column}
+.help-h{display:flex;align-items:center;gap:var(--sp-2);padding:var(--sp-3) var(--sp-4);border-bottom:1px solid var(--border);flex:none}
+.help-h h2{margin:0}
+.help-h .hv{font:400 11px var(--font-mono);color:var(--fg-muted);opacity:.65}
+.help-h .px{margin-left:auto;min-width:32px;min-height:32px;display:inline-flex;align-items:center;justify-content:center;color:var(--fg-muted);border-radius:var(--radius)}
+.help-h .px:hover{background:var(--surface-raised);color:var(--fg)}
+.help-tabs{display:flex;flex-wrap:wrap;gap:2px;padding:var(--sp-2) var(--sp-4) 0;border-bottom:1px solid var(--border);flex:none}
+.help-tabs [role="tab"]{padding:6px 10px;min-height:32px;font:500 12px var(--font-mono);color:var(--fg-muted);border-bottom:2px solid transparent;margin-bottom:-1px;border-radius:var(--radius) var(--radius) 0 0}
+.help-tabs [role="tab"]:hover{color:var(--fg);background:var(--surface-raised)}
+.help-tabs [role="tab"][aria-selected="true"]{color:var(--accent);border-bottom-color:var(--accent)}
+.help-b{flex:1;min-height:0;overflow-y:auto;padding:var(--sp-2) var(--sp-4) var(--sp-4);font-size:13px;line-height:1.5}
+.help-b h3{font:600 11px var(--font-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--fg-muted);margin:var(--sp-4) 0 var(--sp-1);padding-bottom:var(--sp-1);border-bottom:1px solid var(--border)}
+.help-b>h3:first-child{margin-top:var(--sp-2)}
+.help-b p{margin:var(--sp-2) 0}
+.help-b p.muted{color:var(--fg-muted);font-size:12px}
+.help-b code,.help-b kbd{font:500 12px var(--font-mono);color:var(--fg);background:var(--surface-raised);border:1px solid var(--border);border-radius:4px;padding:0 5px}
+.help-b kbd{border-bottom-width:2px;white-space:nowrap}
+.help-steps{margin:var(--sp-3) 0;display:grid;gap:var(--sp-3);counter-reset:step}
+.help-steps li{display:grid;grid-template-columns:24px 1fr;column-gap:var(--sp-3)}
+.help-steps li::before{counter-increment:step;content:counter(step);width:24px;height:24px;border-radius:50%;background:var(--accent);color:#fff;font:600 12px/24px var(--font-mono);text-align:center}
+.help-steps li b{display:block;font-weight:600}
+.help-steps li span{grid-column:2;color:var(--fg-muted)}
+.help-table{width:100%;border-collapse:collapse;margin:var(--sp-1) 0 var(--sp-2)}
+.help-table td{padding:6px 10px 6px 0;border-bottom:1px solid var(--border);vertical-align:top}
+.help-table td:first-child{width:1%;white-space:nowrap}
+.help-table td:first-child code{margin-right:4px}
+.help-table td:first-child b{font-weight:600}
+.help-table td:last-child{color:var(--fg-muted)}
+.help-note{margin:var(--sp-3) 0;padding:var(--sp-2) var(--sp-3);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:var(--radius);background:var(--surface-raised);font-size:12.5px}
+.help-status{display:flex;flex-wrap:wrap;align-items:center;gap:var(--sp-2) var(--sp-3);margin:var(--sp-2) 0;padding:var(--sp-2) var(--sp-3);border:1px solid var(--border);border-radius:var(--radius)}
+.help-status .dot{flex:none;width:8px;height:8px;border-radius:50%;background:var(--calm-bar)}
+.help-status.warn .dot{background:var(--dirty)}
+.help-status .txt{flex:1 1 240px}
+.help-status .help-actions{flex-basis:100%;margin:0}
+.help-actions{display:flex;flex-wrap:wrap;gap:var(--sp-2);margin:var(--sp-2) 0}
+.help-ramp{display:flex;flex-wrap:wrap;gap:6px;margin:var(--sp-2) 0}
+.help-ramp span{display:inline-flex;align-items:center;gap:6px;padding:3px 8px;border-radius:var(--radius);font:500 11px var(--font-mono)}
+.help-ramp i{width:6px;height:12px;border-radius:var(--seg-radius)}
+.help-ramp .u-calm{color:var(--calm-text);background:var(--calm-tint)}
+.help-ramp .u-calm i{background:var(--calm-bar)}
+.help-ramp .u-soon{color:var(--soon-text);background:var(--soon-tint)}
+.help-ramp .u-soon i{background:var(--soon-bar)}
+.help-ramp .u-near{color:var(--near-text);background:var(--near-tint)}
+.help-ramp .u-near i{background:var(--near-bar)}
+.help-ramp .u-due,.help-ramp .u-overdue{color:var(--due-text);background:var(--due-tint)}
+.help-ramp .u-due i,.help-ramp .u-overdue i{background:var(--due-bar)}
+.help-ramp .u-overdue{border-left:3px solid var(--due-bar)}
+.help-nextrow{display:flex;justify-content:flex-end;margin-top:var(--sp-4)}
+.help-next{padding:6px 10px;min-height:32px;border:1px solid var(--border);border-radius:var(--radius);font:500 12px var(--font-mono);color:var(--accent)}
+.help-next:hover{border-color:var(--accent);background:var(--accent-soft)}
+.help-b .sc-grid{margin-top:var(--sp-2)}
+.help-b .sc-grid h3{border:none;margin:0 0 var(--sp-1);padding:0}
+.help-b .mono-sample{font-size:11.5px;line-height:1.5}
+@media (max-width:560px){.shortcuts.help{top:0;left:0;transform:none;width:100vw;height:100%;max-height:100%;border-radius:0;border:none}
+.help-table tr{display:block;padding:5px 0;border-bottom:1px solid var(--border)}
+.help-table td{display:block;width:auto;border:none;padding:2px 0;white-space:normal}
+.help-table td:first-child code{white-space:normal;margin-bottom:2px}
+}
 /* completed section */
 .comp-group h4{font:600 11px var(--font-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--fg-muted);margin-top:var(--sp-3)}
 /* test panel */
@@ -364,6 +423,9 @@ body{background:var(--surface);color:var(--fg);font:14px/1.45 var(--font-sans)}
 to{transform:none}
 }
 [data-theme="geocities"] .toast,[data-theme="geocities"] .pop,[data-theme="geocities"] .panel,[data-theme="geocities"] .shortcuts,[data-theme="geocities"] .banner{border:2px outset #C0C0C0;border-radius:0}
+[data-theme="geocities"] .help-tabs [role="tab"],[data-theme="geocities"] .help-next{border:2px outset #C0C0C0;background:#C0C0C0;color:#000;border-radius:0;font-family:var(--font-title);margin-bottom:2px}
+[data-theme="geocities"] .help-tabs [role="tab"][aria-selected="true"]{border-style:inset;background:#000066;color:#00FFFF}
+[data-theme="geocities"] .help-steps li::before{border-radius:0;background:#00FFFF;color:#000080}
 /* reduced motion */
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms !important;transition-duration:.01ms !important;animation-iteration-count:1 !important}
 }
@@ -373,13 +435,16 @@ to{transform:none}
 <div class="app" id="app">
 <header class="hdr">
 <h1 class="app-title" id="appTitle">Runway</h1>
-<span class="app-ver" title="App version">v1.3.1</span>
+<span class="app-ver" title="App version">v1.4.0</span>
 <div class="seg-btns view-seg" id="viewSeg" role="group" aria-label="View"></div>
 <button id="fileChip" class="pill" hidden><span class="g" aria-hidden="true"></span><span class="lbl"></span></button>
 <span id="saveInd" class="save-ind" hidden><span class="dot"></span><span class="txt"></span></span>
 <button id="completedToggle" class="hdr-btn" aria-pressed="false" title="Show completed tasks"></button>
 <button id="statsBtn" class="hdr-btn" aria-label="Stats" aria-expanded="false" title="Stats">
 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20v-9M10 20V5M16 20v-6M2.5 20h19"/></svg>
+</button>
+<button id="helpBtn" class="hdr-btn" aria-label="Help" aria-expanded="false" title="Help (?)">
+<svg viewBox="0 0 24 24" aria-hidden="true" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.4 9.6a2.6 2.6 0 1 1 3.9 2.3c-.9.5-1.3 1.1-1.3 2M12 17v.01"/></svg>
 </button>
 <button id="settingsBtn" class="hdr-btn" aria-label="Settings" aria-expanded="false" title="Settings">
 <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.8v3M12 18.2v3M2.8 12h3M18.2 12h3M5.5 5.5l2.1 2.1M16.4 16.4l2.1 2.1M18.5 5.5l-2.1 2.1M7.6 16.4l-2.1 2.1"/></svg>
@@ -1015,7 +1080,7 @@ title:t.title+" — due "+Util.fmtLong(iso)},E("span",{class:"t",text:t.title}))
 ;const emptyState=(searching,totalOpen)=>{const wrap=E("div",{class:"empty"});if(searching||state.filters.size){wrap.append(E("b",{
 text:"No matches for “"+(state.query.trim()||"this filter")+"”."}),"Press Esc to clear.")}else if(Model.tasks.length===0){
 if(document.documentElement.getAttribute("data-theme")==="geocities")wrap.append(E("b",{text:"~ Welcome to my To-Do Page ~"
-}),"This page is best viewed at 800×600.");else wrap.append(E("b",{text:"Nothing here yet."}),"Type a task above and press Enter.")}else if(totalOpen===0){
+}),"This page is best viewed at 800×600.");else wrap.append(E("b",{text:"Nothing here yet."}),"Type a task above and press Enter — or open Help (the ? button) for a two-minute tour.")}else if(totalOpen===0){
 wrap.append(E("b",{text:"All clear."}),"Nothing due.")}else{wrap.append(E("b",{text:"No matches."}),"Press Esc to clear.")}return wrap}
 ;const dateChipText=(t,rec)=>t.due?Util.fmtShort(t.due,new Date)+" · "+Days.fmtRel(rec):""
 ;const lateAria=rec=>{if(!rec||!rec.overdue)return""
@@ -1266,19 +1331,52 @@ e.preventDefault();const t=Model.byId.get(sel);Actions.setPriority(sel,(t.priori
 ;const labels=Object.values(SETTINGS.tagMap);const label=labels[+e.key-1];if(label)Render.toggleFilter(label);break}case"0":e.preventDefault()
 ;Render.clearFilters();break;case"v":{e.preventDefault();const order=["list","board","cal"]
 ;Settings.set("view",order[(order.indexOf(SETTINGS.view)+1)%order.length]);break}
-case"?":e.preventDefault();Shortcuts.toggle();break;case"Escape":{const si=document.getElementById("searchInput");if(si.value){
+case"?":e.preventDefault();Help.toggle("keys");break;case"Escape":{const si=document.getElementById("searchInput");if(si.value){
 Render.setQuery("");si.value=""}else Render.select(null,false);break}}};const init=fnOverlayOpen=>{overlayOpen=fnOverlayOpen;on(window,"keydown",handler)}
-;return{init:init}})();
-/* ================================================================ Shortcuts overlay */const Shortcuts=(()=>{let open=false,elRef=null,prevFocus=null
-;const GROUPS=[["Navigate",[["j / ↓","Select next task"],["k / ↑","Select previous task"],["v","Cycle list · board · calendar"],["Esc","Close overlay · clear search · deselect"]]],["Act",[["x / Space","Toggle complete"],["e","Rename task"],["d","Edit date"],["s","Add sub-task"],[".","Snooze menu"],["!","Cycle priority"],["n","New task (focus entry)"]]],["Filter",[["/","Focus search"],["1 2 3","Toggle tag filter"],["0","Clear all filters"]]],["Entry",[["Enter","Add task"],["Shift+Enter","Add with literal date (no roll-forward)"],["Tab","Title → date field"],["+3b","Date fields: in 3 work days"],["6 9 · 2026-9-6","Date fields: day-first or year-first"]]],["System",[["Ctrl/⌘ Z","Undo"],["Ctrl/⌘ ⇧ Z","Redo"],["Ctrl/⌘ S","Save to disk"],["?","This overlay"]]]]
-;const close=()=>{if(!open)return;open=false;document.getElementById("overlayRoot").textContent="";if(prevFocus&&prevFocus.focus)prevFocus.focus()}
-;const show=()=>{if(open)return;prevFocus=document.activeElement;open=true;const root=document.getElementById("overlayRoot");const scrim=E("div",{class:"scrim"
-});on(scrim,"mousedown",close);const box=E("div",{class:"shortcuts",role:"dialog","aria-modal":"true","aria-label":"Keyboard shortcuts",tabindex:"-1"})
-;box.append(E("h2",{text:"Keyboard shortcuts"}));const grid=E("div",{class:"sc-grid"});for(const[name,rows]of GROUPS){const g=E("div",null,E("h3",{text:name}))
-;const dl=E("dl",null);for(const[k,v]of rows)dl.append(E("dt",{text:k}),E("dd",{text:v}));g.append(dl);grid.append(g)}box.append(grid)
-;const keys=Object.entries(SETTINGS.tagMap).map(([k,v])=>"["+k+"] → "+v).join("   ");box.append(E("p",{class:"count-line",
-text:"Tag keys: "+keys+" — type them in the title field."}));on(box,"keydown",e=>{if(e.key==="Escape"){e.stopPropagation();close()}});root.append(scrim,box)
-;elRef=box;box.focus()};const toggle=()=>{if(open)close();else show()};return{toggle:toggle,isOpen:()=>open,close:close}})();
+;/* the keys the switch above binds, read from its own source so the help's shortcut list can be checked against it */const boundKeys=()=>Array.from(handler.toString().matchAll(/case"([^"]+)":/g),m=>m[1])
+;return{init:init,boundKeys:boundKeys}})();
+/* ================================================================ Help (getting started · typing tasks · the list · search · shortcuts · your file). One dialog, six tabs; ? opens it on Shortcuts, the header button on the last tab viewed. The examples it shows are the data the tests parse with the real code. */const Help=(()=>{let open=false,prevFocus=null,lastTab="start",box=null,body=null,tabBtns=[]
+;const TABS=[["start","Getting started"],["entry","Typing tasks"],["list","The list"],["search","Search"],["keys","Shortcuts"],["file","Your file"]]
+;const SHORTCUTS=[["Navigate",[["j / ↓","Select next task"],["k / ↑","Select previous task"],["v","Cycle list · board · calendar"],["Esc","Close overlay · clear search · deselect"]]],["Act",[["x / Space","Toggle complete"],["e","Rename task"],["d","Edit date"],["s","Add sub-task"],[".","Snooze menu — then 1–5 picks"],["!","Cycle priority"],["n","New task (focus the entry box)"]]],["Filter",[["/","Focus search"],["1 2 3","Toggle tag filter"],["0","Clear all filters"]]],["Entry boxes",[["Enter","Add task"],["Shift+Enter","Add with the literal date (no roll-forward)"],["Tab","Title → date box"]]],["System",[["Ctrl/⌘ Z","Undo"],["Ctrl/⌘ ⇧ Z","Redo"],["Ctrl/⌘ S","Save to disk now"],["?","This help"]]]]
+;/* [what you type, what happens, what EntryParse must make of it] */const ENTRY_ROWS=[["Chase the vendor invoice","a plain task",{title:"Chase the vendor invoice"}],["Patch the jump host #Highside","tags it `Highside` — any `#tag` works; use `_` for spaces",{tags:["Highside"]}],["Email frank [d]","a tag shortcut — `[d]` becomes the tag you mapped to it",{tags:["DPN"]}],["Rotate the certs !!","priority — `!` low · `!!` medium · `!!!` high",{priority:2}],["Renew the cert 📅 2027-05-12","a `📅` date typed in the title is stored as the due date",{due:"2027-05-12"}]]
+;/* [inputs the date box accepts, meaning] */const DATE_ROWS=[[["today","tod"],"today"],[["tomorrow","tom","tmw"],"tomorrow"],[["fri","tue","monday"],"the next such weekday"],[["eow"],"end of week — your last work day in work-day mode"],[["eom"],"last day of this month"],[["+3","+3d"],"in 3 days"],[["+2w"],"in 2 weeks"],[["+1m"],"in 1 month (clamps: 31 Jan `+1m` → 28 Feb)"],[["+3b"],"in 3 work days, by your work-week setting"],[["6 9","6/9","6.9"],"6 September — this year, or next if that has already passed"],[["12 5 27"],"12 May 2027"],[["2026-9-6","2026/9/6"],"year-first is fine too"]]
+;/* [query, what it matches] — every one is an operator, not free text */const SEARCH_ROWS=[["#high","tags starting with “high”"],["!!","priority medium or higher (`!!!` = high only)"],["overdue","past due"],["today","due today"],["week","due in the next 7 days"],["due:<7d","due within 7 days (`due:>30d`: more than 30 days out)"],["due:<2026-12-01","due before a date (`>` for after)"],["is:undated","no due date"],["has:note","has a note or sub-tasks"],["is:done","search completed tasks instead — the whole history"],["-#home","exclude — prefix any token with `-`"]]
+;const SAMPLE_MD=["## Open","- [ ] Patch the jump host #Highside ⏫ 📅 2026-08-26 ^a7b2xd","    Needs change approval before the window opens.","    - [ ] raise CR 📅 2026-08-20","    - [x] schedule window","","## Reference","Prose the app never touches.","","## Completed","- [x] Replace the failing SSD #Highside ✅ 2026-08-18 ^z1x4cv"].join("\n")
+;/* inline markup for help copy: `code` and [[Key]] — text nodes everywhere else, never HTML */const inline=s=>{const out=[];const re=/`([^`]+)`|\[\[([^\]]+)\]\]/g;let pos=0,m;while(m=re.exec(s)){if(m.index>pos)out.push({t:"text",v:s.slice(pos,m.index)});out.push(m[1]!==undefined?{t:"code",v:m[1]}:{t:"kbd",v:m[2]});pos=re.lastIndex}if(pos<s.length)out.push({t:"text",v:s.slice(pos)});return out}
+;const rich=(tag,attrs,s)=>{const n=E(tag,attrs);for(const seg of inline(s))n.append(seg.t==="text"?seg.v:E(seg.t,{text:seg.v}));return n}
+;const h3=t=>E("h3",{text:t});const para=(s,cls)=>rich("p",cls?{class:cls}:null,s);const note=s=>rich("div",{class:"help-note"},s)
+;/* rows of [key(s), meaning]; keys render as code chips, or as a plain label when plain is set */const table=(rows,plain)=>{const tb=E("tbody");for(const r of rows){const td=E("td");if(plain)td.append(E("b",{text:r[0]}));else for(const x of[].concat(r[0]))td.append(E("code",{text:x}));tb.append(E("tr",null,td,rich("td",null,r[1])))}return E("table",{class:"help-table"},tb)}
+;const steps=items=>{const ol=E("ol",{class:"help-steps"});for(const[t,b]of items)ol.append(E("li",null,rich("b",null,t),rich("span",null,b)));return ol}
+;const tagKeys=()=>Object.entries(SETTINGS.tagMap).map(([k,v])=>"`["+k+"]` → "+v).join(" · ")
+;const next=id=>{const b=E("button",{class:"help-next",text:"Next: "+TABS.find(t=>t[0]===id)[1]+" →"});on(b,"click",()=>select(id,true));return E("div",{class:"help-nextrow"},b)}
+;/* where the data lives right now, with the one action that improves it */const status=()=>{const st=Persist.state();const wrap=E("div",{class:"help-status"});const btn=(label,fn)=>{const b=E("button",{class:"mini-btn",text:label});on(b,"click",()=>{close();fn()});return b};let txt,warn=true,btns=[]
+;if(st.handle){const name="`"+(st.fileName||"todo.md")+"`";if(st.permission!=="granted"){txt=name+" is connected but needs permission again before it can be written.";btns=[btn("Reconnect",()=>Persist.reconnect())]}
+else if(!st.reconciled)txt=name+" is connected but not adopted yet — answer the banner above, or wait for the file to be read. Nothing is written to it until then."
+else{warn=false;txt="Saving to "+name+". Each change is written about a second after you stop typing; the header dot turns grey once the file holds everything."}}
+else if(CAPS.fsa){txt="Tasks live only in this browser until you connect a markdown file.";btns=[btn("Choose todo.md…",()=>Persist.chooseFile()),btn("Create new…",()=>Persist.createFile())]}
+else{txt="This browser can't save straight to a file, so tasks are stored in the browser. Use Export .md and Import .md (Settings → File) to move them in and out.";btns=[btn("Export .md",()=>Persist.exportMd())]}
+if(warn)wrap.classList.add("warn");wrap.append(E("span",{class:"dot","aria-hidden":"true"}),rich("span",{class:"txt"},txt));if(btns.length){const row=E("div",{class:"help-actions"});for(const b of btns)row.append(b);wrap.append(row)}return wrap}
+;const ramp=()=>{const u=SETTINGS.urgency;const r=E("div",{class:"help-ramp"});for(const[k,l]of[["calm","calm · more than "+u.soon+" days out"],["soon","soon · within "+u.soon+" days"],["near","near · within "+u.near+" days"],["due",u.due>0?"due · within "+u.due+" days":"due · today"],["overdue","overdue"]])r.append(E("span",{class:"u-"+k},E("i",{"aria-hidden":"true"}),l));return r}
+;const keysGrid=()=>{const grid=E("div",{class:"sc-grid"});for(const[name,rows]of SHORTCUTS){const dl=E("dl");for(const[k,v]of rows)dl.append(E("dt",{text:k}),E("dd",{text:v}));grid.append(E("div",null,E("h3",{text:name}),dl))}return grid}
+;const BUILD={start:()=>[status(),steps([["Type a task and press [[Enter]].","In the “What needs doing?” box. Put `#tags` and `!!` priority straight in the text — chips under the box show what was understood."],["Give it a date.","Type in the “When?” box first: `fri`, `+3`, `eom`, `12 5`… The line beneath shows the exact date before you commit. [[Tab]] jumps from title to date."],["Connect your todo.md.","Click ⊕ Choose todo.md in the header (or Settings → File) and pick or create a markdown file. From then on every change autosaves to it — and you can edit that file in Obsidian, vim or Notepad whenever you like."],["Work the list.","Tick a box to complete, hover a row for actions, drag cards on the board to reschedule. [[Ctrl/⌘ Z]] undoes anything; [[?]] lists every key."]]),note("Pin the tab. Its title carries a live count of overdue and due-today items, e.g. “(3) Runway”."),note("Nothing leaves your machine. The page makes no network requests at all; your tasks are the markdown file plus a mirror in this browser's storage."),next("entry")],
+entry:()=>[h3("In the title box"),table(ENTRY_ROWS),para("Your tag shortcuts: "+tagKeys()+" — change them in Settings → Tags. Paste several lines at once and Runway offers to add them as one task per line.","muted"),h3("In the date box"),table(DATE_ROWS),para("Dates typed without a year roll forward: “12 5” after 12 May means next May, and the preview says so. [[Shift+Enter]] keeps the literal date, and Settings → Dates can turn rolling off. Impossible dates are refused with a reason — “31 April doesn't exist” — never silently corrected.","muted"),note("Work days: Settings → Dates can count gaps in work days with your own work week. Chips then read “in 3 wd”, “Tomorrow” becomes “Next work day”, and urgency colours ignore your days off. `+3b` counts work days in either mode."),next("list")],
+list:()=>[h3("Reading it"),para("Open tasks are grouped into Overdue · Today · Tomorrow · This week · Later · No date. Each row carries a four-segment gauge and a colour that ramps as the deadline approaches:"),ramp(),para("Thresholds are yours to change in Settings → Urgency. If a sub-task is due earlier than its task, the earlier date drives the colour and the `2/5` counter turns coloured to say so. The runway timeline above the list shows the next four weeks as columns of dots, one per task, with a “late” column on the left — click a dot to jump to its task.","muted"),h3("Row actions"),table([["Complete","tick the box, or [[x]] / [[Space]]. A toast offers Undo for a few seconds; completed tasks move to the file's `## Completed` section with the date."],["Rename","click the title, or [[e]]"],["Edit date","click the date chip, or [[d]] — the editor speaks the same date language as the entry row"],["Snooze","[[.]] opens a one-keystroke menu: tomorrow · +3 days · next week · next month · remove date (work-day variants in work-day mode). [[1]]–[[5]] picks."],["Priority","[[!]] cycles none → `!` → `!!` → `!!!`"],["Sub-tasks & notes","[[s]] adds a sub-task. A task can carry note lines and a checklist whose items have their own due dates and can be reordered, renamed and deleted. They stay collapsed behind the `2/5` counter until you expand them."],["Delete","the bin icon; a toast offers Undo"]],true),h3("Views"),table([["List","the default — everything above"],["Board","columns for Overdue / Today / Tomorrow / This week / Later / No date. Drag a card to a column to reschedule it: “Tomorrow” sets tomorrow's date, “No date” clears it."],["Calendar","a month grid with tasks as chips (three per day, “+N more” expands). Click a chip for actions; click a day number to start a new task on that day."]],true),para("Cycle views with [[v]] or the switcher in the header.","muted"),h3("Completed history and stats"),para("“✓ N this week” in the header reveals recently completed tasks grouped by day (window in Settings; reopen anything with its checkbox). Search `is:done` for the whole history. The bar-chart button opens stats: completions today and this week, an eight-week throughput chart, a 14-day forecast of what's due, and list health — overdue, stale and undated counts."),note("Undo and redo cover everything: [[Ctrl/⌘ Z]] and [[Ctrl/⌘ ⇧ Z]], with a journal of your last 500 actions that survives reloads."),next("search")],
+search:()=>[para("Press [[/]] and type. Free text matches fuzzily against title, tags and notes. These operators narrow further — combine them freely, and prefix any token with `-` to exclude it."),table(SEARCH_ROWS),para("The tag chips in the filter row toggle with [[1]] [[2]] [[3]] ([[0]] clears them). While the list is narrowed the count reads “showing N of M”. [[Esc]] clears the search.","muted"),next("keys")],
+keys:()=>[keysGrid(),para("Row keys act on the task selected with [[j]]/[[k]] (or the one under the pointer). Tag keys: "+tagKeys()+" — type them in the title box.","muted"),next("file")],
+file:()=>[h3("What todo.md looks like"),E("pre",{class:"mono-sample",text:SAMPLE_MD}),para("Runway manages three sections — `## Open`, `## No date` and `## Completed` — and moves tasks between them as you date or complete them. Everything else in the file (headings, prose, notes to yourself) is preserved byte for byte, and unchanged tasks are written back identical. The trailing `^id` is how the app tracks a task across edits and file syncs: leave it alone when hand-editing; everything else on the line is fair game. Metadata style — `📅` emoji or `[due:: …]` brackets — is a setting; both are always understood when reading.","muted"),h3("Saving"),para("Autosave writes the whole file about a second after each change (Settings → File sets the delay). The header dot reads the state: grey saved · amber writing or unsaved · red a save failed, with a Retry chip. [[Ctrl/⌘ S]] saves now. A mirror in this browser's storage is updated on every change before the file write, so a crash or a failed save loses nothing — the app replays it next launch."),h3("Editing by hand"),para("Edit the file in Obsidian, vim or Notepad — even while the app is open. Runway checks the file when you return to the tab: if only the file changed it reloads and tells you; if both sides changed you get a line-by-line diff and an explicit choice. Nothing is merged or overwritten silently. Lines it can't read (an impossible date, say) are flagged in a banner, treated as undated and kept exactly as written."),h3("Backups, export and sync"),para("Folder mode (Settings → File, Chromium only) keeps `todo.md` plus timestamped backups after every save, with a restore list built into Settings. Export .md / Import .md work in every browser, and an import never reverts a task you already have. To sync machines, put `todo.md` in Dropbox, Syncthing or git and point each machine's Runway at it — one open tab per machine is the safe habit; the conflict check turns simultaneous edits into a visible choice, never silent loss."),note("Wipe local data (Settings → Advanced) clears only this browser's copy, settings and undo history. The markdown file on disk is never touched by a wipe."),para("Stuck? Add `#test` to the page URL to run the built-in self-test panel; a clean pass rules out the app's own logic. Every banner the app can show says what to do next.","muted")]}
+;const select=(id,focusTab)=>{if(!BUILD[id])id="start";lastTab=id;for(const b of tabBtns){const sel=b.dataset.tab===id;b.setAttribute("aria-selected",sel?"true":"false");b.tabIndex=sel?0:-1;if(sel&&focusTab)b.focus()}
+body.textContent="";body.id="helpPanel-"+id;body.setAttribute("aria-labelledby","helpTab-"+id);for(const n of BUILD[id]())body.append(n);body.scrollTop=0}
+;const close=()=>{if(!open)return;open=false;box=null;body=null;tabBtns=[];document.getElementById("overlayRoot").textContent="";const hb=document.getElementById("helpBtn");if(hb)hb.setAttribute("aria-expanded","false");if(prevFocus&&prevFocus.focus)prevFocus.focus()}
+;const show=tab=>{if(open){if(tab)select(tab,true);return}prevFocus=document.activeElement;open=true;const root=document.getElementById("overlayRoot");root.textContent="";const scrim=E("div",{class:"scrim"});on(scrim,"mousedown",close)
+;box=E("div",{class:"shortcuts help",role:"dialog","aria-modal":"true","aria-label":"Help"});const ver=document.querySelector(".app-ver");const head=E("div",{class:"help-h"},E("h2",{text:"Help"}),E("span",{class:"hv",text:ver?ver.textContent:""}))
+;const x=E("button",{class:"px","aria-label":"Close help",text:"✕"});on(x,"click",close);head.append(x);const tabs=E("div",{class:"help-tabs",role:"tablist","aria-label":"Help sections"})
+;tabBtns=TABS.map(([id,label])=>{const b=E("button",{role:"tab",id:"helpTab-"+id,"aria-selected":"false","aria-controls":"helpPanel-"+id,dataset:{tab:id},text:label});on(b,"click",()=>select(id,false));tabs.append(b);return b})
+;on(tabs,"keydown",e=>{const i=tabBtns.indexOf(document.activeElement);if(i<0)return;const n=tabBtns.length;let j=null;if(e.key==="ArrowRight")j=(i+1)%n;else if(e.key==="ArrowLeft")j=(i+n-1)%n;else if(e.key==="Home")j=0;else if(e.key==="End")j=n-1;if(j===null)return;e.preventDefault();select(tabBtns[j].dataset.tab,true)})
+;body=E("div",{class:"help-b",role:"tabpanel",tabindex:"0"});box.append(head,tabs,body);on(box,"keydown",e=>{if(e.key==="Escape"){e.stopPropagation();close();return}if(e.key!=="Tab")return
+;const f=box.querySelectorAll("button:not([disabled]):not([tabindex='-1']),[tabindex='0']");if(!f.length)return;const first=f[0],last=f[f.length-1]
+;if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus()}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus()}})
+;root.append(scrim,box);const hb=document.getElementById("helpBtn");if(hb)hb.setAttribute("aria-expanded","true");select(tab||lastTab,true)}
+;const toggle=tab=>{if(open)close();else show(tab)};return{toggle:toggle,show:show,close:close,isOpen:()=>open,TABS:TABS,SHORTCUTS:SHORTCUTS,ENTRY_ROWS:ENTRY_ROWS,DATE_ROWS:DATE_ROWS,SEARCH_ROWS:SEARCH_ROWS,inline:inline}})();
 /* ================================================================ Settings */const Settings=(()=>{let panelOpen=false,prevFocus=null
 ;const $=id=>document.getElementById(id);const persist=async()=>{try{await DB.metaPut("settings",Util.snap(SETTINGS));Sync.post({type:"settings"})}catch(e){}};const applyTheme=()=>{
 const root=document.documentElement;if(SETTINGS.theme==="system")root.removeAttribute("data-theme");else root.setAttribute("data-theme",SETTINGS.theme)
@@ -1451,14 +1549,14 @@ msg:quota?"Browser storage is full ("+Model.tasks.length+" tasks stored). Archiv
 ;if(Persist.state().dirty&&Persist.state().handle&&!window.confirm("Some changes haven't reached "+(p.fileName||"todo.md")+" yet and would be lost. Wipe anyway?"))return;try{await DB.clear("tasks");await DB.clear("journal");await DB.clear("meta")}catch(e){}Model.tasks.length=0;Model.byId.clear();Undo.reset()
 ;Object.assign(SETTINGS,defaultSettings());Settings.applyTheme();Settings.applyDensity();await Persist.disconnect();Settings.closePanel();Render.render()
 ;Render.showBanner("wiped",{cls:"warn",closable:true,msg:"Local data wiped. The markdown file on disk was not touched."})}
-;const overlayOpen=()=>Settings.isOpen()||Shortcuts.isOpen()||Stats.isOpen()||!!document.querySelector("#overlayRoot .shortcuts[aria-label='Confirm paste']")
+;const overlayOpen=()=>Settings.isOpen()||Help.isOpen()||Stats.isOpen()||!!document.querySelector("#overlayRoot .shortcuts[aria-label='Confirm paste']")
 ;const boot=async()=>{const dbOk=await DB.open();await Settings.load();await Model.load();await Undo.load();Render.init();Entry.init();Keys.init(overlayOpen)
 ;Render.render();/* errors surface as a banner instead of a silent blank */let surfacing=false;const surface=(what,err)=>{if(surfacing)return;surfacing=true;try{const m=err&&(err.message||typeof err==="string"&&err)||"unknown error";console.error(APP_NAME+":",what,err)
 ;Render.showBanner("jserr",{cls:"alert",closable:true,msg:"Something went wrong ("+what+": "+m+"). Your tasks are safe in this browser — if the list stops updating, reload the page.",actions:[{label:"Reload",fn:()=>location.reload()}]})}catch(e){}surfacing=false}
 ;on(window,"error",e=>surface("error",e&&e.error||e&&e.message));on(window,"unhandledrejection",e=>surface("unhandled promise",e&&e.reason))
 ;/* other tabs on this origin: refresh from the shared store when they commit or change settings */let syncTimer=null;const applySync=async()=>{if(Render.isEditing()){clearTimeout(syncTimer);syncTimer=setTimeout(applySync,800);return}await Model.load();Render.render()}
 ;Sync.onMessage(m=>{if(!m)return;if(m.type==="tasks")applySync();else if(m.type==="settings")Settings.load().then(()=>Render.render())});on(document.getElementById("settingsBtn"),"click",()=>{if(Settings.isOpen())Settings.closePanel();else Settings.openPanel()})
-;on(document.getElementById("statsBtn"),"click",()=>{if(Stats.isOpen())Stats.closePanel();else Stats.openPanel()})
+;on(document.getElementById("statsBtn"),"click",()=>{if(Stats.isOpen())Stats.closePanel();else Stats.openPanel()});on(document.getElementById("helpBtn"),"click",()=>Help.toggle())
 ;on(document.getElementById("completedToggle"),"click",Render.toggleCompleted);const si=document.getElementById("searchInput")
 ;on(si,"input",Util.debounce(()=>Render.setQuery(si.value),100));on(si,"keydown",e=>{if(e.key==="Escape"){si.value="";Render.setQuery("");si.blur()}})
 ;on(document.getElementById("searchClear"),"click",()=>{si.value="";Render.setQuery("");si.focus()});if(!dbOk){Persist.setTier(3);Render.showBanner("tier3",{
@@ -1731,6 +1829,14 @@ ok("md unreadable date tokens survive an in-app edit (B5)",(()=>{const cases=[["
 ;const kept=[];const merged=Model.mergeParsed([Model.validate({id:"m3m3m1",title:"Report v1"}),Model.validate({id:"m3m3m2",title:"Restored task"})],true,{currentWins:true,kept:kept});const byId=new Map(merged.map(t=>[t.id,t]))
 ;const reload=Model.mergeParsed([Model.validate({id:"m3m3m1",title:"Report v1"})],false)
 ;return merged.length===2&&byId.get("m3m3m1").title==="Report v2 final"&&byId.get("m3m3m2").title==="Restored task"&&kept.length===1&&kept[0].title==="Report v1"&&reload.length===1&&reload[0].title==="Report v1"&&reload[0].createdAt==="2026-09-01T00:00:00.000Z"}finally{Model.tasks.length=0;Model.byId.clear();for(const t of saved){Model.tasks.push(t);Model.byId.set(t.id,t)}}})())
+;/* help: its examples are parsed by the real code, and every key the handler binds is listed */
+ok("help: tabs are distinct and labelled",(()=>{const ids=Help.TABS.map(t=>t[0]);return ids.length===new Set(ids).size&&Help.TABS.every(t=>t[1].length>0)})())
+;{const bad=[];for(const[ins]of Help.DATE_ROWS)for(const s of ins)if(DateParse.parse(s,{today:REF()}).kind!=="date")bad.push(s);ok("help: every date example is valid date language",bad.length===0,bad.join(", "))}
+;{const bad=[];for(const[q]of Help.SEARCH_ROWS){const p=Filter.parseQuery(q);if(p.clauses.length!==1||p.free.length)bad.push(q)}ok("help: every search example is an operator the filter understands",bad.length===0,bad.join(", "))}
+;{const bad=[];for(const[typed,,want]of Help.ENTRY_ROWS){const e=EntryParse.parse(typed,TM);for(const k of Object.keys(want)){const got=k==="tags"?e.tags.join():e[k],w=k==="tags"?want.tags.join():want[k];if(got!==w)bad.push(typed+" → "+k+"="+JSON.stringify(got))}}ok("help: entry examples parse as the help says",bad.length===0,bad.join("; "))}
+;{const SYM={ArrowDown:"↓",ArrowUp:"↑"," ":"Space",Escape:"Esc"};const listed=new Set;for(const[,rows]of Help.SHORTCUTS)for(const[k]of rows)for(const part of k.split(/\s+\/\s+|\s+/))listed.add(part)
+;const bound=Keys.boundKeys();const missing=bound.map(k=>SYM[k]||k).filter(k=>!listed.has(k));ok("help: every key the handler binds is in the shortcuts tab",missing.length===0&&bound.length>=15,missing.length?"missing "+missing.join(", "):"bound "+bound.length)}
+;ok("help: inline markup splits code and key tokens",JSON.stringify(Help.inline("Press [[Enter]] to add `#tags`."))===JSON.stringify([{t:"text",v:"Press "},{t:"kbd",v:"Enter"},{t:"text",v:" to add "},{t:"code",v:"#tags"},{t:"text",v:"."}]))
 ;await asyncTests(ok);return results};const runInPage=async()=>{const results=await run();const old=document.getElementById("testpanel");if(old)old.remove();const panel=E("div",{
 id:"testpanel",role:"log"});const passed=results.filter(r=>r.pass).length;panel.append(E("div",null,E("strong",{text:passed+" / "+results.length+" passed"})))
 ;for(const r of results)panel.append(E("div",{class:r.pass?"pass":"fail",text:(r.pass?"✓ ":"✗ ")+r.name+(r.pass||!r.detail?"":" — "+r.detail)}))

@@ -15,7 +15,7 @@
      S6  non-UTF-8 file           a Latin-1 todo.md connected and then saved
      S7  settings import          hostile / non-object JSON through the real import control
      S8  scripted session         add, complete, undo/redo, snooze, views, drag, search, panels,
-                                  export, #test — expecting zero page errors
+                                  help tabs, export, #test — expecting zero page errors
      S9  storage failure          IndexedDB blocked at boot; a put() that throws quota errors
      S10 unload with autosave pending
      S11 external edit            reload when clean, conflict when dirty
@@ -95,7 +95,13 @@ const PAGE_HELPERS = `window.__rw = (() => {
     },
     async readOpfs(name) {
       const fh = await (await root()).getFileHandle(name);
-      return Array.from(new Uint8Array(await (await fh.getFile()).arrayBuffer()));
+      // The app writes atomically (temp file, then swap). A File snapshot taken just before the swap reads as
+      // NotReadableError ("permission problems that have occurred after a reference to a file was acquired"), so a
+      // poll that lands on the swap must take a fresh snapshot rather than fail the scenario.
+      for (let attempt = 0; ; attempt++) {
+        try { return Array.from(new Uint8Array(await (await fh.getFile()).arrayBuffer())); }
+        catch (e) { if (attempt < 40 && e && e.name === "NotReadableError") { await new Promise((r) => setTimeout(r, 25)); continue; } throw e; }
+      }
     },
     async writeOpfs({ name, text }) {
       const fh = await (await root()).getFileHandle(name, { create: true });
@@ -446,6 +452,9 @@ const scenarios = {
     await page.click('.panel .seg-btns button:has-text("Bracket")');
     await page.keyboard.press("Escape");
     await page.keyboard.press("?"); await page.waitForSelector(".shortcuts"); await page.keyboard.press("Escape");
+    await page.click("#helpBtn"); await page.waitForSelector(".shortcuts.help"); // every help tab, by click and by arrow key
+    for (const tab of ["entry", "list", "search", "keys", "file", "start"]) await page.click(`.help-tabs [data-tab="${tab}"]`);
+    await page.keyboard.press("ArrowRight"); await page.keyboard.press("Home"); await page.click(".help-next"); await page.keyboard.press("Escape");
     await page.click("#completedToggle");
     const dl = page.waitForEvent("download", { timeout: 4000 }).catch(() => null);
     await page.keyboard.press("Control+s");
@@ -455,7 +464,7 @@ const scenarios = {
     await page.goto(base + "#test", { waitUntil: "domcontentloaded" });
     await page.waitForSelector("#testpanel strong", { timeout: 60000 });
     const testLine = await page.textContent("#testpanel strong");
-    report("S8a no page errors across the scripted session", errors.length === 0, errors.length ? errors.slice(0, 3).join(" | ") : "add/complete/undo/redo/snooze/priority/sub-task/board drag/calendar/search/stats/settings/shortcuts/completed/export", true);
+    report("S8a no page errors across the scripted session", errors.length === 0, errors.length ? errors.slice(0, 3).join(" | ") : "add/complete/undo/redo/snooze/priority/sub-task/board drag/calendar/search/stats/settings/shortcuts/help tabs/completed/export", true);
     report("S8b the file reflects the session and keeps the seeded line verbatim", file.includes("a sub-task") && file.includes("Plain task") && file.includes("Dated +2w task") && file.includes("- [ ] Seeded task 📅 2030-01-01 ^s33d01"), file.split("\n").slice(0, 12).join(" ⏎ ").slice(0, 300), true);
     report("S8c a 📅 date typed into a title is stored as the due date, not left as title text", /Typed with a date inside (📅 |\[due:: )2030-06-06/.test(file) && !/Typed with a date inside 📅 2030-06-06 📅/.test(file), (file.split("\n").find((l) => l.includes("Typed with a date")) || "line not found"), true);
     report("S8d Ctrl+S with a connected file writes the file (no download)", download === null, download ? "a download was triggered instead" : "", false);
@@ -693,9 +702,18 @@ const scenarios = {
     report("S16 the current version of a shared task is kept and the new task is added", titles.includes("Report v2 final") && titles.includes("Restored task") && !titles.includes("Report v1") && file.includes("Report v2 final") && file.includes("Restored task") && !file.includes("Report v1") && bn.some((b) => b.id === "import" && /kept/.test(b.text || "")), JSON.stringify(titles) + "; banner: " + JSON.stringify(bn.filter((b) => b.id === "import").map((b) => b.text)), true);
     await blurEntry(page);
     await page.keyboard.press("Control+z");
+    // The undo commits to IndexedDB before it re-renders and marks the file dirty, so right after the keypress the
+    // indicator still reads clean from before it, and waitClean alone returns at once (CI showed the check running
+    // 6-13 ms after the previous one, with the list or the file not yet updated). Wait for the outcome itself.
+    let titles2 = [], file2 = "";
+    const t2 = Date.now();
+    while (Date.now() - t2 < 8000) {
+      titles2 = await rw.titles(page); file2 = utf8(await rw.readOpfs(page, "todo.md"));
+      if (!titles2.includes("Restored task") && !file2.includes("Restored task")) break;
+      await sleep(100);
+    }
     await waitClean(page);
-    const titles2 = await rw.titles(page);
-    const file2 = utf8(await rw.readOpfs(page, "todo.md"));
+    titles2 = await rw.titles(page); file2 = utf8(await rw.readOpfs(page, "todo.md"));
     report("S16 Ctrl+Z undoes the import", !titles2.includes("Restored task") && titles2.includes("Report v2 final") && !file2.includes("Restored task") && errors.length === 0, JSON.stringify(titles2) + (errors.length ? "; " + errors[0] : ""), true);
     await ctx.close();
   },
