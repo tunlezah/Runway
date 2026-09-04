@@ -21,11 +21,19 @@
      S11 external edit            reload when clean, conflict when dirty
      S12 undo after a reload      undo of a pre-reload action against an externally edited task
      S13 malformed stored id      a record whose id is not in the app's format, then an edit
+     S14 first-connect banner     a task typed / Ctrl+S / tab hidden while the banner asks what to keep,
+                                  and a first read that fails: nothing may be written (audit B1)
+     S15 write in flight          a change committed while an autosave is writing stays marked unsaved
+                                  and reaches the file, also across a reload (audit B2)
+     S16 import of an old export  a task the app already has is not reverted; the import is undoable (B3)
+     S17 Firefox/Safari export    the imported file's headings and prose survive a reload (audit B4)
 
    The checks assert the intended behaviour, so a scenario that reports a FINDING on one
    version and behaves on the next is a fix landing.
 
-   Usage: node stress/robust-browser.js [--only S2,S8] [--out results.json]
+   Usage: node stress/robust-browser.js [--only S2,S8] [--out results.json] [--fail-on-new]
+   --fail-on-new exits 1 on any harness error or on a finding outside the documented open Lows
+   (S4, S5, S7b, S13 — report findings R8, R9, R12, R4), so CI fails only on new regressions.
    Symbols: ✓ behaved · ⚠ FINDING defect demonstrated · ✗ harness error
 */
 "use strict";
@@ -39,6 +47,8 @@ try { pw = require("playwright"); } catch { pw = require("/opt/node22/lib/node_m
 const arg = (name, def) => { const i = process.argv.indexOf(name); return i >= 0 ? process.argv[i + 1] : def; };
 const ONLY = (arg("--only", "") || "").split(",").filter(Boolean);
 const OUT = arg("--out", null);
+const FAIL_ON_NEW = process.argv.includes("--fail-on-new");
+const KNOWN_OPEN = /^S(4|5|7b|13) /; // documented, not yet fixed Low findings (docs/robustness-check-report.md R8, R9, R12, R4)
 const HTML = fs.readFileSync(path.join(__dirname, "..", "runway.html"));
 
 const results = { meta: { date: new Date().toISOString() }, checks: [] };
@@ -570,6 +580,155 @@ const scenarios = {
     report("S13 repairing a malformed id does not leave a second copy behind", t2.length === 1 && idb1.length === 1, "before: " + JSON.stringify(t1) + "; IndexedDB after the rename: " + idb1.map((t) => t.id + ":" + t.title).join(", ") + "; after a reload the list shows " + JSON.stringify(t2), true);
     await ctx.close();
   },
+  async S14(browser, base) {
+    console.log("\nS14 first-connect banner: nothing is written until the user chooses (audit B1)");
+    const PROSE = "# My list\n\nSome prose to keep, forever.\n\n## Open\n- [ ] File task 📅 2030-03-03 ^f00001\n\n## Reference\nImportant notes here.\n";
+    const hide = (page) => page.evaluate(() => { Object.defineProperty(document, "visibilityState", { value: "hidden", configurable: true }); document.dispatchEvent(new Event("visibilitychange")); });
+    for (const variant of ["a task is typed", "Ctrl+S is pressed", "the tab is hidden"]) {
+      const ctx = await browser.newContext();
+      const { page, errors } = await openApp(ctx, base);
+      await rw.seed(page, { tasks: [task("br0001", "Browser task", { due: "2030-01-01" })], meta: [{ k: "dirtyFlag", v: true }] });
+      await rw.connectOpfs(page, { name: "todo.md", bytes: bytesOf(PROSE) });
+      await reload(page);
+      const bn = await waitBanner(page, "conflict", 8000);
+      if (!bn.some((b) => b.id === "conflict")) { report("S14 " + variant + ": the first-connect banner appears", false, JSON.stringify(bn), false); await ctx.close(); continue; }
+      if (variant === "a task is typed") await addTask(page, "Typed during banner", "2030-05-05");
+      else if (variant === "Ctrl+S is pressed") await page.keyboard.press("Control+s");
+      else await hide(page);
+      await sleep(2500);
+      const file = utf8(await rw.readOpfs(page, "todo.md"));
+      const ind = await rw.saveState(page);
+      report("S14 while the banner is up and " + variant + ", todo.md is untouched", file === PROSE && errors.length === 0, (file === PROSE ? "byte-identical" : "rewritten to: " + JSON.stringify(file.slice(0, 140))) + "; indicator: " + ind, true);
+      if (variant === "the tab is hidden") {
+        await page.click('#banners .banner[data-bid="conflict"] button:has-text("Use the file")');
+        await waitClean(page);
+        const titles = await rw.titles(page);
+        const file2 = utf8(await rw.readOpfs(page, "todo.md"));
+        report("S14 'Use the file' then loads the intact file", titles.includes("File task") && !titles.includes("Browser task") && file2 === PROSE, JSON.stringify(titles), true);
+      }
+      await ctx.close();
+    }
+    const ctx = await browser.newContext();
+    const { page, errors } = await openApp(ctx, base);
+    await rw.seed(page, { tasks: [task("br0001", "Browser task", { due: "2030-01-01" })], meta: [{ k: "dirtyFlag", v: true }] });
+    await rw.connectOpfs(page, { name: "todo.md", bytes: bytesOf(PROSE) });
+    await page.addInitScript(`(()=>{const P=FileSystemFileHandle.prototype;const og=P.getFile;P.getFile=async function(...a){if(!window.__readOk)throw new DOMException("simulated transient read failure","NotReadableError");return og.apply(this,a)}})();`);
+    await reload(page);
+    await sleep(1200);
+    const bn2 = await rw.banners(page);
+    const chip = await page.evaluate(() => { const c = document.getElementById("fileChip"); return c.hidden ? null : c.querySelector(".lbl").textContent; });
+    await page.evaluate(() => { window.__readOk = true; });
+    await addTask(page, "Typed after read error", "2030-06-06");
+    await sleep(2500);
+    const fileA = utf8(await rw.readOpfs(page, "todo.md"));
+    const retry = await page.$('#banners .banner button:has-text("Try again")');
+    if (retry) await retry.click();
+    await sleep(1500);
+    const fileB = utf8(await rw.readOpfs(page, "todo.md"));
+    const bn3 = await rw.banners(page);
+    report("S14 a failed first read is reported as a read failure and nothing is written, before or after Try again", bn2.some((b) => /Couldn't read/.test(b.text || "")) && chip === "file not read" && fileA === PROSE && fileB === PROSE && bn3.some((b) => b.id === "conflict") && errors.length === 0, "banner: " + JSON.stringify(bn2.map((b) => b.text && b.text.slice(0, 70))) + "; chip: " + chip + "; file intact: " + (fileA === PROSE && fileB === PROSE) + "; after retry: " + JSON.stringify(bn3.map((b) => b.id)), true);
+    await ctx.close();
+  },
+
+  async S15(browser, base) {
+    console.log("\nS15 a change committed while an autosave is writing (audit B2)");
+    const ctx = await browser.newContext();
+    const { page, errors } = await openApp(ctx, base, { init: `(()=>{const P=FileSystemFileHandle.prototype;const orig=P.createWritable;P.createWritable=async function(...a){const w=await orig.apply(this,a);const oc=w.close.bind(w);w.close=async()=>{if(window.__closeDelay)await new Promise(r=>setTimeout(r,window.__closeDelay));return oc()};return w}})();` });
+    await rw.seed(page, { meta: [{ k: "settings", v: { schemaVersion: 1, autosaveDebounceMs: 3000 } }] });
+    await rw.connectOpfs(page, { name: "todo.md", bytes: bytesOf(FILE(["- [ ] Base ^b00001"])) });
+    await reload(page);
+    await waitClean(page);
+    await page.evaluate(() => { window.__closeDelay = 2500; });
+    await addTask(page, "Task A", "2030-01-01");
+    await sleep(3600); // the write is in flight, parked in close()
+    const during = await rw.saveState(page);
+    await addTask(page, "Task B", "2030-01-02");
+    let lied = false;
+    const t0 = Date.now();
+    while (Date.now() - t0 < 6000) {
+      const f = utf8(await rw.readOpfs(page, "todo.md"));
+      const st = await rw.saveState(page);
+      if (f.includes("Task A")) { if (st === "clean" && !f.includes("Task B")) lied = true; break; }
+      await sleep(50);
+    }
+    await waitClean(page, 10000);
+    const file2 = utf8(await rw.readOpfs(page, "todo.md"));
+    report("S15 the indicator never reads clean while a committed task is missing from the file", during === "saving" && !lied && file2.includes("Task A") && file2.includes("Task B"), "state during the write: " + during + "; claimed clean with B missing: " + lied + "; final file has A: " + file2.includes("Task A") + ", B: " + file2.includes("Task B"), true);
+    await page.evaluate(() => { window.__closeDelay = 2500; });
+    await addTask(page, "Task C", "2030-01-03");
+    await sleep(3600);
+    await addTask(page, "Task D", "2030-01-04");
+    const t1 = Date.now();
+    while (Date.now() - t1 < 6000) { if (utf8(await rw.readOpfs(page, "todo.md")).includes("Task C")) break; await sleep(50); }
+    const meta = await rw.idbAll(page, "meta");
+    const dirtyFlag = (meta.find((m) => m.k === "dirtyFlag") || {}).v;
+    await reload(page); // like closing the tab before the follow-up write: the in-flight change must be replayed at boot
+    await waitClean(page, 10000);
+    await sleep(500);
+    const file3 = utf8(await rw.readOpfs(page, "todo.md"));
+    report("S15 a reload right after the write still carries the in-flight change to the file", dirtyFlag === true && file3.includes("Task D") && errors.length === 0, "dirtyFlag after the write: " + dirtyFlag + "; file has D after the reload: " + file3.includes("Task D") + (errors.length ? "; " + errors[0] : ""), true);
+    await ctx.close();
+  },
+
+  async S16(browser, base) {
+    console.log("\nS16 import of an older export into a connected file (audit B3)");
+    const ctx = await browser.newContext();
+    const { page, errors } = await openApp(ctx, base);
+    await rw.connectOpfs(page, { name: "todo.md", bytes: bytesOf(FILE(["- [ ] Report v1 ^r00001"])) });
+    await reload(page);
+    await waitClean(page);
+    await page.click('#listRoot .task[data-id="r00001"] .title');
+    await page.fill("#listRoot .title-edit", "Report v2 final");
+    await page.press("#listRoot .title-edit", "Enter");
+    await waitClean(page);
+    await page.click("#settingsBtn");
+    await page.waitForSelector('input[type=file][accept=".md,.markdown,.txt"]');
+    await page.setInputFiles('input[type=file][accept=".md,.markdown,.txt"]', { name: "old-export.md", mimeType: "text/markdown", buffer: Buffer.from(FILE(["- [ ] Report v1 ^r00001", "- [ ] Restored task ^r00002"])) });
+    await sleep(1500);
+    await page.keyboard.press("Escape");
+    await waitClean(page);
+    const titles = await rw.titles(page);
+    const file = utf8(await rw.readOpfs(page, "todo.md"));
+    const bn = await rw.banners(page);
+    report("S16 the current version of a shared task is kept and the new task is added", titles.includes("Report v2 final") && titles.includes("Restored task") && !titles.includes("Report v1") && file.includes("Report v2 final") && file.includes("Restored task") && !file.includes("Report v1") && bn.some((b) => b.id === "import" && /kept/.test(b.text || "")), JSON.stringify(titles) + "; banner: " + JSON.stringify(bn.filter((b) => b.id === "import").map((b) => b.text)), true);
+    await blurEntry(page);
+    await page.keyboard.press("Control+z");
+    await waitClean(page);
+    const titles2 = await rw.titles(page);
+    const file2 = utf8(await rw.readOpfs(page, "todo.md"));
+    report("S16 Ctrl+Z undoes the import", !titles2.includes("Restored task") && titles2.includes("Report v2 final") && !file2.includes("Restored task") && errors.length === 0, JSON.stringify(titles2) + (errors.length ? "; " + errors[0] : ""), true);
+    await ctx.close();
+  },
+
+  async S17(browser, base) {
+    console.log("\nS17 Firefox/Safari mode: export after a reload keeps the imported layout (audit B4)");
+    const ctx = await browser.newContext();
+    const init = `delete window.showOpenFilePicker;delete window.showDirectoryPicker;(()=>{const o=URL.createObjectURL.bind(URL);URL.createObjectURL=b=>{window.__lastBlob=b;return o(b)};HTMLAnchorElement.prototype.click=function(){}})();`;
+    const { page, errors } = await openApp(ctx, base, { init });
+    const PROSE = "# My list\n\nSome prose to keep, forever.\n\n## Open\n- [ ] File task 📅 2030-03-03 ^f00001\n\n## Reference\nImportant notes here.\n";
+    await page.click("#settingsBtn");
+    await page.waitForSelector('input[type=file][accept=".md,.markdown,.txt"]');
+    await page.setInputFiles('input[type=file][accept=".md,.markdown,.txt"]', { name: "todo.md", mimeType: "text/markdown", buffer: Buffer.from(PROSE) });
+    await sleep(1200);
+    await page.keyboard.press("Escape");
+    const exportText = () => page.evaluate(async () => {
+      document.getElementById("settingsBtn").click();
+      await new Promise((r) => setTimeout(r, 300));
+      Array.from(document.querySelectorAll("button")).find((x) => x.textContent === "Export .md").click();
+      await new Promise((r) => setTimeout(r, 300));
+      const t = window.__lastBlob ? await window.__lastBlob.text() : null;
+      const x = document.querySelector(".panel .px"); if (x) x.click();
+      return t;
+    });
+    const exp1 = await exportText();
+    await addTask(page, "Added in the browser", "2030-02-02");
+    await sleep(1500);
+    await reload(page);
+    await sleep(500);
+    const exp2 = await exportText();
+    report("S17 export after a reload still carries the imported headings and prose", !!exp1 && exp1.includes("Important notes here.") && !!exp2 && exp2.includes("Some prose to keep, forever.") && exp2.includes("Important notes here.") && exp2.includes("Added in the browser") && exp2.includes("File task") && errors.length === 0, exp2 ? exp2.split("\n").slice(0, 7).join(" ⏎ ") : "no export" + (errors.length ? "; " + errors[0] : ""), true);
+    await ctx.close();
+  },
 };
 
 (async () => {
@@ -588,5 +747,10 @@ const scenarios = {
   server.close();
   const ok = results.checks.filter((c) => c.ok).length;
   console.log("\n" + ok + " / " + results.checks.length + " checks behaved · " + findings + " finding(s)");
+  if (FAIL_ON_NEW) {
+    const bad = results.checks.filter((c) => !c.ok && !KNOWN_OPEN.test(c.name));
+    if (bad.length) { console.error("\nnew findings or harness errors:\n  " + bad.map((c) => c.name).join("\n  ")); process.exitCode = 1; }
+    else console.log("no findings beyond the documented open Lows " + KNOWN_OPEN);
+  }
   if (OUT) { fs.mkdirSync(path.dirname(OUT), { recursive: true }); fs.writeFileSync(OUT, JSON.stringify(results, null, 2)); console.log("results written to " + OUT); }
 })().catch((e) => { console.error(e); process.exit(1); });

@@ -2,7 +2,7 @@
   "meta": {
     "seed": 1,
     "iters": 400,
-    "date": "2026-09-03T15:17:52.452Z"
+    "date": "2026-09-04T09:12:59.850Z"
   },
   "checks": [
     {
@@ -21,7 +21,7 @@
       "name": "A3 id-less lines change only by the appended ^id",
       "ok": false,
       "finding": true,
-      "detail": "280 files gained ids only; 72 also lost trailing whitespace on the id-less line, e.g. {\"text\":\"- [ ] café ✅ 2026-01-01 payload review [priority:: high] [due:: 2030-10-27]\\r\\n      \\r\\n    - [x] cert schedule triage 📅 2024-08-04\\r\\n        naïve kernel merge deploy\\r\\n- [ ] cert cluster ^00000n\\r\\n- [x] kernel token build [completion:: 2030-03-04] [b] 📅 2030-01-01 ^00000o\\r\\n## Open"
+      "detail": "281 files gained ids only; 72 also lost trailing whitespace on the id-less line, e.g. {\"text\":\"- [ ] café ✅ 2026-01-01 payload review [priority:: high] [due:: 2030-10-27]\\r\\n      \\r\\n    - [x] cert schedule triage 📅 2024-08-04\\r\\n        naïve kernel merge deploy\\r\\n- [ ] cert cluster ^00000n\\r\\n- [x] kernel token build [completion:: 2030-03-04] [b] 📅 2030-01-01 ^00000o\\r\\n## Open"
     },
     {
       "name": "A4 second parse→serialise cycle is idempotent",
@@ -195,7 +195,7 @@
       "name": "G3 validate() rejects or repairs an unreadable doneAt",
       "ok": true,
       "finding": false,
-      "detail": "validate kept doneAt=\"2026-09-03\""
+      "detail": "validate kept doneAt=\"2026-09-04\""
     },
     {
       "name": "G4 a title containing a date token keeps its real due date across a save",
@@ -243,7 +243,7 @@
       "name": "G11 an id-less line keeps its trailing whitespace when the id is appended",
       "ok": false,
       "finding": true,
-      "detail": "wrote \"- [ ] trailing spaces ^0u67g5\" (README: the only thing added to a hand-written line is its ^id)"
+      "detail": "wrote \"- [ ] trailing spaces ^9of2kh\" (README: the only thing added to a hand-written line is its ^id)"
     },
     {
       "name": "G15 tabs/NBSP inside a title are preserved in the model",
@@ -285,7 +285,7 @@
   "A": {
     "threw": 0,
     "byteDiff": 0,
-    "idOnlyDiff": 280,
+    "idOnlyDiff": 281,
     "wsTrim": 72,
     "blankLayout": 3,
     "notIdem": 0,
@@ -294,7 +294,7 @@
     "examples": {
       "wsTrim": {
         "text": "- [ ] café ✅ 2026-01-01 payload review [priority:: high] [due:: 2030-10-27]\r\n      \r\n    - [x] cert schedule triage 📅 2024-08-04\r\n        naïve kernel merge deploy\r\n- [ ] cert cluster ^00000n\r\n- [x] kernel token build [completion:: 2030-03-04] [b] 📅 2030-01-01 ^00000o\r\n## Open\r\n-[ ] no space\r\ntriage payload token [due:: 2026-01-01] 日本語 cert\r\n- [ ] endpoint cluster !! ✅ 2026-01-01 token 📅 2024-09-27 ^00000p\r\n        - [x] test emoji😀\r\n    - [ ] 🔽\r\n- [x]\r\n## Open \r\npayload Ünïcödé rtlעברית [constructor] audit\r\n- [x] ✅ 2028-04-02 #Highside firewall registry\r\n- [ ] combininǵ [constructor]\r\n- [ ] 📅 2024-06-14 [priority:: high] firewall ^00000q\r\n        [constructor] review scan\r\n      - [x] review backup patch registry 📅 2029-06-01\r\n\t- [x] review verify schedule 📅 2026-10-18\r\n  emoji😀 nbsp x\r\n## Open \r\n* [x] token payload [priority:: high] console ✅ 2027-03-09 📅 2024-04-10 ^00000r\r\n    - [x] audit Ünïcödé deploy\r\n  renew brief sign\r\n## Open\r\n- plain bullet\r\n- [ ] cert [d] zwj👩‍💻 📅 2024-09-04 ^00000s\r\n    triage brief Ünïcödé [priority:: high] rtlעברית emoji😀\r\n      - [x] ^k9k9k9 sign <!-- c --> registry 📅 2027-07-08\r\n      - [ ] brief 📅 2026-06-05\r\n\t- [x] emoji😀\r\n- [X] brief zwj👩‍💻 ^00000t\r\n        - [x] merge restore zwj👩‍💻\r\n- [x] deploy firewall 📅 2026-01-02 ✅ 2025-09-17 ⏫\r\n## No date\r\n- [ ] cert parser #ünï ^00000u  \r\n- [ ] sign café !!!   \r\n- [ ] ✅ 2026-01-01 cert combininǵ verify parser ^00000v  \r\n- [ ] backup vault patch build #snake_case ^00000w\r\n# Title\r\n",
-        "out": "- [ ] café ✅ 2026-01-01 payload review [priority:: high] [due:: 2030-10-27] ^zrl7r1\r\n      \r\n    - [x] cert schedule triage 📅 2024-08-04\r\n        naïve kernel merge deploy\r\n- [ ] cert cluster ^00000n\r\n- [x] kernel token build [completion:: 2030-03-04] [b] 📅 2030-01-01 ^00000o\r\n## Open\r\n-[ ] no space ^sm33jh\r\ntriage payload token [due:: 2026-01-01] 日本語 cert\r\n- [ ] endpoint cluster !! ✅ 2026-01-01 token 📅 2024-09-27 ^00000p\r\n        - [x] test emoji😀\r\n    - [ ] 🔽\r\n- [x]\r\n## Open \r\npayload Ünïcödé rtlעברית [constructor] audit\r\n- [x] ✅ 2028-04-02 #Highside firewall registry ^to0tqn\r\n- [ ] combininǵ [constructor] ^pckp9t\r\n- [ ] 📅 2024-06-14 [priority:: high] firewall ^00000q\r\n        [constructor] review scan\r\n      - [x] review backup patch registry 📅 2029-06-01\r\n\t- [x] review verify schedule 📅 2026-10-18\r\n  emoji😀 nbsp x\r\n## Open \r\n* [x] token payload [priority:: high] console ✅ 2027-03-09 📅 2024-04-10 ^00000r\r\n    - [x] audit Ünïcödé deploy\r\n  renew brief sign\r\n## Open\r\n- plain bullet\r\n- [ ] cert [d] zwj👩‍💻 📅 2024-09-04 ^00000s\r\n    triage brief Ünïcödé [priority:: high] rtlעברית emoji😀\r\n      - [x] ^k9k9k9 sign <!-- c --> registry 📅 2027-07-08\r\n      - [ ] brief 📅 2026-06-05\r\n\t- [x] emoji😀\r\n- [X] brief zwj👩‍💻 ^00000t\r\n        - [x] merge restore zwj👩‍💻\r\n- [x] deploy firewall 📅 2026-01-02 ✅ 2025-09-17 ⏫ ^bopclh\r\n## No date\r\n- [ ] cert parser #ünï ^00000u  \r\n- [ ] sign café !!! ^f4k2i6\r\n- [ ] ✅ 2026-01-01 cert combininǵ verify parser ^00000v  \r\n- [ ] backup vault patch build #snake_case ^00000w\r\n# Title\r\n"
+        "out": "- [ ] café ✅ 2026-01-01 payload review [priority:: high] [due:: 2030-10-27] ^j4tz19\r\n      \r\n    - [x] cert schedule triage 📅 2024-08-04\r\n        naïve kernel merge deploy\r\n- [ ] cert cluster ^00000n\r\n- [x] kernel token build [completion:: 2030-03-04] [b] 📅 2030-01-01 ^00000o\r\n## Open\r\n-[ ] no space ^am5lp3\r\ntriage payload token [due:: 2026-01-01] 日本語 cert\r\n- [ ] endpoint cluster !! ✅ 2026-01-01 token 📅 2024-09-27 ^00000p\r\n        - [x] test emoji😀\r\n    - [ ] 🔽\r\n- [x]\r\n## Open \r\npayload Ünïcödé rtlעברית [constructor] audit\r\n- [x] ✅ 2028-04-02 #Highside firewall registry ^tdybnm\r\n- [ ] combininǵ [constructor] ^r5vr2h\r\n- [ ] 📅 2024-06-14 [priority:: high] firewall ^00000q\r\n        [constructor] review scan\r\n      - [x] review backup patch registry 📅 2029-06-01\r\n\t- [x] review verify schedule 📅 2026-10-18\r\n  emoji😀 nbsp x\r\n## Open \r\n* [x] token payload [priority:: high] console ✅ 2027-03-09 📅 2024-04-10 ^00000r\r\n    - [x] audit Ünïcödé deploy\r\n  renew brief sign\r\n## Open\r\n- plain bullet\r\n- [ ] cert [d] zwj👩‍💻 📅 2024-09-04 ^00000s\r\n    triage brief Ünïcödé [priority:: high] rtlעברית emoji😀\r\n      - [x] ^k9k9k9 sign <!-- c --> registry 📅 2027-07-08\r\n      - [ ] brief 📅 2026-06-05\r\n\t- [x] emoji😀\r\n- [X] brief zwj👩‍💻 ^00000t\r\n        - [x] merge restore zwj👩‍💻\r\n- [x] deploy firewall 📅 2026-01-02 ✅ 2025-09-17 ⏫ ^itct0x\r\n## No date\r\n- [ ] cert parser #ünï ^00000u  \r\n- [ ] sign café !!! ^barztb\r\n- [ ] ✅ 2026-01-01 cert combininǵ verify parser ^00000v  \r\n- [ ] backup vault patch build #snake_case ^00000w\r\n# Title\r\n"
       }
     }
   },
@@ -336,31 +336,27 @@
       },
       "token-hazard": {
         "n": 400,
-        "threw": 12,
+        "threw": 11,
         "mismatched": 0,
         "byField": {},
         "examples": {
           "threw": {
             "t": {
-              "id": "0003yd",
-              "title": "📅 2026-02-30",
-              "tags": [],
-              "due": "2030-01-16",
-              "priority": 1,
-              "done": true,
-              "doneAt": "2025-11-22",
-              "note": "[d] combininǵ scan",
-              "subtasks": [
-                {
-                  "text": "emoji😀 rtlעברית",
-                  "done": false,
-                  "due": "2026-01-01"
-                }
+              "id": "0003yj",
+              "title": "[priority:: high]",
+              "tags": [
+                "Two Words"
               ],
+              "due": null,
+              "priority": 0,
+              "done": false,
+              "doneAt": null,
+              "note": "brief invoice cluster sandbox\nbrief ^k9k9k9 console",
+              "subtasks": [],
               "createdAt": "2026-08-01T00:00:00.000Z",
               "updatedAt": "2026-08-01T00:00:00.000Z"
             },
-            "err": "Error: no task parsed back from \"# To Do\\n<!-- Runway v1 · edit freely; the app preserves anything it does not recognise -->\\n\\n## Completed\\n- [x] 📅 2026-02-30 🔽 📅 2030-01-16 ✅ 2025-11-22 ^0003yd\\n    [d] combininǵ scan\\n    - [ ] emoji😀 rtlעברית 📅 2026-01-01\\n\""
+            "err": "Error: no task parsed back from \"# To Do\\n<!-- Runway v1 · edit freely; the app preserves anything it does not recognise -->\\n\\n## No date\\n- [ ] [priority:: high] #Two_Words ^0003yj\\n    brief invoice cluster sandbox\\n    brief ^k9k9k9 console\\n\""
           }
         }
       }
@@ -404,7 +400,7 @@
       },
       "token-hazard": {
         "n": 400,
-        "threw": 14,
+        "threw": 13,
         "mismatched": 0,
         "byField": {},
         "examples": {

@@ -373,7 +373,7 @@ to{transform:none}
 <div class="app" id="app">
 <header class="hdr">
 <h1 class="app-title" id="appTitle">Runway</h1>
-<span class="app-ver" title="App version">v1.3.0</span>
+<span class="app-ver" title="App version">v1.3.1</span>
 <div class="seg-btns view-seg" id="viewSeg" role="group" aria-label="View"></div>
 <button id="fileChip" class="pill" hidden><span class="g" aria-hidden="true"></span><span class="lbl"></span></button>
 <span id="saveInd" class="save-ind" hidden><span class="dot"></span><span class="txt"></span></span>
@@ -492,8 +492,15 @@ await DB.put("tasks",Util.snap(byId.get(t.id)));Sync.post({type:"tasks"})}catch(
 await DB.del("tasks",id);Sync.post({type:"tasks"})}catch(e){App.dbWriteError(e)}};const replaceAll=async list=>{const gone=new Set(byId.keys());tasks.length=0;byId.clear();for(const t of list){const v=validate(t)
 ;if(v)add(v)}for(const id of byId.keys())gone.delete(id);for(let i=quarantine.length-1;i>=0;i--)if(quarantine[i]&&byId.has(quarantine[i].id))quarantine.splice(i,1)
 ;try{await DB.putAll("tasks",tasks.map(t=>Util.snap(t)),[...gone]);Sync.post({type:"tasks"})}catch(e){App.dbWriteError(e)}}
-;const fingerprint=t=>JSON.stringify([t.title,t.tags,t.due,t.priority,t.done,t.doneAt,t.note,t.subtasks]);return{tasks:tasks,byId:byId,quarantine:quarantine,
-newId:newId,fresh:fresh,validate:validate,load:load,commit:commit,remove:remove,replaceAll:replaceAll,fingerprint:fingerprint,nowISO:nowISO,writeFailed:false}})();
+;const fingerprint=t=>JSON.stringify([t.title,t.tags,t.due,t.priority,t.done,t.doneAt,t.note,t.subtasks])
+;/* the continuation lines alone (note and sub-tasks): when only the task line changed, the file's own continuation lines can be kept verbatim */const fingerprintBody=t=>JSON.stringify([t.note,t.subtasks])
+;/* Merge tasks parsed from a file with the current model. The parsed side wins for a task both hold (a reload adopts the file) unless currentWins (an import never reverts a task the app already has; opts.kept collects the parsed versions passed over); union appends current tasks the parsed side lacks. */
+const mergeParsed=(parsedTasks,union,opts)=>{opts=opts||{};const merged=[];for(const t of parsedTasks){const cur=byId.get(t.id);if(cur){const same=fingerprint(cur)===fingerprint(t)
+;if(opts.currentWins&&!same){merged.push(Util.snap(cur));if(opts.kept)opts.kept.push(t);continue}t.createdAt=cur.createdAt;if(same)t.updatedAt=cur.updatedAt}merged.push(t)}
+if(union){const ids=new Set(merged.map(t=>t.id));for(const t of tasks)if(!ids.has(t.id))merged.push(Util.snap(t))}return merged}
+;/* take the file's version of tasks the app has not changed, without touching their timestamps */const absorb=async list=>{const recs=[];for(const t of list){const cur=byId.get(t.id);if(!cur)continue;Object.assign(cur,t);recs.push(Util.snap(cur))}
+if(!recs.length)return;try{await DB.putAll("tasks",recs);Sync.post({type:"tasks"})}catch(e){App.dbWriteError(e)}};return{tasks:tasks,byId:byId,quarantine:quarantine,
+newId:newId,fresh:fresh,validate:validate,load:load,commit:commit,remove:remove,replaceAll:replaceAll,fingerprint:fingerprint,fingerprintBody:fingerprintBody,mergeParsed:mergeParsed,absorb:absorb,nowISO:nowISO,writeFailed:false}})();
 /* ================================================================ DateParse */const DateParse=(()=>{const MAX_EVER=[31,29,31,30,31,30,31,31,30,31,30,31]
 ;const WD={mon:1,tue:2,wed:3,thu:4,fri:5,sat:6,sun:0};const WD_RE=/^(mon(day)?|tue(s(day)?)?|wed(nesday)?|thu(r(s(day)?)?)?|fri(day)?|sat(urday)?|sun(day)?)$/
 ;const inv=reason=>({kind:"invalid",reason:reason});const mkDate=(y,m,d)=>new Date(y,m-1,d);const result=(dateObj,today,rolled)=>{const iso=Util.isoOf(dateObj)
@@ -537,32 +544,41 @@ const subDue=body=>{const raw=String(body);let due=null;body=body.replace(/ ?�
 ;body=bracketFields(body,SUB_DUE_KEY,(all,g)=>{const r=normDate(g.trim());if(r.bad)return all;if(!due)due=r.iso;return""});const text=body.trim()
 ;/* a sub-task that is nothing but a date keeps the date as its text: the file cannot hold a sub-task with no text */return text?{text:text,due:due}:{text:raw.trim(),due:null}}
 ;const extractBody=(body,tagMap,opts)=>{tagMap=tagMap||{};opts=opts||{}
-;let due=null,doneAt=null,priority=0,id=null,badDate=false;const tags=[];let s=" "+body+" ";if(!opts.noId)s=s.replace(/\s\^([0-9a-zA-Z]{6})\s*$/,(all,g)=>{id=g.toLowerCase();return" "})
-;/* every date field leaves the text (the first valid one counts) so a line never carries a second date that the next load would read instead */
-s=s.replace(/📅\s*([0-9]{4}-[0-9]{1,2}-[0-9]{1,2})/g,(all,g)=>{const r=normDate(g);if(r.bad){badDate=true;return" "}if(!due)due=r.iso;return" "})
-;s=bracketFields(s,DUE_KEY,(all,g)=>{const r=normDate(g.trim());if(r.bad){badDate=true;return" "}if(!due)due=r.iso;return" "})
-;s=s.replace(/✅\s*([0-9]{4}-[0-9]{1,2}-[0-9]{1,2})/g,(all,g)=>{const r=normDate(g);if(!r.bad&&!doneAt)doneAt=r.iso;return" "})
-;s=bracketFields(s,DONE_KEY,(all,g)=>{const r=normDate(g.trim());if(!r.bad&&!doneAt)doneAt=r.iso;return" "});s=s.replace(/⏫/g,()=>{priority=3;return" "});s=s.replace(/🔼/g,()=>{priority=Math.max(priority,2);return" "});s=s.replace(/🔽/g,()=>{priority=Math.max(priority,1);return" "})
+;let due=null,doneAt=null,priority=0,id=null,badDate=false,badDone=false;const tags=[];let s=" "+body+" ";if(!opts.noId)s=s.replace(/\s\^([0-9a-zA-Z]{6})\s*$/,(all,g)=>{id=g.toLowerCase();return" "})
+;/* every readable date field leaves the text (the first valid one counts) so a line never carries a second date that the next load would read instead.
+   An unreadable one stays as written: it can never be re-read as a date, and dropping it would delete what the user typed the moment the task is edited */
+s=s.replace(/📅\s*([0-9]{4}-[0-9]{1,2}-[0-9]{1,2})/g,(all,g)=>{const r=normDate(g);if(r.bad){badDate=true;return all}if(!due)due=r.iso;return" "})
+;s=bracketFields(s,DUE_KEY,(all,g)=>{const r=normDate(g.trim());if(r.bad){badDate=true;return all}if(!due)due=r.iso;return" "})
+;s=s.replace(/✅\s*([0-9]{4}-[0-9]{1,2}-[0-9]{1,2})/g,(all,g)=>{const r=normDate(g);if(r.bad){badDone=true;return all}if(!doneAt)doneAt=r.iso;return" "})
+;s=bracketFields(s,DONE_KEY,(all,g)=>{const r=normDate(g.trim());if(r.bad){badDone=true;return all}if(!doneAt)doneAt=r.iso;return" "});s=s.replace(/⏫/g,()=>{priority=3;return" "});s=s.replace(/🔼/g,()=>{priority=Math.max(priority,2);return" "});s=s.replace(/🔽/g,()=>{priority=Math.max(priority,1);return" "})
 ;s=bracketFields(s,PRI_KEY,(all,g)=>{const v=g.trim().toLowerCase();if(v==="high"||v==="highest")priority=3;else if(v==="medium"||v==="med")priority=Math.max(priority,2);else if(v==="low"||v==="lowest")priority=Math.max(priority,1);return" "})
 ;s=s.replace(/(^|\s)#([^\s#]+)/g,(all,pre,t)=>{tags.push(t.replace(/_/g," "));return pre});s=s.replace(/\[([^\[\]\s:]+)\]/g,(all,k)=>{const label=tagMap[k.toLowerCase()];if(label!==undefined){tags.push(label);return" "}return all})
-;const title=s.replace(/\s+/g," ").trim();if(!title)return null;return{title:title,tags:[...new Set(tags)],due:due,doneAt:doneAt,priority:priority,id:id,badDate:badDate}}
+;const title=s.replace(/\s+/g," ").trim();if(!title)return null;return{title:title,tags:[...new Set(tags)],due:due,doneAt:doneAt,priority:priority,id:id,badDate:badDate,badDone:badDone}}
 ;/* the body group is \S.* rather than .*\S.*: the latter backtracks quadratically on a line whose body is only whitespace */const TASK_RE=/^([-*])\s*\[( |x|X)\]\s+(\S.*)$/
 ;const CONT_RE=/^(?: {2,}|\t+)(.*)$/;const parse=(text,opts)=>{opts=opts||{};const tagMap=opts.tagMap||{};let hadBOM=false;if(text.charCodeAt(0)===65279){
 hadBOM=true;text=text.slice(1)}const crlf=(text.match(/\r\n/g)||[]).length;const total=(text.match(/\n/g)||[]).length;const eol=crlf>total-crlf?"\r\n":"\n"
 ;const lines=text.split(/\r\n|\n|\r/);const blocks=[];const tasks=[];const problems=[];const seenIds=new Set;let section=null;const nowISO=Model.nowISO()
-;for(let i=0;i<lines.length;i++){const line=lines[i];const hname=line.charCodeAt(0)===35&&line.charCodeAt(1)===35&&line.length>2&&/\s/.test(line[2])?line.slice(2).trim():"";if(hname){const name=hname;if(MANAGED.has(name)){section=name
+;/* Fenced code and multi-line HTML comments are never tasks or headings: their lines pass through untouched and do not change the section.
+   Only a block that closes counts — a stray ``` or <!-- must not swallow every task below it, so an unclosed one is an ordinary line. */
+const closers=[],commentEnds=[];for(let k=0;k<lines.length;k++){const l=lines[k];const cm=/^ {0,3}(`{3,}|~{3,})\s*$/.exec(l);if(cm)closers.push({i:k,ch:cm[1][0],len:cm[1].length});if(l.indexOf("--\x3e")>=0)commentEnds.push(k)}
+let cp=0,ce=0;const fenceEnd=(i,ch,len)=>{while(cp<closers.length&&closers[cp].i<=i)cp++;for(let k=cp;k<closers.length;k++)if(closers[k].ch===ch&&closers[k].len>=len)return closers[k].i;return-1}
+;const commentEnd=i=>{while(ce<commentEnds.length&&commentEnds[ce]<=i)ce++;return ce<commentEnds.length?commentEnds[ce]:-1};const rawSpan=(i,j)=>{for(let k=i;k<=j;k++)blocks.push({kind:"raw",raw:lines[k],section:section,code:true})}
+;for(let i=0;i<lines.length;i++){const line=lines[i];const fm=/^ {0,3}(`{3,}|~{3,})/.exec(line);if(fm){const j=fenceEnd(i,fm[1][0],fm[1].length);if(j>=0){rawSpan(i,j);i=j;continue}}
+const ct=line.trimStart();if(ct.startsWith("\x3c!--")&&ct.indexOf("--\x3e",4)<0){const j=commentEnd(i);if(j>=0){rawSpan(i,j);i=j;continue}}
+const hname=line.charCodeAt(0)===35&&line.charCodeAt(1)===35&&line.length>2&&/\s/.test(line[2])?line.slice(2).trim():"";if(hname){const name=hname;if(MANAGED.has(name)){section=name
 ;blocks.push({kind:"heading",section:name,raw:line})}else{section=null;blocks.push({kind:"raw",raw:line,section:null})}continue}if(/^#{1,6}\s/.test(line)){
 section=null;blocks.push({kind:"raw",raw:line,section:null});continue}const tm=TASK_RE.exec(line);if(tm&&!/^\s/.test(line)){
 const parsed=extractBody(tm[3],tagMap);if(!parsed){problems.push({line:i+1,text:line,msg:"empty title"});blocks.push({kind:"raw",raw:line,section:section})
 ;continue}const rawLines=[line];const noteLines=[];const subtasks=[];while(i+1<lines.length){const cm=CONT_RE.exec(lines[i+1]);if(!cm||!cm[1].trim())break;i++
 ;rawLines.push(lines[i]);const sm=TASK_RE.exec(cm[1].trim());if(sm){const sd=subDue(sm[3].trim())
 ;subtasks.push({text:sd.text,done:sm[2]!==" ",due:sd.due})}else noteLines.push(cm[1].trimEnd())}if(parsed.badDate)problems.push({line:i+1-rawLines.length+1,text:line,msg:"unreadable date — treated as undated"})
+;if(parsed.badDone)problems.push({line:i+1-rawLines.length+1,text:line,msg:"unreadable completion date — kept as written"})
 ;let id=parsed.id,hadId=!!parsed.id;if(id&&(!/^[0-9a-z]{6}$/.test(id)||seenIds.has(id))){
 if(seenIds.has(id))console.warn(APP_NAME+": duplicate id ^"+id+" — assigning a fresh one");id=null;hadId=false}if(!id)do{id=Model.newId()}while(seenIds.has(id));seenIds.add(id)
 ;const done=tm[2]!==" ";const task=Model.validate({id:id,title:parsed.title,tags:parsed.tags,due:parsed.due,priority:parsed.priority,done:done,
 doneAt:done?parsed.doneAt||parsed.due||Util.isoOf(new Date):null,note:noteLines.length?noteLines.join("\n"):null,subtasks:subtasks,createdAt:nowISO,
 updatedAt:nowISO});if(!task){blocks.push({kind:"raw",raw:line,section:section});continue}tasks.push(task);blocks.push({kind:"task",id:task.id,section:section,
-rawLines:rawLines,hadId:hadId,stale:hadId?null:parsed.id,fp:Model.fingerprint(task)});continue}blocks.push({kind:"raw",raw:line,section:section})}return{blocks:blocks,tasks:tasks,
+rawLines:rawLines,hadId:hadId,stale:hadId?null:parsed.id,fp:Model.fingerprint(task),fpBody:Model.fingerprintBody(task)});continue}blocks.push({kind:"raw",raw:line,section:section})}return{blocks:blocks,tasks:tasks,
 problems:problems,eol:eol,hadBOM:hadBOM}};const PRI_EMOJI=["","🔽","🔼","⏫"];const PRI_WORD=["","low","medium","high"];const renderTask=(t,settings)=>{
 let l="- ["+(t.done?"x":" ")+"] "+t.title;for(const tag of t.tags)l+=" #"+tag.replace(/ /g,"_");if(settings.mdStyle==="bracket"){
 if(t.priority)l+=" [priority:: "+PRI_WORD[t.priority]+"]";if(t.due)l+=" [due:: "+t.due+"]";if(t.done&&t.doneAt)l+=" [completion:: "+t.doneAt+"]"}else{
@@ -579,17 +595,20 @@ if(id===null||id===b.id)continue;const t=byOld.get(b.id);if(t){t.id=id;byOld.del
 ;const serialise=(tasks,state,settings)=>{state=state||{};const eol=state.eol||"\n"
 ;/* an empty or whitespace-only file is laid out like a brand-new one */const blocks=(state.blocks||[]).some(b=>!(b.kind==="raw"&&b.raw.trim()===""))?state.blocks:[]
 ;const byId=new Map(tasks.map(t=>[t.id,t]));const keep=state.preserveIds||new Set(Model.quarantine.map(q=>q&&q.id).filter(x=>x!=null))
+;/* when only the task line changed, its note and sub-task lines are written exactly as the file has them (order, nesting, indentation) */
+const origById=new Map;for(const b of blocks)if(b.kind==="task")origById.set(b.id,b)
+;const renderKeeping=(t,b)=>b&&b.rawLines.length>1&&b.fpBody!==undefined&&b.fpBody===Model.fingerprintBody(t)?[renderTask(t,settings)[0]].concat(b.rawLines.slice(1)):renderTask(t,settings)
 ;const entries=[];const placed=new Set;let cur=null;if(!blocks.length){entries.push({lines:["# To Do"],section:null})
 ;entries.push({lines:["\x3c!-- "+APP_NAME+" v1 · edit freely; the app preserves anything it does not recognise --\x3e"],section:null})}for(const b of blocks){
-if(b.kind==="heading"){cur=b.section;entries.push({lines:[b.raw],section:cur,heading:true});continue}if(b.kind==="raw"){if(/^#{1,6}\s/.test(b.raw))cur=null
+if(b.kind==="heading"){cur=b.section;entries.push({lines:[b.raw],section:cur,heading:true});continue}if(b.kind==="raw"){if(!b.code&&/^#{1,6}\s/.test(b.raw))cur=null
 ;entries.push({lines:[b.raw],section:cur});continue}const t=byId.get(b.id);if(!t){if(keep.has(b.id))entries.push({lines:b.rawLines,section:b.section});continue}
 const same=b.fp===Model.fingerprint(t);if(same&&(b.hadId||settings.writeBlockIds===false)){placed.add(t.id);entries.push({lines:b.rawLines,section:b.section});continue}
 if(same){let first=b.rawLines[0];if(b.stale)first=first.trimEnd().replace(/\s\^[0-9a-zA-Z]{6}$/,"");placed.add(t.id)
 ;entries.push({lines:[first.trimEnd()+" ^"+t.id].concat(b.rawLines.slice(1)),section:b.section});continue}
-if(MANAGED.has(b.section)&&targetSection(t)!==b.section)continue;placed.add(t.id);entries.push({lines:renderTask(t,settings),section:b.section})}
+if(MANAGED.has(b.section)&&targetSection(t)!==b.section)continue;placed.add(t.id);entries.push({lines:renderKeeping(t,b),section:b.section})}
 const pending={Open:[],"No date":[],Completed:[]};for(const t of tasks)if(!placed.has(t.id))pending[targetSection(t)].push(t)
 ;for(const sect of CANON){const pend=pending[sect];if(!pend.length)continue;let last=-1,lastAny=-1;for(let i=0;i<entries.length;i++)if(entries[i].section===sect){
-lastAny=i;if(entries[i].heading||entries[i].lines.some(l=>l.trim()!==""))last=i}const newEntries=pend.map(t=>({lines:renderTask(t,settings),section:sect}))
+lastAny=i;if(entries[i].heading||entries[i].lines.some(l=>l.trim()!==""))last=i}const newEntries=pend.map(t=>({lines:renderKeeping(t,origById.get(t.id)),section:sect}))
 ;if(lastAny>=0)insertEntries(entries,(last>=0?last:lastAny)+1,newEntries);else{
 const lastEntry=entries[entries.length-1];if(lastEntry&&lastEntry.lines[lastEntry.lines.length-1]!=="")entries.push({lines:[""],section:null});entries.push({
 lines:["## "+sect],section:sect,heading:true});insertEntries(entries,entries.length,newEntries)}}const lines=[];for(const e of entries)for(const l of e.lines)lines.push(l)
@@ -707,48 +726,68 @@ else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.foc
 ;return{weekStartISO:weekStartISO,throughput:throughput,forecast:forecast,health:health,openPanel:openPanel,closePanel:closePanel,isOpen:isOpen}})();
 /* ================================================================ Persist */const Persist=(()=>{let tier=3;let handle=null;let dirHandle=null
 ;let fileMeta=null;let mdState={blocks:[],eol:"\n",bom:false};let dirty=false;let flushTimer=null;let flushing=false;let permission="none";let lastError=null;let unreadable=null
+;/* reconciled: the connected file has been read and adopted, the user has chosen what to keep, or the app created the file. Until then nothing is
+   written — a write over a file the app has not read replaces content it has never seen. */let reconciled=false;let lastReadError=null
+;/* every change bumps mutationSeq; a write clears the dirty flag only when nothing changed while it was in flight */let mutationSeq=0
 ;const state=()=>({tier:tier,handle:handle,dirHandle:dirHandle,fileMeta:fileMeta,dirty:dirty,permission:permission,lastError:lastError,unreadable:unreadable,
-fileName:fileMeta?fileMeta.name:handle?handle.name:null});const saveMeta=async()=>{try{await DB.metaPut("fileMeta",fileMeta?Util.snap(fileMeta):null)
-;await DB.metaPut("dirtyFlag",dirty)}catch(e){}};const init=async()=>{if(!DB.ok()){tier=3;return}tier=CAPS.fsa?1:2;try{
+reconciled:reconciled,lastReadError:lastReadError,fileName:fileMeta?fileMeta.name:handle?handle.name:null})
+;/* both keys in one transaction with the values captured now, so a call that resolves later can never persist an earlier state */
+const saveMeta=()=>{const fm=fileMeta?Util.snap(fileMeta):null,d=dirty;return DB.putAll("meta",[{k:"fileMeta",v:fm},{k:"dirtyFlag",v:d}]).catch(()=>{})}
+;const init=async()=>{if(!DB.ok()){tier=3;return}tier=CAPS.fsa?1:2;try{
 handle=await DB.metaGet("fileHandle")||null;dirHandle=await DB.metaGet("dirHandle")||null;fileMeta=await DB.metaGet("fileMeta")||null
-;dirty=await DB.metaGet("dirtyFlag")===true}catch(e){handle=null;dirHandle=null;fileMeta=null}if(!CAPS.fsa){handle=null;dirHandle=null}}
+;dirty=await DB.metaGet("dirtyFlag")===true}catch(e){handle=null;dirHandle=null;fileMeta=null}if(!CAPS.fsa){handle=null;dirHandle=null}
+;/* no file: the headings and prose the last import or export carried are kept in storage (see rememberLayout), not only in memory */
+if(!handle)try{const src=await DB.metaGet("layout");if(typeof src==="string"&&src)mdState=stateOf(parseText(src))}catch(e){}}
 ;const queryPerm=async h=>{try{return await h.queryPermission({mode:"readwrite"})}catch(e){return"denied"}};const connect=async()=>{if(tier===3||!CAPS.fsa){
 Render.updateFileUI();return}if(!handle){Render.updateFileUI();return}permission=await queryPerm(handle);Render.updateFileUI()
 ;if(permission==="granted")await readAndReconcile()};const reconnect=async()=>{if(!handle)return;try{permission=await handle.requestPermission({mode:"readwrite"
 })}catch(e){permission="denied"}Render.updateFileUI();if(permission==="granted")await readAndReconcile()};/* Blob.text() strips a UTF-8 BOM; decode the bytes ourselves so a BOM is seen, hashed and written back. */
 const readText=async file=>Util.decodeUtf8(await file.arrayBuffer())
 ;const parseText=text=>{const p=MD.parse(text,{tagMap:SETTINGS.tagMap});MD.relink(p,Model.tasks);return p};const stateOf=p=>({blocks:p.blocks,eol:p.eol,bom:p.hadBOM})
-;const metaFor=(file,hash)=>({name:file.name,lastModified:file.lastModified,contentHash:hash,lastFlushAt:Date.now()});const statAndParse=async()=>{
-const file=await handle.getFile();const text=await readText(file);return{file:file,text:text,hash:Util.hash(text)}};const mergeParsed=(parsed,union)=>{
-const merged=[];for(const t of parsed.tasks){const cur=Model.byId.get(t.id);if(cur){t.createdAt=cur.createdAt
-;if(Model.fingerprint(cur)===Model.fingerprint(t))t.updatedAt=cur.updatedAt}merged.push(t)}if(union){const ids=new Set(merged.map(t=>t.id))
-;for(const t of Model.tasks)if(!ids.has(t.id))merged.push(Util.snap(t))}return merged};const adopt=async(parseRes,{union:union}={})=>{mdState={
-blocks:parseRes.blocks,eol:parseRes.eol,bom:parseRes.hadBOM};await Model.replaceAll(mergeParsed(parseRes,union));await Undo.clear()
-;if(parseRes.problems.length)Render.showParseProblems(parseRes.problems);Render.render()};const readAndReconcile=async()=>{let r;try{r=await statAndParse()
-}catch(e){if(e&&e.name==="NotFoundError"){Render.showFileGone();return}if(e&&e.name==="EncodingError"){unreadable=e;Render.updateFileUI();return}lastError=e;Render.updateFileUI();return}unreadable=null;const parsed=parseText(r.text)
-;if(fileMeta&&fileMeta.contentHash===r.hash){mdState=stateOf(parsed);fileMeta.lastModified=r.file.lastModified
-;/* the file is exactly what we last wrote: any task committed after that write is newer than the file even if the dirty flag never landed */
-if(!dirty&&Number.isFinite(fileMeta.lastFlushAt)&&fileMeta.lastFlushAt>0){const since=new Date(fileMeta.lastFlushAt).toISOString();if(Model.tasks.some(t=>t.updatedAt>since))dirty=true}
+;/* lastFlushAt is the moment the written text was serialised: every task committed before it is in the file, anything committed at or after it may not be */
+const metaFor=(file,hash,at)=>({name:file.name,lastModified:file.lastModified,contentHash:hash,lastFlushAt:at===undefined?Date.now():at});const statAndParse=async()=>{
+const file=await handle.getFile();const text=await readText(file);return{file:file,text:text,hash:Util.hash(text)}};const mergeParsed=(parsed,union,opts)=>Model.mergeParsed(parsed.tasks,union,opts)
+;const adopt=async(parseRes,opts)=>{opts=opts||{};mdState={blocks:parseRes.blocks,eol:parseRes.eol,bom:parseRes.hadBOM};await Model.replaceAll(mergeParsed(parseRes,opts.union,opts))
+;if(!opts.keepUndo)await Undo.clear();if(parseRes.problems.length)Render.showParseProblems(parseRes.problems);Render.render()}
+;/* At boot the tasks come from browser storage and the layout from the file. When the file is exactly what was last written, a task the app has not
+   changed since must match its line; if it does not (a parser or normalisation change between versions), the line is the truth — otherwise the next
+   save would rewrite that line from the stale record. A completion date the line does not carry is left alone. */
+const resyncFromFile=async(parsed,since)=>{const fix=[];for(const t of parsed.tasks){const cur=Model.byId.get(t.id);if(!cur||cur.updatedAt>=since)continue
+;const probe=Object.assign(Util.snap(t),{createdAt:cur.createdAt,updatedAt:cur.updatedAt});if(cur.done&&t.done)probe.doneAt=cur.doneAt
+;if(Model.fingerprint(cur)!==Model.fingerprint(probe))fix.push(probe)}if(fix.length)await Model.absorb(fix);return fix.length}
+;const readAndReconcile=async()=>{let r;try{r=await statAndParse()
+}catch(e){if(e&&e.name==="NotFoundError"){lastReadError=e;Render.showFileGone();return}if(e&&e.name==="EncodingError"){unreadable=e;Render.updateFileUI();return}lastReadError=e;Render.updateFileUI();return}unreadable=null;lastReadError=null;const parsed=parseText(r.text)
+;if(fileMeta&&fileMeta.contentHash===r.hash){mdState=stateOf(parsed);fileMeta.lastModified=r.file.lastModified;reconciled=true
+;/* the file is exactly what we last wrote: any task committed at or after that write is newer than the file even if the dirty flag never landed */
+if(Number.isFinite(fileMeta.lastFlushAt)&&fileMeta.lastFlushAt>0){const since=new Date(fileMeta.lastFlushAt).toISOString();await resyncFromFile(parsed,since);if(!dirty&&Model.tasks.some(t=>t.updatedAt>=since))dirty=true}
 await saveMeta();if(dirty)scheduleFlush(0);Render.updateFileUI();return}const firstConnect=!fileMeta
 ;/* on a first connection only browser tasks the file lacks (or holds a different version of) are at stake */
 const inFile=new Map(parsed.tasks.map(t=>[t.id,Model.fingerprint(t)]));const mine=firstConnect?Model.tasks.filter(t=>inFile.get(t.id)!==Model.fingerprint(t)).length:Model.tasks.length
-;if(!dirty||mine===0||firstConnect&&parsed.tasks.length===0){await adopt(parsed,{union:firstConnect&&Model.tasks.length>0})
+;/* a choice is needed when both sides hold tasks: on a first connection whatever the dirty flag says (nothing has been written yet), otherwise only when the app has unsaved changes */
+const needChoice=firstConnect?parsed.tasks.length>0&&mine>0:dirty&&mine>0
+;if(!needChoice){await adopt(parsed,{union:firstConnect&&Model.tasks.length>0});reconciled=true
 ;fileMeta=metaFor(r.file,r.hash);dirty=Model.tasks.length>0&&Util.hash(MD.serialise(Model.tasks,mdState,SETTINGS))!==r.hash;await saveMeta();if(dirty)scheduleFlush(0)
-;Render.updateFileUI();return}Render.showConflict(r.text,{mode:firstConnect?"first":"conflict",fileTasks:parsed.tasks.length,mine:mine})}
+;Render.updateFileUI();return}Render.showConflict(r.text,{mode:firstConnect?"first":"conflict",fileTasks:parsed.tasks.length,mine:mine});Render.updateFileUI()}
 ;/* Another Runway tab on this origin writes the same file and records the hash it wrote in the shared fileMeta record. Every tab commits to the shared task store before it writes, so when the file on disk is exactly what a sibling tab wrote, the right move is to refresh from storage and carry on — not to raise a conflict that can only be resolved by dropping one tab's work. */
 const adoptSiblingWrite=async(text,hash,file)=>{let shared=null;try{shared=await DB.metaGet("fileMeta")}catch(e){}if(!shared||shared.contentHash!==hash||Model.writeFailed)return false
 ;await Model.load();mdState=stateOf(parseText(text));fileMeta=Object.assign({},shared,{lastModified:file.lastModified});Render.render();return true}
-;/* the file could not be read as UTF-8 text: try again after the user converted or replaced it */const retryRead=async()=>{unreadable=null;lastError=null;await readAndReconcile();Render.updateFileUI()};const markDirty=()=>{dirty=true;saveMeta();Render.updateFileUI();scheduleFlush()};const scheduleFlush=ms=>{
-clearTimeout(flushTimer);flushTimer=setTimeout(()=>flush(),ms===undefined?SETTINGS.autosaveDebounceMs:ms)};const flush=async immediate=>{
-clearTimeout(flushTimer);if(flushing){if(dirty)scheduleFlush();return}if(!handle||tier!==1||unreadable){Render.updateFileUI();return}
-permission=await queryPerm(handle);if(permission!=="granted"){Render.updateFileUI();return}flushing=true;Render.updateFileUI("saving");try{let file;try{file=await handle.getFile()
+;/* the file could not be read (not UTF-8, locked, unreachable): try again after the user fixed or replaced it */const retryRead=async()=>{unreadable=null;lastReadError=null;lastError=null;await readAndReconcile();Render.updateFileUI()}
+;const markDirty=()=>{mutationSeq++;dirty=true;saveMeta();Render.updateFileUI();scheduleFlush()};const scheduleFlush=ms=>{
+clearTimeout(flushTimer);flushTimer=setTimeout(()=>flush(),ms===undefined?SETTINGS.autosaveDebounceMs:ms)}
+;/* Without a file (Firefox/Safari, or before one is chosen) the text an export would produce is kept in storage, so the headings and prose of the last import survive a reload. */
+const rememberLayout=async()=>{if(!DB.ok())return;try{await DB.metaPut("layout",MD.serialise(Model.tasks,mdState,SETTINGS))}catch(e){}}
+;const flush=async immediate=>{
+clearTimeout(flushTimer);if(flushing){if(dirty)scheduleFlush();return}if(!handle||tier!==1){await rememberLayout();Render.updateFileUI();return}
+if(unreadable||!reconciled){Render.updateFileUI();return}
+permission=await queryPerm(handle);if(permission!=="granted"){Render.updateFileUI();return}flushing=true;let again=false;Render.updateFileUI("saving");try{let file;try{file=await handle.getFile()
 }catch(e){if(e&&e.name==="NotFoundError"){Render.showFileGone();return}throw e}if(fileMeta&&file.lastModified!==fileMeta.lastModified){
 const text=await readText(file);const h=Util.hash(text);if(h!==fileMeta.contentHash){if(!await adoptSiblingWrite(text,h,file)){await externalChange(text);return}}else fileMeta.lastModified=file.lastModified}
-const text=MD.serialise(Model.tasks,mdState,SETTINGS);if(fileMeta&&Util.hash(text)===fileMeta.contentHash){dirty=false;lastError=null;await saveMeta();return}
+const seq=mutationSeq,at=Date.now();const text=MD.serialise(Model.tasks,mdState,SETTINGS);if(fileMeta&&Util.hash(text)===fileMeta.contentHash){fileMeta.lastFlushAt=at;if(seq===mutationSeq)dirty=false;lastError=null;await saveMeta();return}
 const write=async()=>{const w=await handle.createWritable();await w.write(text);await w.close()};try{await write()}catch(e){if(immediate)throw e
-;await new Promise(res=>setTimeout(res,2e3));await write()}const f2=await handle.getFile();fileMeta=metaFor(f2,Util.hash(text));mdState=stateOf(parseText(text))
-;dirty=false;lastError=null;await saveMeta();if(SETTINGS.folderMode&&dirHandle)await writeBackup(text)}catch(e){if(e&&e.name==="EncodingError")unreadable=e;else lastError=e}finally{flushing=false
-;Render.updateFileUI()}};const writeBackup=async text=>{try{const bdir=await dirHandle.getDirectoryHandle("backups",{create:true});const d=new Date
+;await new Promise(res=>setTimeout(res,2e3));await write()}const f2=await handle.getFile();fileMeta=metaFor(f2,Util.hash(text),at);mdState=stateOf(parseText(text))
+;/* a change committed while the write was in flight is not in the file: stay dirty and write again straight away */if(seq===mutationSeq)dirty=false;else again=true
+;lastError=null;await saveMeta();if(SETTINGS.folderMode&&dirHandle)await writeBackup(text)}catch(e){if(e&&e.name==="EncodingError")unreadable=e;else lastError=e}finally{flushing=false
+;Render.updateFileUI();if(again)scheduleFlush(0)}};const writeBackup=async text=>{try{const bdir=await dirHandle.getDirectoryHandle("backups",{create:true});const d=new Date
 ;const name="todo-"+d.getFullYear()+Util.pad2(d.getMonth()+1)+Util.pad2(d.getDate())+"-"+Util.pad2(d.getHours())+Util.pad2(d.getMinutes())+Util.pad2(d.getSeconds())+".md"
 ;const fh=await bdir.getFileHandle(name,{create:true});const w=await fh.createWritable();await w.write(text);await w.close();const names=[]
 ;for await(const[n,h]of bdir.entries())if(h.kind==="file"&&/^todo-\d{8}-\d{6}\.md$/.test(n))names.push(n);names.sort()
@@ -756,45 +795,53 @@ const write=async()=>{const w=await handle.createWritable();await w.write(text);
 }catch(e){console.warn(APP_NAME+": backup failed",e)}};const listBackups=async()=>{const out=[];if(!dirHandle)return out;try{
 const bdir=await dirHandle.getDirectoryHandle("backups");for await(const[n,h]of bdir.entries())if(h.kind==="file"&&/^todo-\d{8}-\d{6}\.md$/.test(n))out.push({
 name:n,handle:h})}catch(e){}out.sort((a,b)=>b.name.localeCompare(a.name));return out};const restoreBackup=async entry=>{const file=await entry.handle.getFile();let text;try{text=await readText(file)}catch(e){Render.showBanner("bakenc",{cls:"warn",closable:true,msg:entry.name+" couldn't be read as UTF-8 text ("+(e&&(e.reason||e.message)||"unknown error")+") — nothing was restored."});return}
-;Render.showConflict(text,{mode:"backup",source:entry.name,fileTasks:(text.match(/^[-*]\s*\[[ xX]\]\s+\S/gm)||[]).length})};const setHandle=async(h,dh)=>{handle=h||null;dirHandle=dh||null;fileMeta=null;permission="granted";unreadable=null;lastError=null
+;Render.showConflict(text,{mode:"backup",source:entry.name,fileTasks:(text.match(/^[-*]\s*\[[ xX]\]\s+\S/gm)||[]).length})}
+;/* a new handle starts unreconciled: nothing is written until its file has been read (or created) */
+const setHandle=async(h,dh)=>{handle=h||null;dirHandle=dh||null;fileMeta=null;permission="granted";unreadable=null;lastError=null;lastReadError=null;reconciled=false
 ;try{if(handle)await DB.metaPut("fileHandle",handle);else await DB.metaDel("fileHandle")
 ;if(dirHandle)await DB.metaPut("dirHandle",dirHandle);else await DB.metaDel("dirHandle");await DB.metaDel("fileMeta")}catch(e){}};const pickerError=e=>{
 if(e&&e.name==="AbortError")return true;if(e&&e.name==="SecurityError"){tier=2;Render.showBanner("secerr",{cls:"warn",closable:true,
 msg:"This browser won't allow direct file access from a local page. Your tasks are saved in the browser — use Export to write todo.md."});Render.updateFileUI()
 ;return true}return false};const chooseFile=async()=>{try{const[h]=await window.showOpenFilePicker({multiple:false,types:[{description:"Markdown",accept:{
-"text/markdown":[".md",".markdown",".txt"]}}]});await h.requestPermission({mode:"readwrite"});await setHandle(h,null);dirty=Model.tasks.length>0
+"text/markdown":[".md",".markdown",".txt"]}}]});await h.requestPermission({mode:"readwrite"});await setHandle(h,null)
 ;await readAndReconcile();Render.updateFileUI()}catch(e){if(!pickerError(e)){lastError=e;Render.updateFileUI()}}};const createFile=async()=>{try{
 const h=await window.showSaveFilePicker({suggestedName:"todo.md",types:[{description:"Markdown",accept:{"text/markdown":[".md"]}}]});await setHandle(h,null)
-;mdState={blocks:[],eol:"\n",bom:false};dirty=true;await flush(true);Render.updateFileUI()}catch(e){if(!pickerError(e)){lastError=e;Render.updateFileUI()}}}
+;let size=0;try{size=(await h.getFile()).size}catch(e){}
+/* the picker may hand back a file that already has content: read and reconcile it like any other connection, never write over it blind */
+if(size>0)await readAndReconcile();else{mdState={blocks:[],eol:"\n",bom:false};reconciled=true;dirty=true;await flush(true)}Render.updateFileUI()}catch(e){if(!pickerError(e)){lastError=e;Render.updateFileUI()}}}
 ;const chooseFolder=async()=>{try{const dh=await window.showDirectoryPicker({mode:"readwrite"});const h=await dh.getFileHandle("todo.md",{create:true})
-;await setHandle(h,dh);dirty=Model.tasks.length>0;await readAndReconcile();Render.updateFileUI()}catch(e){if(!pickerError(e)){lastError=e;Render.updateFileUI()}
-}};const disconnect=async()=>{handle=null;dirHandle=null;fileMeta=null;permission="none";unreadable=null;try{await DB.metaDel("fileHandle");await DB.metaDel("dirHandle")
+;await setHandle(h,dh);await readAndReconcile();Render.updateFileUI()}catch(e){if(!pickerError(e)){lastError=e;Render.updateFileUI()}
+}};const disconnect=async()=>{clearTimeout(flushTimer);handle=null;dirHandle=null;fileMeta=null;permission="none";unreadable=null;lastReadError=null;reconciled=false;try{await DB.metaDel("fileHandle");await DB.metaDel("dirHandle")
 ;await DB.metaDel("fileMeta")}catch(e){}Render.updateFileUI()};/* "Reload from disk" re-reads the file rather than trusting the text captured when the banner was raised.
    "Restore" (fromBackup) adopts the backup's contents and writes them to todo.md straight away. */
 const resolveReload=async(fileText,opts)=>{opts=opts||{};let r=null;if(!opts.fromBackup)try{r=await statAndParse()}catch(e){}
-const text=r?r.text:fileText;const parsed=parseText(text);await adopt(parsed);if(opts.fromBackup){await forceWrite();return}
+const text=r?r.text:fileText;const parsed=parseText(text);await adopt(parsed);reconciled=true;if(opts.fromBackup){await forceWrite();return}
 try{const f=r?r.file:await handle.getFile();fileMeta=metaFor(f,Util.hash(text))}catch(e){}dirty=false;await saveMeta();Render.updateFileUI()}
-;/* "Keep my version": the app's tasks win, but the file's headings, prose and unknown lines are taken from the file as it is now — never discarded. */
-const resolveKeepMine=async fileText=>{if(fileText!==undefined)mdState=stateOf(parseText(fileText));await forceWrite()}
+;/* "Keep my version": the app's tasks win, but the file's headings, prose and unknown lines are taken from the file as it is now — re-read, never discarded. */
+const resolveKeepMine=async fileText=>{let text=fileText;try{text=(await statAndParse()).text}catch(e){}if(text!==undefined)mdState=stateOf(parseText(text));reconciled=true;await forceWrite()}
 ;/* write the app's state over whatever is on disk now: accept the current mtime, forget the last-known hash so the write cannot be skipped */
 const forceWrite=async()=>{try{const f=await handle.getFile();fileMeta={name:f.name,lastModified:f.lastModified,contentHash:"",lastFlushAt:fileMeta&&fileMeta.lastFlushAt||0}}catch(e){}
 dirty=true;await saveMeta();await flush(true)};/* "Keep both": the file's tasks plus any browser tasks the file lacks (matched by id, or by content for id-less lines). */
-const resolveMerge=async()=>{let r;try{r=await statAndParse()}catch(e){if(e&&e.name==="EncodingError")unreadable=e;else lastError=e;Render.updateFileUI();return}const parsed=parseText(r.text)
-;await adopt(parsed,{union:true});fileMeta=metaFor(r.file,r.hash);dirty=true;await saveMeta();await flush(true)}
+const resolveMerge=async()=>{let r;try{r=await statAndParse()}catch(e){if(e&&e.name==="EncodingError")unreadable=e;else lastReadError=e;Render.updateFileUI();return}const parsed=parseText(r.text)
+;await adopt(parsed,{union:true});reconciled=true;fileMeta=metaFor(r.file,r.hash);dirty=true;await saveMeta();await flush(true)}
 ;const externalChange=async text=>{if(dirty||Render.isEditing())Render.showConflict(text);else{await resolveReload(text)
 ;Render.showBanner("reloaded",{cls:"",closable:true,msg:(fileMeta&&fileMeta.name||"todo.md")+" changed on disk and was reloaded."})}}
 ;const currentText=fileText=>MD.serialise(Model.tasks,fileText===undefined?mdState:stateOf(parseText(fileText)),SETTINGS);const exportMd=()=>{const text=currentText();const blob=new Blob([text],{
 type:"text/markdown"});const url=URL.createObjectURL(blob);const a=E("a",{href:url,download:fileMeta&&fileMeta.name||"todo.md"});document.body.append(a)
-;a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),5e3)};const importMd=async file=>{let text;try{text=await readText(file)}catch(e){if(e&&e.name==="EncodingError"){Render.showBanner("impenc",{cls:"warn",closable:true,msg:file.name+" isn't UTF-8 text ("+e.reason+") — nothing was imported."});return}throw e}const parsed=parseText(text);if(handle&&fileMeta){
+;a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),5e3)}
+;/* Import adds tasks. A task the app already has is never reverted to the imported version (kept lists those passed over), and the import is one undoable step. */
+const importMd=async file=>{let text;try{text=await readText(file)}catch(e){if(e&&e.name==="EncodingError"){Render.showBanner("impenc",{cls:"warn",closable:true,msg:file.name+" isn't UTF-8 text ("+e.reason+") — nothing was imported."});return}throw e}
+const parsed=parseText(text);const kept=[];const before=new Set(Model.byId.keys());if(handle&&fileMeta&&reconciled){
 /* a connected file keeps its own headings and prose; the import only contributes tasks */
-await Model.replaceAll(mergeParsed(parsed,true));await Undo.clear();if(parsed.problems.length)Render.showParseProblems(parsed.problems);Render.render()}else await adopt(parsed,{union:true})
-;dirty=true;await saveMeta();if(handle)scheduleFlush(0);Render.updateFileUI()};let checking=false
-;const checkExternal=async()=>{if(!handle||permission!=="granted"||flushing||!fileMeta||checking||unreadable)return;checking=true;try{const file=await handle.getFile()
+await Model.replaceAll(mergeParsed(parsed,true,{currentWins:true,kept:kept}));if(parsed.problems.length)Render.showParseProblems(parsed.problems)}else await adopt(parsed,{union:true,currentWins:true,kept:kept,keepUndo:true})
+;const added=Model.tasks.filter(t=>!before.has(t.id)).map(t=>Util.snap(t));if(added.length)await Undo.record("bulk-add",null,null,added);Render.render()
+;Render.showImportResult(file.name,added.length,kept);dirty=true;await saveMeta();scheduleFlush(0);Render.updateFileUI()};let checking=false
+;const checkExternal=async()=>{if(!handle||permission!=="granted"||flushing||!fileMeta||checking||unreadable||!reconciled)return;checking=true;try{const file=await handle.getFile()
 ;if(file.lastModified!==fileMeta.lastModified){const text=await readText(file);const h=Util.hash(text);if(h!==fileMeta.contentHash){if(await adoptSiblingWrite(text,h,file)){await saveMeta();if(dirty)scheduleFlush(0)}else await externalChange(text)}else{
 fileMeta.lastModified=file.lastModified;await saveMeta()}}}catch(e){if(e&&e.name==="EncodingError"){unreadable=e;Render.updateFileUI()}}finally{checking=false}};const setTier=t=>{tier=t};return{init:init,connect:connect,reconnect:reconnect,
 markDirty:markDirty,scheduleFlush:scheduleFlush,flush:flush,state:state,setTier:setTier,chooseFile:chooseFile,createFile:createFile,chooseFolder:chooseFolder,
 disconnect:disconnect,exportMd:exportMd,importMd:importMd,listBackups:listBackups,restoreBackup:restoreBackup,resolveReload:resolveReload,
-resolveKeepMine:resolveKeepMine,resolveMerge:resolveMerge,currentText:currentText,checkExternal:checkExternal,retryRead:retryRead}})();
+resolveKeepMine:resolveKeepMine,resolveMerge:resolveMerge,currentText:currentText,checkExternal:checkExternal,retryRead:retryRead,attach:setHandle,reconcile:readAndReconcile}})();
 /* ================================================================ Filter */const Filter=(()=>{const parseQuery=q=>{const clauses=[];const free=[]
 ;let wantDone=false;for(let tok of String(q||"").trim().split(/\s+/)){if(!tok)continue;let neg=false;if(tok.length>1&&tok[0]==="-"){neg=true;tok=tok.slice(1)}
 const low=tok.toLowerCase();let test=null;let m;if(low[0]==="#"&&low.length>1){const pre=low.slice(1);test=t=>t.tags.some(x=>x.toLowerCase().startsWith(pre))
@@ -885,7 +932,7 @@ if(state.sel&&!state.visible.includes(state.sel))state.sel=null;if(state.sel){co
 ;if(li)li.classList.add("sel")}renderTagKey(vc.open);renderCompletedToggle();renderCompletedSection()
 ;renderCountLine(vc.domain.length,vc.totalOpen,vc.searching,vc.dueTodayCount);renderDigest(vc.overdueCount,vc.dueTodayCount)
 ;document.title=(vc.dueTodayCount+vc.overdueCount>0?"("+(vc.dueTodayCount+vc.overdueCount)+") ":"")+APP_NAME;state.lastAdded=null;refreshViewSeg()}
-;/* a render that throws must not leave a blank list and a dead app: say so, keep the data, offer a way out */const render=()=>{try{renderInner()}catch(e){console.error(APP_NAME+": render failed",e)
+;/* a render that throws must not leave a blank list and a dead app: say so, keep the data, offer a way out */const render=()=>{if(!els.listRoot)return;try{renderInner()}catch(e){console.error(APP_NAME+": render failed",e)
 ;try{showBanner("renderr",{cls:"alert",closable:true,msg:"Runway couldn't draw the list ("+(e&&e.message||e)+"). Your tasks are safe in this browser — reload the page; if it happens again, export your tasks.",actions:[{label:"Reload",fn:()=>location.reload()},{label:"Export .md",fn:()=>Persist.exportMd()}]})}catch(e2){}}}
 ;const renderList=(root,vc)=>{let any=false
 ;for(const[key,label]of sectionsFor()){const list=vc.buckets[key];if(!list.length)continue;any=true;const sect=E("section",{class:"sect"});const h=E("h2",{
@@ -1085,14 +1132,18 @@ text:"· "+list.length})));const ul=E("ul",{role:"list"});for(const t of list){u
 ;const li=els.listRoot.querySelector('[data-id="'+id+'"]');if(li){li.classList.add("sel");if(scroll)li.scrollIntoView({block:"nearest"})}}
 ;const selectMove=delta=>{if(!state.visible.length)return;let i=state.visible.indexOf(state.sel)
 ;i=i===-1?delta>0?0:state.visible.length-1:Math.min(state.visible.length-1,Math.max(0,i+delta));select(state.visible[i],true)}
-;const selected=()=>state.sel&&Model.byId.get(state.sel)?state.sel:null;const showBanner=(id,opts)=>{hideBanner(id);const b=E("div",{
+;const selected=()=>state.sel&&Model.byId.get(state.sel)?state.sel:null;const showBanner=(id,opts)=>{if(!els.banners)return null;hideBanner(id);const b=E("div",{
 class:"banner "+(opts.cls||""),dataset:{bid:id},role:opts.cls==="alert"?"alert":"status"});b.append(E("span",{class:"msg",text:opts.msg}))
 ;for(const a of opts.actions||[]){const btn=E("button",{text:a.label});on(btn,"click",()=>a.fn(b));b.append(btn)}if(opts.closable){const x=E("button",{
-class:"bx","aria-label":"Dismiss",text:"✕"});on(x,"click",()=>{b.remove();if(opts.onClose)opts.onClose()});b.append(x)}els.banners.append(b);return b};const hideBanner=id=>{
-const cur=els.banners.querySelector('[data-bid="'+id+'"]');if(cur)cur.remove()};const showParseProblems=problems=>{const b=showBanner("parse",{cls:"warn",
-closable:true,msg:problems.length+(problems.length===1?" line":" lines")+" in the file couldn't be read as tasks. They've been kept as written."})
+class:"bx","aria-label":"Dismiss",text:"✕"});on(x,"click",()=>{b.remove();if(opts.onClose)opts.onClose()});b.append(x)}els.banners.append(b);return b};const hideBanner=id=>{if(!els.banners)return
+;const cur=els.banners.querySelector('[data-bid="'+id+'"]');if(cur)cur.remove()};const showParseProblems=problems=>{const b=showBanner("parse",{cls:"warn",
+closable:true,msg:problems.length+(problems.length===1?" line":" lines")+" in the file couldn't be read as tasks. They've been kept as written."});if(!b)return
 ;const btn=E("button",{text:"Show lines"});const pre=E("pre",{hidden:true});pre.textContent=problems.map(p=>"line "+p.line+" · "+p.msg+"\n  "+p.text).join("\n")
-;on(btn,"click",()=>{pre.hidden=!pre.hidden});b.insertBefore(btn,b.querySelector(".bx"));b.append(pre)};const showFileGone=()=>{hideBanner("nosave")
+;on(btn,"click",()=>{pre.hidden=!pre.hidden});b.insertBefore(btn,b.querySelector(".bx"));b.append(pre)}
+;/* what an import did, and what it deliberately did not do */const showImportResult=(name,added,kept)=>{const n=(k,w)=>k+" "+w+(k===1?"":"s")
+;let msg="Imported "+n(added,"task")+" from "+name+"."+(added?" Ctrl/⌘ Z undoes it.":"");if(kept.length)msg+=" "+n(kept.length,"task")+" in it "+(kept.length===1?"matches a task":"match tasks")+" you already have with different content — your current "+(kept.length===1?"version was":"versions were")+" kept."
+;const b=showBanner("import",{cls:kept.length?"warn":"",closable:true,msg:msg});if(!b||!kept.length)return;const btn=E("button",{text:"Show"});const pre=E("pre",{hidden:true})
+;pre.textContent=kept.map(t=>MD.renderTask(t,SETTINGS)[0]).join("\n");on(btn,"click",()=>{pre.hidden=!pre.hidden});b.insertBefore(btn,b.querySelector(".bx"));b.append(pre)};const showFileGone=()=>{hideBanner("nosave")
 ;curSaveKind=null;showBanner("filegone",{
 cls:"alert",closable:true,msg:"todo.md is no longer at that location.",actions:[{label:"Choose file",fn:b=>{b.remove();Persist.chooseFile()}},{
 label:"Save as new file",fn:b=>{b.remove();Persist.createFile()}}]})};const diffLines=(aText,bText)=>{
@@ -1109,7 +1160,7 @@ const line=E("span",{class:d.t==="+"?"da":d.t==="-"?"dr":null,text:d.t+" "+d.l})
 ;if(mode==="backup"){msg="Restore "+opts.source+"? Its "+n(theirs,"task")+" replace the app's current tasks and are written to "+file+"."
 ;actions=[{label:"Restore",fn:async bn=>{if(!window.confirm("Replace the current tasks with this backup and write it to "+file+"?"))return;bn.remove()
 ;await Persist.resolveReload(fileText,{fromBackup:true})}},diffAct]}else if(mode==="first"){
-msg=file+" already has "+n(theirs,"task")+", and this browser has "+n(mine,"task")+" that aren't in it. Choose what to keep — nothing is merged unless you ask."
+msg=file+" already has "+n(theirs,"task")+", and this browser has "+n(mine,"task")+" that aren't in it. Nothing is written until you choose. Keep both adds this browser's tasks to the file; where both hold a task with the same id, the file's version is kept."
 ;actions=[{label:"Keep both",fn:async bn=>{bn.remove();await Persist.resolveMerge()}},{label:"Use the file",fn:async bn=>{
 if(!window.confirm("Drop the "+n(mine,"task")+" this browser has that "+file+" doesn't, and load the file?"))return;bn.remove();await Persist.resolveReload(fileText)}},
 {label:"Use browser tasks",fn:async bn=>{if(!window.confirm("Replace the "+n(theirs,"task")+" in "+file+" with this browser's? Headings, notes and other text in the file are kept."))return
@@ -1120,9 +1171,9 @@ msg=file+" changed on disk while you had unsaved changes — another program or 
 if(!window.confirm("Overwrite the tasks in "+file+" with the app's current tasks? Other text in the file is kept."))return;bn.remove();await Persist.resolveKeepMine(fileText)}},diffAct]}
 return showBanner("conflict",{cls:"alert",msg:msg,actions:actions})};
 /* save-state prominence */const fileStatus=p=>{if(p.tier===3)return"tier3";if(p.tier===2)return"tier2";if(!p.handle)return"nofile"
-;if(p.permission==="none")return"pending";if(p.permission!=="granted")return"perm";if(p.unreadable)return"unreadable";if(p.lastError)return"error";return"ok"}
+;if(p.permission==="none")return"pending";if(p.permission!=="granted")return"perm";if(p.unreadable)return"unreadable";if(p.lastReadError)return"readerr";if(p.lastError)return"error";return"ok"}
 ;const saveDismissed=new Set;let curSaveKind=null;let chipAct=null;const unDismiss=kind=>{saveDismissed.delete(kind);curSaveKind=null;updateFileUI()}
-;const syncSaveBanner=st=>{let kind=st==="unreadable"?"unreadable":Model.tasks.length>0?{nofile:"nofile",perm:"perm",error:"error",tier2:"tier2"}[st]||null:null
+;const syncSaveBanner=st=>{let kind=st==="unreadable"||st==="readerr"?st:Model.tasks.length>0?{nofile:"nofile",perm:"perm",error:"error",tier2:"tier2"}[st]||null:null
 ;if(kind&&["conflict","filegone","secerr"].some(id=>els.banners.querySelector('[data-bid="'+id+'"]')))kind=null
 ;if(kind&&saveDismissed.has(kind))kind=null;if(kind===curSaveKind)return;curSaveKind=kind;if(!kind){hideBanner("nosave");return}const p=Persist.state()
 ;const file=p.fileName||"todo.md";const spec={nofile:{cls:"warn",msg:"These tasks aren't saved to a markdown file — they live only in this browser.",
@@ -1131,7 +1182,9 @@ msg:"Runway needs permission again to keep writing "+file+".",actions:[{label:"R
 msg:"Couldn't write "+file+": "+(p.lastError&&(p.lastError.message||p.lastError.name)||"unknown error")+". Your tasks are safe in this browser; the file copy is stale.",
 actions:[{label:"Retry",fn:()=>Persist.flush(true)}]},unreadable:{cls:"alert",
 msg:file+" isn't UTF-8 text ("+(p.unreadable&&p.unreadable.reason||"undecodable bytes")+"). Runway won't write to it, so your changes stay in this browser. Convert it to UTF-8 in your editor and click Check again, or choose another file.",
-actions:[{label:"Check again",fn:()=>Persist.retryRead()},{label:"Choose file",fn:()=>Persist.chooseFile()},{label:"Disconnect",fn:()=>Persist.disconnect()}]},tier2:{cls:"warn",
+actions:[{label:"Check again",fn:()=>Persist.retryRead()},{label:"Choose file",fn:()=>Persist.chooseFile()},{label:"Disconnect",fn:()=>Persist.disconnect()}]},readerr:{cls:"alert",
+msg:"Couldn't read "+file+": "+(p.lastReadError&&(p.lastReadError.message||p.lastReadError.name)||"unknown error")+". Nothing has been written to it, and nothing will be until it can be read. Your tasks are safe in this browser.",
+actions:[{label:"Try again",fn:()=>Persist.retryRead()},{label:"Choose file",fn:()=>Persist.chooseFile()}]},tier2:{cls:"warn",
 msg:"This browser can't save directly to a file. Tasks are stored in the browser — export a copy to keep todo.md up to date.",
 actions:[{label:"Export .md",fn:()=>Persist.exportMd()}]}}[kind]
 ;showBanner("nosave",{cls:spec.cls,closable:true,msg:spec.msg,actions:spec.actions,onClose:()=>{saveDismissed.add(kind);curSaveKind=null}})}
@@ -1140,17 +1193,20 @@ nofile:{lbl:"not saved to file",g:"⚠",cls:"warn",tip:"Tasks live only in this 
 perm:{lbl:"reconnect todo.md",g:"⚠",cls:"warn",tip:"Permission needed to keep writing the file",act:()=>{unDismiss("perm");Persist.reconnect()}},
 error:{lbl:"save failing",g:"⚠",cls:"err",tip:"Couldn't write the file — click to retry",act:()=>{unDismiss("error");Persist.flush(true)}},
 unreadable:{lbl:"file isn't UTF-8",g:"⚠",cls:"err",tip:"The file isn't UTF-8 text — Runway won't write to it. Click for options",act:()=>unDismiss("unreadable")},
+readerr:{lbl:"file not read",g:"⚠",cls:"err",tip:"The file couldn't be read — nothing is written until it can be. Click to try again",act:()=>{unDismiss("readerr");Persist.retryRead()}},
 tier2:{lbl:"in-browser only",g:"⚠",cls:"warn",tip:"This browser can't save to a file — click for options",act:()=>unDismiss("tier2")}}
-;const updateFileUI=mode=>{const p=Persist.state();const st=mode==="saving"?"ok":fileStatus(p);const hasTasks=Model.tasks.length>0;let chip=null
-;if(st==="nofile")chip=hasTasks?CHIP.nofile:CHIP.nofile0;else if(st==="perm")chip=CHIP.perm;else if(st==="unreadable")chip=CHIP.unreadable;else if(st==="error")chip=CHIP.error
+;const updateFileUI=mode=>{if(!els.fileChip)return;const p=Persist.state();const st=mode==="saving"?"ok":fileStatus(p);const hasTasks=Model.tasks.length>0;let chip=null
+;if(st==="nofile")chip=hasTasks?CHIP.nofile:CHIP.nofile0;else if(st==="perm")chip=CHIP.perm;else if(st==="unreadable")chip=CHIP.unreadable;else if(st==="readerr")chip=CHIP.readerr;else if(st==="error")chip=CHIP.error
 ;else if(st==="tier2"&&hasTasks)chip=CHIP.tier2;els.fileChip.hidden=!chip;chipAct=chip?chip.act:null;if(chip){
 els.fileChip.className="pill"+(chip.cls?" "+chip.cls:"");els.fileChip.querySelector(".g").textContent=chip.g
 ;els.fileChip.querySelector(".lbl").textContent=chip.lbl;els.fileChip.title=chip.tip;els.fileChip.setAttribute("aria-label",chip.tip)}
-if(st==="ok"){els.saveInd.hidden=false;els.saveInd.className="save-ind "+(mode==="saving"?"saving":p.dirty?"dirty":"")
-;els.saveInd.querySelector(".txt").textContent=mode==="saving"?"SAVING…":"· "+(p.fileName||"todo.md")
-;els.saveInd.title=p.dirty?"Unsaved changes will be written shortly":"Saved to "+(p.fileName||"todo.md")}else els.saveInd.hidden=true
+if(st==="ok"){const name=p.fileName||"todo.md";/* until the file is reconciled nothing is written: say so instead of promising a save */
+const deciding=!p.reconciled&&!!els.banners.querySelector('[data-bid="conflict"]'),reading=!p.reconciled&&!deciding
+;els.saveInd.hidden=false;els.saveInd.className="save-ind "+(mode==="saving"?"saving":deciding||p.dirty?"dirty":"")
+;els.saveInd.querySelector(".txt").textContent=mode==="saving"?"SAVING…":deciding?"· choose above":reading?"· reading "+name+"…":"· "+name
+;els.saveInd.title=deciding?"Nothing is written to "+name+" until you choose what to keep":reading?"Reading "+name:p.dirty?"Unsaved changes will be written shortly":"Saved to "+name}else els.saveInd.hidden=true
 ;syncSaveBanner(st)};const toasts=[];const dropToast=t=>{const i=toasts.indexOf(t);if(i>=0)toasts.splice(i,1);t.el.remove();clearInterval(t.timer)}
-;const makeToast=(msg,undoCount)=>{const t={remaining:SETTINGS.undoWindowSec*1e3,undoCount:undoCount,paused:false,kind:"undo"};const el=E("div",{class:"toast",
+;const makeToast=(msg,undoCount)=>{if(!els.toasts)return null;const t={remaining:SETTINGS.undoWindowSec*1e3,undoCount:undoCount,paused:false,kind:"undo"};const el=E("div",{class:"toast",
 role:"status","aria-live":"polite"});el.append(E("span",{class:"tmsg",text:msg}));const ub=E("button",{class:"tundo",text:undoCount>1?"Undo all":"Undo"})
 ;on(ub,"click",async()=>{dropToast(t);for(let i=0;i<undoCount;i++)await Undo.undo();Render.render();Persist.markDirty()});el.append(ub,E("span",{class:"tk",
 text:"⌘Z"}));const drain=E("div",{class:"drain"});el.append(drain);on(el,"mouseenter",()=>{t.paused=true});on(el,"mouseleave",()=>{t.paused=false});t.el=el
@@ -1189,7 +1245,7 @@ e=>{const n=parseInt(e.key,10);if(n>=1&&n<=5){e.preventDefault();e.stopPropagati
 ;const popOpen=()=>!!popCleanup
 ;const animateAdd=id=>{state.lastAdded=id};const setQuery=q=>{state.query=q;els.searchWrap.classList.toggle("hasq",!!q.trim());render()}
 ;const toggleCompleted=()=>{state.showCompleted=!state.showCompleted;render()};return{init:init,render:render,state:state,select:select,selectMove:selectMove,isEditing:isEditing,
-selected:selected,showBanner:showBanner,hideBanner:hideBanner,showConflict:showConflict,showParseProblems:showParseProblems,showFileGone:showFileGone,
+selected:selected,showBanner:showBanner,hideBanner:hideBanner,showConflict:showConflict,showParseProblems:showParseProblems,showFileGone:showFileGone,showImportResult:showImportResult,
 updateFileUI:updateFileUI,toastCompleted:toastCompleted,toastDeleted:toastDeleted,openSnooze:openSnooze,closePop:closePop,popOpen:popOpen,animateAdd:animateAdd,
 setQuery:setQuery,toggleFilter:toggleFilter,clearFilters:clearFilters,toggleCompleted:toggleCompleted,startEdit:startEdit,startDateEdit:startDateEdit,
 collapseThen:collapseThen,urgencyOf:urgencyOf,NONE:NONE}})();
@@ -1391,7 +1447,8 @@ clearTimeout(midnightTimer);const now=new Date;const next=new Date(now.getFullYe
 Render.render();armMidnight()},next-now)};const dbWriteError=e=>{Model.writeFailed=true;const quota=e&&(e.name==="QuotaExceededError"||(e.message||"").includes("uota"))
 ;Render.showBanner("dberr",{cls:"alert",closable:true,
 msg:quota?"Browser storage is full ("+Model.tasks.length+" tasks stored). Archive or delete completed items, or export and wipe, to free space.":"Couldn't write to browser storage: "+(e&&(e.message||e.name)||"unknown error")+". Recent changes may not survive a reload — export your tasks."
-})};const wipe=async()=>{try{await DB.clear("tasks");await DB.clear("journal");await DB.clear("meta")}catch(e){}Model.tasks.length=0;Model.byId.clear();Undo.reset()
+})};const wipe=async()=>{/* changes the file has not received yet would go with the browser copy: write them first, and ask if that is not possible */const p=Persist.state();if(p.dirty&&p.handle&&p.reconciled)await Persist.flush(true)
+;if(Persist.state().dirty&&Persist.state().handle&&!window.confirm("Some changes haven't reached "+(p.fileName||"todo.md")+" yet and would be lost. Wipe anyway?"))return;try{await DB.clear("tasks");await DB.clear("journal");await DB.clear("meta")}catch(e){}Model.tasks.length=0;Model.byId.clear();Undo.reset()
 ;Object.assign(SETTINGS,defaultSettings());Settings.applyTheme();Settings.applyDensity();await Persist.disconnect();Settings.closePanel();Render.render()
 ;Render.showBanner("wiped",{cls:"warn",closable:true,msg:"Local data wiped. The markdown file on disk was not touched."})}
 ;const overlayOpen=()=>Settings.isOpen()||Shortcuts.isOpen()||Stats.isOpen()||!!document.querySelector("#overlayRoot .shortcuts[aria-label='Confirm paste']")
@@ -1416,7 +1473,43 @@ if(Persist.state().dirty)Persist.flush(true)}else{Render.render();Persist.checkE
 t:"Highside"};const MS={mdStyle:"emoji",writeBlockIds:true}
 ;const VECTORS=[["12 5","2027-05-12"],["12 5 27","2027-05-12"],["1-9-2026","2026-09-01"],["26 8","2026-08-26"],["25 8","2026-08-25"],["24 8","2027-08-24"],["1/9","2026-09-01"],["1 1","2027-01-01"],["29 2 28","2028-02-29"],["29 2","2028-02-29"],["29 2 27",null],["31 4",null],["+3","2026-08-28"],["+1w","2026-09-01"],["+2w","2026-09-08"],["tom","2026-08-26"],["fri","2026-08-28"],["wed","2026-08-26"],["tue","2026-09-01"],["mon","2026-08-31"],["eow","2026-08-28"],["eom","2026-08-31"],["",""],["12 5","2026-05-12",true],["banana",null],["12.5","2027-05-12"],["+1m","2026-09-25"],["+2b","2026-08-27"],["+4b","2026-08-31"],["+0b","2026-08-25"],["2026-09-06","2026-09-06"],["2026-9-6","2026-09-06"],["2026/9/6","2026-09-06"],["2026.9.6","2026-09-06"],["2026-01-05","2026-01-05"],["2027-02-29",null],["2026-13-01",null],["2026-09",null],["2026-09-123",null]]
 ;const SAMPLE=["# To Do","\x3c!-- Runway v1 · edit freely; the app preserves anything it does not recognise --\x3e","","## Open","- [ ] Send an email to frank #DPN 📅 2027-05-12 ^k3f9qm","- [ ] Patch the jump host #Highside ⏫ 📅 2026-08-26 ^a7b2xd","    Needs change approval before the window opens.","    - [ ] raise CR","    - [x] schedule window","","## Reference","Some prose the app must never touch.","","## No date","- [ ] Buy vinyl inner sleeves ^q8w3ez","","## Completed","- [x] Replace the failing SSD #Highside ✅ 2026-08-18 ^z1x4cv",""].join("\n")
-;const run=()=>{const results=[];const ok=(name,cond,detail)=>results.push({name:name,pass:!!cond,detail:detail||""})
+;const asyncTests=async ok=>{if(typeof document!=="undefined")return;/* the persistence tests stand a fake file handle in for todo.md, so they run in Node only, never inside a live page */
+const fakeHandle=(name,text)=>{const h={name:name,text:text,writes:0,mtime:1e12,failReads:0,holdClose:null,queryPermission:async()=>"granted",requestPermission:async()=>"granted",
+getFile:async()=>{if(h.failReads>0){h.failReads--;const e=new Error("locked by another program");e.name="NotReadableError";throw e}const t=h.text;return{name:name,lastModified:h.mtime,size:new TextEncoder().encode(t).length,arrayBuffer:async()=>new TextEncoder().encode(t).buffer}},
+createWritable:async()=>{let buf="";return{write:async x=>{buf+=x},close:async()=>{if(h.holdClose)await h.holdClose;h.text=buf;h.mtime++;h.writes++}}}};return h}
+;const mdFile=(name,text)=>({name:name,arrayBuffer:async()=>new TextEncoder().encode(text).buffer});const settle=ms=>new Promise(r=>setTimeout(r,ms||5))
+;const resetModel=()=>{Model.tasks.length=0;Model.byId.clear();Model.quarantine.length=0;Undo.reset()};const seed=list=>{for(const f of list){const t=Model.validate(Object.assign({id:Model.newId(),title:"x"},f));Model.tasks.push(t);Model.byId.set(t.id,t)}}
+;const PROSE="# My list\n\nSome prose to keep.\n\n## Open\n- [ ] File task 📅 2030-03-03 ^f00001\n\n## Reference\nImportant notes here.\n";const prevDeb=SETTINGS.autosaveDebounceMs;SETTINGS.autosaveDebounceMs=100;Persist.setTier(1);let h
+;try{/* B1: a first connection with tasks on both sides waits for the user; nothing is written meanwhile, whatever asks for a save */
+resetModel();seed([{id:"br0001",title:"Browser task",due:"2030-01-01"}]);h=fakeHandle("todo.md",PROSE);await Persist.attach(h);await Persist.reconcile();const st1=Persist.state()
+;Persist.markDirty();await Persist.flush(true);await settle(150)
+;ok("persist: nothing is written while the first-connect choice is pending (B1)",st1.reconciled===false&&h.writes===0&&h.text===PROSE&&Persist.state().dirty===true,"reconciled="+st1.reconciled+" writes="+h.writes)
+;await Persist.resolveMerge();ok("persist: Keep both then writes both sides into the file's own layout",Persist.state().reconciled===true&&h.writes===1&&h.text.indexOf("Some prose to keep.")>=0&&h.text.indexOf("File task")>=0&&h.text.indexOf("Browser task")>=0&&h.text.indexOf("Important notes here.")>=0&&Model.tasks.length===2,h.text)
+;/* B1: a read that fails is a read failure, not a save failure, and never leads to a write */
+resetModel();seed([{id:"br0002",title:"Browser task",due:"2030-01-01"}]);h=fakeHandle("todo.md",PROSE);h.failReads=1;await Persist.attach(h);await Persist.reconcile();const st2=Persist.state()
+;Persist.markDirty();await Persist.flush(true);const w2=h.writes;await Persist.retryRead();const st3=Persist.state()
+;ok("persist: a failed first read is reported as such and never leads to a write (B1)",st2.reconciled===false&&!!st2.lastReadError&&st2.lastError===null&&w2===0&&h.text===PROSE&&st3.lastReadError===null&&st3.reconciled===false,"readError="+!!st2.lastReadError+" writes="+w2+" after retry reconciled="+st3.reconciled)
+;await Persist.resolveReload();ok("persist: Use the file adopts the file without writing it",Persist.state().reconciled===true&&h.writes===0&&Model.tasks.length===1&&Model.tasks[0].id==="f00001"&&Persist.state().dirty===false)
+;/* B2: a change committed while a write is in flight is not in that write; the dirty flag must say so and the change must follow */
+resetModel();h=fakeHandle("todo.md","# To Do\n\n## Open\n- [ ] Base ^b00001\n");await Persist.attach(h);await Persist.reconcile();let release;h.holdClose=new Promise(r=>{release=r})
+;const a=Model.validate({id:"a00001",title:"Task A",due:"2030-01-01"});await Model.commit(a);Persist.markDirty();const inflight=Persist.flush(true);await settle(10)
+;const b=Model.validate({id:"b00002",title:"Task B",due:"2030-01-02"});await Model.commit(b);Persist.markDirty();release();await inflight;const after=Persist.state();const fileAfter=h.text;const flushAt=after.fileMeta.lastFlushAt
+;await settle(50);await Persist.flush(true);await settle(50)
+;ok("persist: a change during an in-flight write keeps the dirty flag and is written next (B2)",fileAfter.indexOf("Task A")>=0&&fileAfter.indexOf("Task B")<0&&after.dirty===true&&h.text.indexOf("Task B")>=0&&Persist.state().dirty===false,"dirty after first write="+after.dirty+" writes="+h.writes)
+;ok("persist: lastFlushAt is the serialise time, so a task committed during the write reads as newer than the file",Date.parse(b.updatedAt)>=flushAt,"flushAt="+flushAt+" b.updatedAt="+b.updatedAt)
+;/* boot resync: the file's line wins over an untouched record that an older version normalised differently */
+resetModel();h=fakeHandle("todo.md","# To Do\n\n## Open\n- [ ] pay rent 📅 2026-02-30 ^r00001\n");await Persist.attach(h);await Persist.reconcile();const rec=Model.byId.get("r00001");rec.title="pay rent";rec.updatedAt="2026-01-01T00:00:00.000Z";await Persist.reconcile()
+;ok("persist: at boot the file's line wins over a stale untouched record (resync)",Model.byId.get("r00001").title==="pay rent 📅 2026-02-30"&&Model.byId.get("r00001").updatedAt==="2026-01-01T00:00:00.000Z"&&h.writes===0&&Persist.state().dirty===false,JSON.stringify(Model.byId.get("r00001")))
+;const rec2=Model.byId.get("r00001");rec2.title="pay rent (edited)";rec2.updatedAt=Model.nowISO();await Persist.reconcile();ok("persist: a record changed after the last write is not overwritten by resync",Model.byId.get("r00001").title==="pay rent (edited)"&&Persist.state().dirty===true)
+;/* B3: import into a connected file adds tasks, never reverts one, and can be undone */
+resetModel();h=fakeHandle("todo.md","# To Do\n\n## Open\n- [ ] Report v1 ^i00001\n");await Persist.attach(h);await Persist.reconcile();const cur=Model.byId.get("i00001");cur.title="Report v2 final";await Model.commit(cur);Persist.markDirty();await Persist.flush(true)
+;await Persist.importMd(mdFile("old-export.md","# To Do\n\n## Open\n- [ ] Report v1 ^i00001\n- [ ] Restored task ^i00002\n\n## Notes\nprose from the export\n"));await Persist.flush(true)
+;ok("persist: importing an older export keeps the current version of a shared task and adds the rest (B3)",Model.byId.get("i00001").title==="Report v2 final"&&!!Model.byId.get("i00002")&&h.text.indexOf("Report v2 final")>=0&&h.text.indexOf("Restored task")>=0&&h.text.indexOf("Report v1")<0&&h.text.indexOf("prose from the export")<0,h.text)
+;const last=Undo.last();await Undo.undo();ok("persist: the import is one undoable step",!!last&&last.op==="bulk-add"&&!Model.byId.get("i00002")&&Model.byId.get("i00001").title==="Report v2 final")
+;/* B4: without a file the layout of the imported file is what an export reproduces */
+resetModel();await Persist.disconnect();Persist.setTier(2);await Persist.importMd(mdFile("todo.md",PROSE));await Persist.flush(true)
+;ok("persist: tier 2 import keeps the file's layout for export",Persist.currentText().indexOf("Some prose to keep.")>=0&&Persist.currentText().indexOf("Important notes here.")>=0&&Model.tasks.length===1)
+}catch(e){ok("persist: test harness threw",false,String(e&&e.stack||e))}finally{SETTINGS.autosaveDebounceMs=prevDeb;await Persist.disconnect();resetModel();Persist.setTier(3)}};const run=async()=>{const results=[];const ok=(name,cond,detail)=>results.push({name:name,pass:!!cond,detail:detail||""})
 ;const d=(input,opts)=>DateParse.parse(input,Object.assign({today:REF()},opts));for(const[inp,want,lit]of VECTORS){const r=d(inp,lit?{literal:true}:null)
 ;const got=r.kind==="date"?r.iso:r.kind==="empty"?"":null
 ;ok("date "+JSON.stringify(inp)+(lit?" literal":""),got===want,"expected "+want+", got "+(got===null?"invalid "+(r.reason||""):got))}
@@ -1595,7 +1688,7 @@ JSON.stringify(hT))
 const e1=EntryParse.parse("Pay invoice 📅 2026-01-01",TM);ok("entry 📅 date becomes the due date",e1.title==="Pay invoice"&&e1.due==="2026-01-01"&&e1.badDate===false,JSON.stringify(e1))
 ;const e2=EntryParse.parse("Rotate ⏫ certs [priority:: low]",TM);ok("entry priority tokens become priority",e2.title==="Rotate certs"&&e2.priority===3,JSON.stringify(e2))
 ;const e3=EntryParse.parse("Fix [due:: 2026-03-04] parser !!",TM);ok("entry [due::] and !! both understood",e3.title==="Fix parser"&&e3.due==="2026-03-04"&&e3.priority===2,JSON.stringify(e3))
-;const e4=EntryParse.parse("Pay 📅 2026-02-30 rent",TM);ok("entry impossible 📅 date is flagged, not stored",e4.badDate===true&&e4.due===null&&e4.title==="Pay rent",JSON.stringify(e4))
+;const e4=EntryParse.parse("Pay 📅 2026-02-30 rent",TM);ok("entry impossible 📅 date is flagged and kept in the text",e4.badDate===true&&e4.due===null&&e4.title==="Pay 📅 2026-02-30 rent",JSON.stringify(e4))
 ;const e5=EntryParse.parse("Retro ✅ 2026-01-01 notes",TM);ok("entry ✅ token leaves the title",e5.title==="Retro notes"&&e5.due===null,JSON.stringify(e5))
 ;const v1=Model.validate({id:"v1v1v1",title:"Watch 📅 2026-01-01 movie ⏫",due:"2026-02-02"});ok("validate strips reserved tokens and keeps the explicit due",v1.title==="Watch movie"&&v1.due==="2026-02-02"&&v1.priority===3,JSON.stringify(v1))
 ;const v2=Model.validate({id:"v2v2v2",title:"Only 📅 2026-01-01 #Ops",due:null});ok("validate honours a token date and tag when there is none",v2.title==="Only"&&v2.due==="2026-01-01"&&v2.tags.join()==="Ops",JSON.stringify(v2))
@@ -1619,7 +1712,26 @@ const e1=EntryParse.parse("Pay invoice 📅 2026-01-01",TM);ok("entry 📅 date 
 ;const b=t(()=>MD.parse("## Open\n- [ ] t "+"[due:: ".repeat(30000)+"\n",{tagMap:TM}));const c=t(()=>MD.parse("## Title"+sp+"y\n- [ ] t ^aaaaaa\n",{tagMap:TM}));const p=MD.parse("## Open\n- [ ] x"+sp+"y\n",{tagMap:TM});const d=t(()=>rtOf(p));return a<500&&b<500&&c<500&&d<500})())
 ;ok("decodeUtf8 accepts UTF-8 (BOM kept) and refuses Latin-1, UTF-16 and NUL bytes",(()=>{const dec=Util.decodeUtf8;const okay=dec(new Uint8Array([239,187,191,35,32,84]))==="﻿# T"
 ;const refuses=bytes=>{try{dec(new Uint8Array(bytes));return false}catch(e){return e.name==="EncodingError"}};return okay&&refuses([67,97,102,233])&&refuses([255,254,35,0])&&refuses([35,0,35])})())
-;return results};const runInPage=()=>{const results=run();const old=document.getElementById("testpanel");if(old)old.remove();const panel=E("div",{
+
+;/* v1.3.1 audit fixes: B3 import merge rule, B5 unreadable tokens, B6 continuation lines, B7 fences and comments */
+ok("md unreadable date tokens survive an in-app edit (B5)",(()=>{const cases=[["## Open\n- [ ] pay rent 📅 2026-02-30 ^b5b5b1\n",t=>{t.done=true;t.doneAt="2026-09-03"},"📅 2026-02-30"],["## Completed\n- [x] did thing ✅ 2026-02-30 ^b5b5b2\n",t=>{t.priority=1},"✅ 2026-02-30"],["## Open\n- [ ] call bob [due:: soon] ^b5b5b3\n",t=>{t.priority=2},"[due:: soon]"]]
+;return cases.every(([src,mut,tok])=>{const p=MD.parse(src,{tagMap:TM});if(p.problems.length!==1||rtOf(p)!==src)return false;mut(p.tasks[0]);const out=rtOf(p);if(out.indexOf(tok)<0)return false
+;const p2=MD.parse(out,{tagMap:TM});return p2.tasks.length===1&&p2.problems.length===1&&rtOf(p2)===out})})())
+;ok("md unreadable completion date is reported and kept as text",(()=>{const p=MD.parse("## Completed\n- [x] did thing ✅ 2026-02-30 ^b5b5b4\n",{tagMap:TM});return p.problems.length===1&&/completion/.test(p.problems[0].msg)&&p.tasks[0].title==="did thing ✅ 2026-02-30"&&Util.validISO(p.tasks[0].doneAt)&&p.tasks[0].due===null})())
+;ok("validate leaves an unreadable token in a stored title",(()=>{const t=Model.validate({id:"b5b5b5",title:"pay rent 📅 2026-02-30",due:"2026-09-10"});return!!t&&t.title==="pay rent 📅 2026-02-30"&&t.due==="2026-09-10"})())
+;const B6="## Open\n- [ ] parent ^b6b6b1\n    intro note\n  - [ ] sub one\n      detail about sub one\n        - [ ] nested under sub one\n\t- [x] sub two 📅 2026-09-01\n    closing note\n"
+;ok("md editing the task line keeps note and sub-task lines verbatim (B6)",(()=>{const p=MD.parse(B6,{tagMap:TM});p.tasks[0].due="2026-09-10";const out=rtOf(p);return out===B6.replace("- [ ] parent ^b6b6b1","- [ ] parent 📅 2026-09-10 ^b6b6b1")&&MD.parse(out,{tagMap:TM}).tasks[0].subtasks.length===3})())
+;ok("md a task moved to another section keeps its continuation lines verbatim",(()=>{const p=MD.parse(B6,{tagMap:TM});p.tasks[0].done=true;p.tasks[0].doneAt="2026-09-03";return rtOf(p)==="## Open\n\n## Completed\n"+B6.slice("## Open\n".length).replace("- [ ] parent ^b6b6b1","- [x] parent ✅ 2026-09-03 ^b6b6b1")})())
+;ok("md a changed sub-task still re-renders the block",(()=>{const p=MD.parse(B6,{tagMap:TM});p.tasks[0].subtasks[0].done=true;const out=rtOf(p);return out.indexOf("    - [x] sub one\n")>=0&&out.indexOf("      detail")<0})())
+;ok("md task-like lines inside code fences and comment blocks are never tasks (B7)",(()=>{const src="## Open\n- [ ] real ^b7b7b1\n```\n- [ ] in a fence\n## Completed\n```\n\x3c!--\n- [ ] commented out\n--\x3e\n~~~md\n- [x] tilde fence ✅ 2026-01-01\n~~~\n- [ ] after ^b7b7b2\n";const p=MD.parse(src,{tagMap:TM})
+;if(p.tasks.map(t=>t.title).join()!=="real,after"||p.problems.length||rtOf(p)!==src)return false;const nt=Model.validate({id:"b7b7b3",title:"new dated",due:"2026-09-30"})
+;/* the heading inside the fence did not change the section: the new task lands after the last Open task */return rtOf(Object.assign({},p,{tasks:p.tasks.concat([nt])}))===src.replace("- [ ] after ^b7b7b2\n","- [ ] after ^b7b7b2\n- [ ] new dated 📅 2026-09-30 ^b7b7b3\n")})())
+;ok("md a fence or comment that never closes is an ordinary line, so the tasks below it still parse",(()=>{const src="```\n- [ ] a ^b7b7b4\n\x3c!--\n- [ ] b ^b7b7b5\n";const p=MD.parse(src,{tagMap:TM});return p.tasks.length===2&&rtOf(p)===src})())
+;ok("model mergeParsed: an import never reverts a task the app already has (B3)",(()=>{const saved=Model.tasks.slice();try{Model.tasks.length=0;Model.byId.clear();const cur=Model.validate({id:"m3m3m1",title:"Report v2 final",createdAt:"2026-09-01T00:00:00.000Z",updatedAt:"2026-09-02T00:00:00.000Z"});Model.tasks.push(cur);Model.byId.set(cur.id,cur)
+;const kept=[];const merged=Model.mergeParsed([Model.validate({id:"m3m3m1",title:"Report v1"}),Model.validate({id:"m3m3m2",title:"Restored task"})],true,{currentWins:true,kept:kept});const byId=new Map(merged.map(t=>[t.id,t]))
+;const reload=Model.mergeParsed([Model.validate({id:"m3m3m1",title:"Report v1"})],false)
+;return merged.length===2&&byId.get("m3m3m1").title==="Report v2 final"&&byId.get("m3m3m2").title==="Restored task"&&kept.length===1&&kept[0].title==="Report v1"&&reload.length===1&&reload[0].title==="Report v1"&&reload[0].createdAt==="2026-09-01T00:00:00.000Z"}finally{Model.tasks.length=0;Model.byId.clear();for(const t of saved){Model.tasks.push(t);Model.byId.set(t.id,t)}}})())
+;await asyncTests(ok);return results};const runInPage=async()=>{const results=await run();const old=document.getElementById("testpanel");if(old)old.remove();const panel=E("div",{
 id:"testpanel",role:"log"});const passed=results.filter(r=>r.pass).length;panel.append(E("div",null,E("strong",{text:passed+" / "+results.length+" passed"})))
 ;for(const r of results)panel.append(E("div",{class:r.pass?"pass":"fail",text:(r.pass?"✓ ":"✗ ")+r.name+(r.pass||!r.detail?"":" — "+r.detail)}))
 ;const x=E("button",{class:"mini-btn",text:"Close",style:"margin-top:8px"});on(x,"click",()=>panel.remove());panel.append(x);document.body.append(panel)}
@@ -1627,7 +1739,7 @@ id:"testpanel",role:"log"});const passed=results.filter(r=>r.pass).length;panel.
 /* ================================================================ boot */if(typeof document!=="undefined"&&typeof window!=="undefined"){
 if(document.readyState==="loading")on(document,"DOMContentLoaded",()=>{App.boot()});else App.boot()}if(typeof module!=="undefined"&&module.exports){
 module.exports={Util:Util,Days:Days,Views:Views,Stats:Stats,DateParse:DateParse,EntryParse:EntryParse,MD:MD,Model:Model,Filter:Filter,Tests:Tests,
-SETTINGS:SETTINGS}}})();
+SETTINGS:SETTINGS,Persist:Persist,Undo:Undo,Actions:Actions,Render:Render}}})();
 /*JS-END*/
 </script>
 </body>
