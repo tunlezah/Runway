@@ -9,5 +9,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Run embedded test suite
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Run embedded test suite (plus the Node-only persistence tests)
         run: node test.js
+      - name: Property fuzz (fails only on findings beyond the documented open Lows)
+        run: node stress/robust-fuzz.js --seed 1 --iters 400 --fail-on-new
+
+  browser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install Playwright and Chromium
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Failure injection against the live UI (fails only on findings beyond the documented open Lows)
+        run: node stress/robust-browser.js --fail-on-new

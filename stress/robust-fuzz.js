@@ -18,7 +18,8 @@
      G  named probes           reproducible single cases behind the findings in
                                docs/robustness-check-report.md
 
-   Usage: node stress/robust-fuzz.js [--seed N] [--iters N] [--out results.json]
+   Usage: node stress/robust-fuzz.js [--seed N] [--iters N] [--out results.json] [--fail-on-new]
+   --fail-on-new exits 1 on a harness error or a property outside the documented open Lows failing, so CI catches new regressions.
    Symbols: ✓ property held · ⚠ FINDING property violated (a defect) · ✗ harness error
 */
 "use strict";
@@ -29,6 +30,10 @@ const arg = (name, def) => { const i = process.argv.indexOf(name); return i >= 0
 const SEED = +arg("--seed", 1);
 const ITERS = +arg("--iters", 400);
 const OUT = arg("--out", null);
+const FAIL_ON_NEW = process.argv.includes("--fail-on-new");
+// documented, not yet fixed Low findings (docs/robustness-check-report.md R4, R10-R16): trailing-whitespace trim on id append,
+// tag labels with _ or #, years below 100, [constructor]/[__proto__] shortcut lookup, ids-off ^token, synthetic ✅ date drift, U+2028, whitespace runs
+const KNOWN_OPEN = /^(A3|B .*-hazard|C3|D3|G1|G2|G7|G10|G11|G12|G13|G15|G16|G17)\b/;
 
 function loadApp() {
   const html = fs.readFileSync(path.join(__dirname, "..", "runway.html"), "utf8");
@@ -439,3 +444,8 @@ const ok = results.checks.filter((c) => c.ok).length;
 console.log("\n" + ok + " / " + results.checks.length + " properties held · " + findings + " finding(s)");
 if (OUT) { fs.mkdirSync(path.dirname(OUT), { recursive: true }); fs.writeFileSync(OUT, JSON.stringify(results, null, 2)); console.log("results written to " + OUT); }
 process.exitCode = 0;
+if (FAIL_ON_NEW) {
+  const bad = results.checks.filter((c) => !c.ok && !KNOWN_OPEN.test(c.name));
+  if (bad.length) { console.error("\nnew findings or harness errors:\n  " + bad.map((c) => c.name).join("\n  ")); process.exitCode = 1; }
+  else console.log("no findings beyond the documented open Lows " + KNOWN_OPEN);
+}

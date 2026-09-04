@@ -3,7 +3,7 @@
 **A to-do list that lives in one HTML file and saves to a markdown file you own.**
 
 [![Tests](https://github.com/tunlezah/Runway/actions/workflows/test.yml/badge.svg)](https://github.com/tunlezah/Runway/actions/workflows/test.yml)
-&nbsp;Current version: **v1.3.0**
+&nbsp;Current version: **v1.3.1**
 
 Runway is a fast, keyboard-friendly task list with due dates, tags, priorities, notes and
 sub-tasks — and a runway-style view of what's landing when. It is deliberately small:
@@ -33,7 +33,8 @@ sub-tasks — and a runway-style view of what's landing when. It is deliberately
    to that file, about a second after you stop typing. If the browser already holds tasks *and*
    the file you pick has some too, Runway asks what to do — **Keep both**, **Use the file**, or
    **Use browser tasks** — and shows the difference; the file's headings and notes are kept
-   whichever you choose.
+   whichever you choose, and nothing at all is written to the file until you have chosen (the
+   header reads *choose above* meanwhile).
 
 **Browsers:** direct file saving uses the File System Access API, which exists in
 Chrome, Edge, Brave, Arc and other Chromium browsers. In Firefox and Safari the app still
@@ -245,7 +246,13 @@ with a line-by-line diff and an explicit choice (*Reload from disk* / *Keep my v
 latter overwrites the file's *tasks* but keeps its headings, notes and anything else). **Nothing
 is ever merged or overwritten silently.** Lines it can't read (say, a task with `📅 2026-02-31`)
 are flagged in a banner, treated as undated, and kept in the file exactly as written — the only
-thing Runway ever adds to a hand-written line is its `^id`.
+thing Runway ever adds to a hand-written line is its `^id`. The unreadable token stays in the
+task's text even after you complete, rename or snooze that task in the app, so the typo is
+still there for you to fix. Lines inside fenced code blocks (```` ``` ````) and HTML comment
+blocks are never read as tasks (only a block that closes counts, so a stray fence cannot hide
+the tasks below it). When you edit a task, its note and sub-task lines are written
+back exactly as they were (order, nesting and indentation included); only a change to the
+sub-tasks themselves rewrites them.
 
 ### Saving, backups and safety nets
 
@@ -255,13 +262,21 @@ thing Runway ever adds to a hand-written line is its `^id`.
 - **A browser-storage mirror** (IndexedDB) is updated on *every single change*, before the
   file write. If your machine dies mid-save, or a save fails, nothing is lost — the app
   replays the unsaved state next launch. File writes themselves are atomic (temp file + swap),
-  so a crash can't leave `todo.md` half-written.
+  so a crash can't leave `todo.md` half-written. A change you make while a save is still
+  writing keeps the dot amber and is written straight after; the dot turns grey only when the
+  file holds every change. Runway never writes to a file it has not been able to read: a
+  read failure shows a *file not read* chip and a *Try again* button, and no autosave runs
+  until the file has been read.
 - **Folder mode** (*Settings → File*, Chromium only): point Runway at a folder instead of a
   file and it keeps `todo.md` **plus timestamped backups** in `backups/` after every save —
   keeping the newest 20 by default (5–100). A restore list with task counts is built into
   Settings; restoring shows a diff and asks before it writes the backup over `todo.md`.
-- **Export / Import** works everywhere, any browser. Importing into a connected file adds the
-  imported tasks; the connected file keeps its own headings and notes.
+- **Export / Import** works everywhere, any browser. Importing adds tasks: a task you already
+  have (same `^id`) is never reverted to the imported version — the banner lists any it left
+  alone — and the whole import is one <kbd>Ctrl/⌘ Z</kbd> step. A connected file keeps its own
+  headings and notes. Without a connected file (Firefox, Safari, or before you choose one) the
+  headings and prose of the last imported file are remembered across reloads, so **Export**
+  reproduces them.
 - **Wipe local data** (*Settings → Advanced*, type `wipe` to confirm) clears the browser copy,
   settings and undo history. The markdown file on disk is never touched by a wipe.
 
@@ -373,7 +388,7 @@ with regression tests. Details in the report.
 | **"Some saved settings couldn't be read"** | Settings got corrupted | They reset to defaults; tasks untouched |
 
 Still stuck? Open the app with `#test` appended to the URL to run its built-in self-test
-panel (162 checks) — a clean pass rules out the app's own logic.
+panel (189 checks) — a clean pass rules out the app's own logic.
 
 ---
 
@@ -381,8 +396,11 @@ panel (162 checks) — a clean pass rules out the app's own logic.
 
 - Everything is in `runway.html` — no dependencies, no build. CSS at the top, JS between
   `/*JS-START*/ … /*JS-END*/` markers.
-- `node test.js` runs the same 162-test suite the browser runs at `#test` (CI runs it on
-  every push).
+- `node test.js` runs 200 tests: the 189 the browser runs at `#test` plus 11 persistence
+  tests that drive `Persist` with a fake file handle (first connect, read failures, a change
+  during an in-flight write, boot resync, import, tier-2 layout). CI runs it on every push,
+  together with `stress/robust-fuzz.js --fail-on-new` and `stress/robust-browser.js
+  --fail-on-new`, which fail only on findings beyond the documented open Lows.
 - `stress/` contains the load-test harnesses behind the numbers above:
   `node --expose-gc stress/stress-node.js` (parser/serialiser limits + robustness corpus) and
   `node stress/stress-dom.js` (headless-Chromium UI measurements). See
@@ -392,4 +410,7 @@ panel (162 checks) — a clean pass rules out the app's own logic.
   31 time zones) and `node stress/robust-browser.js` (failure injection against the live UI — two tabs,
   corrupt storage, IME, non-UTF-8 files, unload mid-save…). Findings, severities and proposed fixes:
   [`docs/robustness-check-report.md`](docs/robustness-check-report.md).
+- The data-integrity audit (v1.3.0 → fixes in v1.3.1) found and fixed eight more, two of them
+  data-loss paths in the file connection and autosave flows; its browser scenarios are S14–S17 in
+  `robust-browser.js`. Report: [`docs/data-integrity-audit-report.md`](docs/data-integrity-audit-report.md).
 - Pushes to `main` deploy the app to GitHub Pages via `.github/workflows/pages.yml`.

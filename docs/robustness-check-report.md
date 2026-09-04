@@ -1,5 +1,7 @@
 # Runway robustness check — what breaks when the world is not tidy
 
+> Follow-up: the data-integrity audit of v1.3.0 ([`data-integrity-audit-report.md`](data-integrity-audit-report.md)) found eight further defects, fixed in v1.3.1.
+
 **Date:** 2026-09-03 · **App:** runway.html v1.2.1 (findings) → **v1.3.0 (fixes applied)** · **Status:** the two High findings, all four Medium findings, and a newly found quadratic-parse defect are **fixed and verified on this branch**; see [Fixes applied](#fixes-applied-v130). The remaining Low findings are documented, not yet fixed.
 
 **Method:** a full read of the source, then three new harnesses that run the real code (nothing mocked

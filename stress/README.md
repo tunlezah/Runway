@@ -59,16 +59,22 @@ node stress/tz-matrix.js [--quick]
 
 ## robust-browser.js — failure injection in the real UI (headless Chromium)
 
-Thirteen scenarios against the live app with an Origin-Private-File-System
+Seventeen scenarios against the live app with an Origin-Private-File-System
 file standing in for `todo.md`: two tabs on one list, a corrupt stored record,
 an IME composition Enter, Space on a focused button, double Enter, a Latin-1
 file, hostile settings JSON, a full scripted session watched for page errors,
 IndexedDB blocked / quota exceeded, closing the tab mid-autosave, external
-edits, undo after a reload, a malformed stored id.
+edits, undo after a reload, a malformed stored id, and (S14–S17, from the
+data-integrity audit) the first-connect banner with a task typed / Ctrl+S /
+tab hidden and a failing first read, a change committed while a write is in
+flight, an import of an older export, and Firefox-mode export after a reload.
 
 ```sh
-node stress/robust-browser.js [--only S2,S6] [--out stress/results/robust-browser.json]
+node stress/robust-browser.js [--only S2,S6] [--out stress/results/robust-browser.json] [--fail-on-new]
 ```
+
+`--fail-on-new` (also on `robust-fuzz.js`) exits 1 on a harness error or a
+finding outside the documented open Lows, which is how CI runs both.
 
 Symbols in the robustness harnesses: `✓` behaved · `⚠ FINDING` defect
 demonstrated · `✗` harness error. The checks assert the *intended* behaviour,

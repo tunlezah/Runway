@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /* Runs the test suite embedded in runway.html — the same tests the app runs
-   in the browser when opened with #test. No dependencies; just `node test.js`. */
+   in the browser when opened with #test, plus the persistence tests that need
+   a fake file system and therefore only run here. No dependencies; just `node test.js`. */
 const fs = require("fs");
 const path = require("path");
 
@@ -14,8 +15,9 @@ if (!m) {
 const mod = { exports: {} };
 new Function("module", "exports", m[1])(mod, mod.exports);
 
-const results = mod.exports.Tests.run();
-const fails = results.filter(r => !r.pass);
-for (const f of fails) console.error("✗ " + f.name + (f.detail ? " — " + f.detail : ""));
-console.log(results.length - fails.length + " / " + results.length + " passed");
-process.exit(fails.length ? 1 : 0);
+Promise.resolve(mod.exports.Tests.run()).then(results => {
+  const fails = results.filter(r => !r.pass);
+  for (const f of fails) console.error("✗ " + f.name + (f.detail ? " — " + f.detail : ""));
+  console.log(results.length - fails.length + " / " + results.length + " passed");
+  process.exit(fails.length ? 1 : 0);
+}, e => { console.error(e); process.exit(2); });
