@@ -15,7 +15,7 @@
      S6  non-UTF-8 file           a Latin-1 todo.md connected and then saved
      S7  settings import          hostile / non-object JSON through the real import control
      S8  scripted session         add, complete, undo/redo, snooze, views, drag, search, panels,
-                                  export, #test — expecting zero page errors
+                                  help tabs, export, #test — expecting zero page errors
      S9  storage failure          IndexedDB blocked at boot; a put() that throws quota errors
      S10 unload with autosave pending
      S11 external edit            reload when clean, conflict when dirty
@@ -446,6 +446,9 @@ const scenarios = {
     await page.click('.panel .seg-btns button:has-text("Bracket")');
     await page.keyboard.press("Escape");
     await page.keyboard.press("?"); await page.waitForSelector(".shortcuts"); await page.keyboard.press("Escape");
+    await page.click("#helpBtn"); await page.waitForSelector(".shortcuts.help"); // every help tab, by click and by arrow key
+    for (const tab of ["entry", "list", "search", "keys", "file", "start"]) await page.click(`.help-tabs [data-tab="${tab}"]`);
+    await page.keyboard.press("ArrowRight"); await page.keyboard.press("Home"); await page.click(".help-next"); await page.keyboard.press("Escape");
     await page.click("#completedToggle");
     const dl = page.waitForEvent("download", { timeout: 4000 }).catch(() => null);
     await page.keyboard.press("Control+s");
@@ -455,7 +458,7 @@ const scenarios = {
     await page.goto(base + "#test", { waitUntil: "domcontentloaded" });
     await page.waitForSelector("#testpanel strong", { timeout: 60000 });
     const testLine = await page.textContent("#testpanel strong");
-    report("S8a no page errors across the scripted session", errors.length === 0, errors.length ? errors.slice(0, 3).join(" | ") : "add/complete/undo/redo/snooze/priority/sub-task/board drag/calendar/search/stats/settings/shortcuts/completed/export", true);
+    report("S8a no page errors across the scripted session", errors.length === 0, errors.length ? errors.slice(0, 3).join(" | ") : "add/complete/undo/redo/snooze/priority/sub-task/board drag/calendar/search/stats/settings/shortcuts/help tabs/completed/export", true);
     report("S8b the file reflects the session and keeps the seeded line verbatim", file.includes("a sub-task") && file.includes("Plain task") && file.includes("Dated +2w task") && file.includes("- [ ] Seeded task 📅 2030-01-01 ^s33d01"), file.split("\n").slice(0, 12).join(" ⏎ ").slice(0, 300), true);
     report("S8c a 📅 date typed into a title is stored as the due date, not left as title text", /Typed with a date inside (📅 |\[due:: )2030-06-06/.test(file) && !/Typed with a date inside 📅 2030-06-06 📅/.test(file), (file.split("\n").find((l) => l.includes("Typed with a date")) || "line not found"), true);
     report("S8d Ctrl+S with a connected file writes the file (no download)", download === null, download ? "a download was triggered instead" : "", false);

@@ -3,7 +3,7 @@
 **A to-do list that lives in one HTML file and saves to a markdown file you own.**
 
 [![Tests](https://github.com/tunlezah/Runway/actions/workflows/test.yml/badge.svg)](https://github.com/tunlezah/Runway/actions/workflows/test.yml)
-&nbsp;Current version: **v1.3.1**
+&nbsp;Current version: **v1.4.0**
 
 Runway is a fast, keyboard-friendly task list with due dates, tags, priorities, notes and
 sub-tasks — and a runway-style view of what's landing when. It is deliberately small:
@@ -35,6 +35,11 @@ sub-tasks — and a runway-style view of what's landing when. It is deliberately
    **Use browser tasks** — and shows the difference; the file's headings and notes are kept
    whichever you choose, and nothing at all is written to the file until you have chosen (the
    header reads *choose above* meanwhile).
+
+4. **Lost?** Click the **?** button in the header (or press <kbd>?</kbd>). The built-in help is a
+   small tabbed page: a getting-started tour that shows where your data currently lives (with a
+   *Choose todo.md* button right there), the entry and date syntax, how to read and work the list,
+   the search operators, every keyboard shortcut, and what the app does to your file.
 
 **Browsers:** direct file saving uses the File System Access API, which exists in
 Chrome, Edge, Brave, Arc and other Chromium browsers. In Firefox and Safari the app still
@@ -184,7 +189,8 @@ untouched for 30+ days, and how much of the list is undated.
 
 ### Keyboard shortcuts
 
-Press <kbd>?</kbd> anytime for this list in-app.
+Press <kbd>?</kbd> anytime for this list in-app — it opens the **Shortcuts** tab of the help dialog
+(the **?** header button opens the same dialog on the tab you last viewed).
 
 | | |
 |---|---|
@@ -388,7 +394,7 @@ with regression tests. Details in the report.
 | **"Some saved settings couldn't be read"** | Settings got corrupted | They reset to defaults; tasks untouched |
 
 Still stuck? Open the app with `#test` appended to the URL to run its built-in self-test
-panel (189 checks) — a clean pass rules out the app's own logic.
+panel (195 checks) — a clean pass rules out the app's own logic.
 
 ---
 
@@ -396,9 +402,11 @@ panel (189 checks) — a clean pass rules out the app's own logic.
 
 - Everything is in `runway.html` — no dependencies, no build. CSS at the top, JS between
   `/*JS-START*/ … /*JS-END*/` markers.
-- `node test.js` runs 200 tests: the 189 the browser runs at `#test` plus 11 persistence
+- `node test.js` runs 206 tests: the 195 the browser runs at `#test` plus 11 persistence
   tests that drive `Persist` with a fake file handle (first connect, read failures, a change
-  during an in-flight write, boot resync, import, tier-2 layout). CI runs it on every push,
+  during an in-flight write, boot resync, import, tier-2 layout). Six of the in-page tests keep the
+  help dialog honest: every date, search and entry example it shows is parsed by the real code, and
+  every key the keyboard handler binds must appear in its shortcut list. CI runs it on every push,
   together with `stress/robust-fuzz.js --fail-on-new` and `stress/robust-browser.js
   --fail-on-new`, which fail only on findings beyond the documented open Lows.
 - `stress/` contains the load-test harnesses behind the numbers above:
