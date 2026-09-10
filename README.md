@@ -402,13 +402,19 @@ panel (195 checks) — a clean pass rules out the app's own logic.
 
 - Everything is in `runway.html` — no dependencies, no build. CSS at the top, JS between
   `/*JS-START*/ … /*JS-END*/` markers.
-- `node test.js` runs 206 tests: the 195 the browser runs at `#test` plus 11 persistence
+- `node test.js` runs 211 tests: the 200 the browser runs at `#test` plus 11 persistence
   tests that drive `Persist` with a fake file handle (first connect, read failures, a change
   during an in-flight write, boot resync, import, tier-2 layout). Six of the in-page tests keep the
   help dialog honest: every date, search and entry example it shows is parsed by the real code, and
   every key the keyboard handler binds must appear in its shortcut list. CI runs it on every push,
   together with `stress/robust-fuzz.js --fail-on-new` and `stress/robust-browser.js
   --fail-on-new`, which fail only on findings beyond the documented open Lows.
+- The site-wide notice at the top of every page is configured in one place: the `BANNER`
+  object at the top of the script (`show`, `message`, `dismissible`). It is deliberately not a
+  user setting — nothing about it is stored, and a dismissal lasts for that page load only. The
+  banner carries its own `--bnr-*` colour tokens so the theme and accent pickers never restyle
+  it; `--bnr-bg` follows the page background in light and dark, and holds its own on any other
+  theme, where the reds would not survive the change of background.
 - `stress/` contains the load-test harnesses behind the numbers above:
   `node --expose-gc stress/stress-node.js` (parser/serialiser limits + robustness corpus) and
   `node stress/stress-dom.js` (headless-Chromium UI measurements). See

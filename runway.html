@@ -24,6 +24,30 @@ ul{list-style:none}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 input:focus-visible,textarea:focus-visible{outline-offset:0}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+/* ============ site banner ("accent rule") ============
+   Additive, self-contained chrome: no fill of its own, red text and a red rule
+   along the bottom edge. It keeps its own colour tokens on purpose, so neither
+   the accent picker nor the GeoCities theme reaches it — the notice reads the
+   same whatever else is selected. The wording lives in BANNER in the script
+   below; nothing here needs editing to change it. */
+:root{--bnr-pad-y:0.6rem;--bnr-pad-x:1.25rem;--bnr-font-size:0.875rem;--bnr-line-height:1.4;--bnr-rule:2px;--bnr-gap:0.625rem;--bnr-line:calc(var(--bnr-font-size)*var(--bnr-line-height));--bnr-hit:24px;--bnr-font:ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,"Helvetica Neue", Arial, sans-serif;--bnr-h:calc(var(--bnr-pad-y)*2 + var(--bnr-line) + var(--bnr-rule));--bnr-bg:var(--surface);--bnr-fg:#a32d2d;--bnr-accent:#d94a49;--bnr-fg-quiet:#b8615f;}
+/* --bnr-bg follows the page background so the banner reads as part of the page, but only where that background is the light or dark one: on the GeoCities navy the reds would fail contrast, so any other theme keeps the banner on its own page colour. */
+:root[data-theme]:not([data-theme="light"]):not([data-theme="dark"]){--bnr-bg:#FFFFFF}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bnr-fg:#f0a09f;--bnr-accent:#c9504e;--bnr-fg-quiet:#a86d6c}
+:root[data-theme]:not([data-theme="light"]):not([data-theme="dark"]){--bnr-bg:#191817}
+}
+:root[data-theme="dark"]{--bnr-fg:#f0a09f;--bnr-accent:#c9504e;--bnr-fg-quiet:#a86d6c}
+/* set by Banner.mount only while the banner is on screen, so a hidden or dismissed banner leaves no anchor offset behind */
+:root[data-banner]{scroll-padding-top:var(--bnr-h)}
+.site-banner{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:var(--bnr-gap);padding:var(--bnr-pad-y) var(--bnr-pad-x);background:var(--bnr-bg);color:var(--bnr-fg);border-bottom:var(--bnr-rule) solid var(--bnr-accent);font-size:var(--bnr-font-size);line-height:var(--bnr-line-height);font-family:var(--bnr-font)}
+.site-banner__mark{flex:none;width:8px;height:8px;border-radius:50%;background:var(--bnr-accent)}
+/* min-width:0 is what lets the ellipsis appear: without it the flex item refuses to shrink and the text wraps, changing the banner's height */
+.site-banner__message{flex:1 1 auto;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+/* the 24px hit target is bled into the banner's own vertical padding by a negative margin: the row height stays --bnr-line, so the dismiss control cannot change the banner's height */
+.site-banner__dismiss{flex:none;display:inline-flex;align-items:center;justify-content:center;width:var(--bnr-hit);height:var(--bnr-hit);margin-block:calc((var(--bnr-line) - var(--bnr-hit))/2);padding:0;border-radius:var(--radius);color:var(--bnr-fg-quiet)}
+.site-banner__dismiss:hover{color:var(--bnr-fg)}
+.site-banner__dismiss svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round}
+.site-banner :focus-visible{outline:2px solid var(--bnr-accent);outline-offset:2px}
 /* ============ layout ============ */
 body{background:var(--surface);color:var(--fg);font:14px/1.45 var(--font-sans)}
 .app{max-width:880px;margin:0 auto;padding:0 var(--sp-4) 80px;container-type:inline-size;container-name:app;min-height:100%}
@@ -432,6 +456,13 @@ to{transform:none}
 </style>
 </head>
 <body>
+<div class="site-banner" id="siteBanner" role="status" hidden>
+<span class="site-banner__mark" aria-hidden="true" hidden></span>
+<span class="site-banner__message"></span>
+<button class="site-banner__dismiss" type="button" aria-label="Dismiss banner" hidden>
+<svg viewBox="0 0 14 14" width="14" height="14" aria-hidden="true" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round"><path d="M3.5 3.5l7 7M10.5 3.5l-7 7"/></svg>
+</button>
+</div>
 <div class="app" id="app">
 <header class="hdr">
 <h1 class="app-title" id="appTitle">Runway</h1>
@@ -479,6 +510,13 @@ to{transform:none}
 <script>
 /*JS-START*/
 (function(){"use strict";const APP_NAME="Runway";const on=(n,ev,fn,o)=>n.addEventListener(ev,fn,o);
+/* ================================================================ site banner
+   The one place to change the site-wide notice. `message` is the text the banner
+   shows; `show:false` removes the banner outright (no gap, no offset, no scroll
+   artefact); `dismissible:true` adds a keyboard-reachable × that hides it for
+   this page load. A dismissal is deliberately not remembered — the notice is
+   back on the next load. Nothing else in this file needs editing to reword it. */
+const BANNER={show:true,message:"YOUR TEXT HERE",dismissible:false};
 /* ================================================================ CAPS */const CAPS={
 fsa:typeof window!=="undefined"&&typeof window.showOpenFilePicker==="function",
 fsaDir:typeof window!=="undefined"&&typeof window.showDirectoryPicker==="function",idb:(()=>{try{return typeof indexedDB!=="undefined"&&!!indexedDB}catch(e){
@@ -1507,6 +1545,17 @@ const focusables=panel.querySelectorAll("button:not([disabled]),input:not([disab
 }else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus()}}});root.append(scrim,panel)
 ;document.getElementById("settingsBtn").setAttribute("aria-expanded","true");x.focus()};return{load:load,set:set,persist:persist,applyTheme:applyTheme,
 applyAccent:applyAccent,applyDensity:applyDensity,openPanel:openPanel,closePanel:closePanel,isOpen:isOpen,sanitize:sanitize}})();
+/* ================================================================ Banner (the site-wide notice; the wording and the switches live in BANNER at the top of this file)
+   The banner carries its own colour tokens, so the theme and accent pickers never restyle it. Mounted once, after Settings.load has applied the theme, so it cannot paint the wrong reds first. */const Banner=(()=>{
+const config=raw=>{const c=raw&&typeof raw==="object"?raw:(BANNER&&typeof BANNER==="object"?BANNER:{})
+;const message=typeof c.message==="string"?c.message:""
+;/* an empty notice would be a bare red rule saying nothing, so it counts as no banner at all */return{show:c.show!==false&&message.trim()!=="",message:message,dismissible:c.dismissible===true}}
+;const node=()=>document.getElementById("siteBanner")
+;const dismiss=()=>{const b=node();if(b)b.hidden=true;document.documentElement.removeAttribute("data-banner")}
+;const mount=()=>{const b=node();if(!b)return;const c=config();const msg=b.querySelector(".site-banner__message");const btn=b.querySelector(".site-banner__dismiss")
+;if(msg)msg.textContent=c.message;if(btn){btn.hidden=!c.dismissible;if(!btn.dataset.wired){btn.dataset.wired="1";on(btn,"click",dismiss)}}
+;/* the text is in place before the banner is revealed, so role="status" announces the notice once rather than an empty region */b.hidden=!c.show
+;document.documentElement.toggleAttribute("data-banner",c.show)};return{mount:mount,dismiss:dismiss,config:config}})();
 /* ================================================================ Entry wiring */const Entry=(()=>{const $=id=>document.getElementById(id);let chipsEl=null
 ;const renderChips=()=>{const parsed=EntryParse.parse($("titleInput").value,SETTINGS.tagMap);if(!chipsEl){chipsEl=E("div",{class:"entry-chips",
 "aria-hidden":"true"});$("datePreview").before(chipsEl)}chipsEl.textContent="";for(const t of parsed.tags)chipsEl.append(E("span",{class:"tag",text:t}))
@@ -1550,7 +1599,7 @@ msg:quota?"Browser storage is full ("+Model.tasks.length+" tasks stored). Archiv
 ;Object.assign(SETTINGS,defaultSettings());Settings.applyTheme();Settings.applyDensity();await Persist.disconnect();Settings.closePanel();Render.render()
 ;Render.showBanner("wiped",{cls:"warn",closable:true,msg:"Local data wiped. The markdown file on disk was not touched."})}
 ;const overlayOpen=()=>Settings.isOpen()||Help.isOpen()||Stats.isOpen()||!!document.querySelector("#overlayRoot .shortcuts[aria-label='Confirm paste']")
-;const boot=async()=>{const dbOk=await DB.open();await Settings.load();await Model.load();await Undo.load();Render.init();Entry.init();Keys.init(overlayOpen)
+;const boot=async()=>{const dbOk=await DB.open();await Settings.load();Banner.mount();await Model.load();await Undo.load();Render.init();Entry.init();Keys.init(overlayOpen)
 ;Render.render();/* errors surface as a banner instead of a silent blank */let surfacing=false;const surface=(what,err)=>{if(surfacing)return;surfacing=true;try{const m=err&&(err.message||typeof err==="string"&&err)||"unknown error";console.error(APP_NAME+":",what,err)
 ;Render.showBanner("jserr",{cls:"alert",closable:true,msg:"Something went wrong ("+what+": "+m+"). Your tasks are safe in this browser — if the list stops updating, reload the page.",actions:[{label:"Reload",fn:()=>location.reload()}]})}catch(e){}surfacing=false}
 ;on(window,"error",e=>surface("error",e&&e.error||e&&e.message));on(window,"unhandledrejection",e=>surface("unhandled promise",e&&e.reason))
@@ -1837,6 +1886,11 @@ ok("help: tabs are distinct and labelled",(()=>{const ids=Help.TABS.map(t=>t[0])
 ;{const SYM={ArrowDown:"↓",ArrowUp:"↑"," ":"Space",Escape:"Esc"};const listed=new Set;for(const[,rows]of Help.SHORTCUTS)for(const[k]of rows)for(const part of k.split(/\s+\/\s+|\s+/))listed.add(part)
 ;const bound=Keys.boundKeys();const missing=bound.map(k=>SYM[k]||k).filter(k=>!listed.has(k));ok("help: every key the handler binds is in the shortcuts tab",missing.length===0&&bound.length>=15,missing.length?"missing "+missing.join(", "):"bound "+bound.length)}
 ;ok("help: inline markup splits code and key tokens",JSON.stringify(Help.inline("Press [[Enter]] to add `#tags`."))===JSON.stringify([{t:"text",v:"Press "},{t:"kbd",v:"Enter"},{t:"text",v:" to add "},{t:"code",v:"#tags"},{t:"text",v:"."}]))
+;ok("banner: the shipped config shows the placeholder notice, undismissable",(()=>{const c=Banner.config();return c.show===true&&c.message==="YOUR TEXT HERE"&&c.dismissible===false})(),JSON.stringify(Banner.config()))
+;ok("banner: show:false takes the banner away whatever the message says",Banner.config({show:false,message:"Scheduled maintenance"}).show===false)
+;ok("banner: a blank or missing message is no banner rather than a bare rule",Banner.config({message:"   "}).show===false&&Banner.config({}).show===false)
+;ok("banner: the message is passed through untouched, and a non-string one is ignored",Banner.config({message:"  Read the notice  "}).message==="  Read the notice  "&&Banner.config({message:42}).message===""&&Banner.config({message:42}).show===false)
+;ok("banner: dismissible is opt-in and only for a literal true",Banner.config({message:"x"}).dismissible===false&&Banner.config({message:"x",dismissible:"yes"}).dismissible===false&&Banner.config({message:"x",dismissible:true}).dismissible===true)
 ;await asyncTests(ok);return results};const runInPage=async()=>{const results=await run();const old=document.getElementById("testpanel");if(old)old.remove();const panel=E("div",{
 id:"testpanel",role:"log"});const passed=results.filter(r=>r.pass).length;panel.append(E("div",null,E("strong",{text:passed+" / "+results.length+" passed"})))
 ;for(const r of results)panel.append(E("div",{class:r.pass?"pass":"fail",text:(r.pass?"✓ ":"✗ ")+r.name+(r.pass||!r.detail?"":" — "+r.detail)}))
@@ -1844,7 +1898,7 @@ id:"testpanel",role:"log"});const passed=results.filter(r=>r.pass).length;panel.
 ;return{run:run,runInPage:runInPage}})();
 /* ================================================================ boot */if(typeof document!=="undefined"&&typeof window!=="undefined"){
 if(document.readyState==="loading")on(document,"DOMContentLoaded",()=>{App.boot()});else App.boot()}if(typeof module!=="undefined"&&module.exports){
-module.exports={Util:Util,Days:Days,Views:Views,Stats:Stats,DateParse:DateParse,EntryParse:EntryParse,MD:MD,Model:Model,Filter:Filter,Tests:Tests,
+module.exports={Util:Util,Days:Days,Views:Views,Stats:Stats,DateParse:DateParse,EntryParse:EntryParse,MD:MD,Model:Model,Filter:Filter,Banner:Banner,Tests:Tests,
 SETTINGS:SETTINGS,Persist:Persist,Undo:Undo,Actions:Actions,Render:Render}}})();
 /*JS-END*/
 </script>
