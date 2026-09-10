@@ -415,6 +415,10 @@ panel (195 checks) — a clean pass rules out the app's own logic.
   banner carries its own `--bnr-*` colour tokens so the theme and accent pickers never restyle
   it; `--bnr-bg` follows the page background in light and dark, and holds its own on any other
   theme, where the reds would not survive the change of background.
+- [`docs/sticky-banner-spec.md`](docs/sticky-banner-spec.md) is that banner written up as a
+  portable spec for other single-page apps: the six questions to answer in the target
+  codebase first, the token set, a working reference implementation, and the seven traps
+  that look fine in review and are wrong. Runway is its reference implementation.
 - `stress/` contains the load-test harnesses behind the numbers above:
   `node --expose-gc stress/stress-node.js` (parser/serialiser limits + robustness corpus) and
   `node stress/stress-dom.js` (headless-Chromium UI measurements). See
