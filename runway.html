@@ -29,8 +29,11 @@ input:focus-visible,textarea:focus-visible{outline-offset:0}
    along the bottom edge. It keeps its own colour tokens on purpose, so neither
    the accent picker nor the GeoCities theme reaches it — the notice reads the
    same whatever else is selected. The wording lives in BANNER in the script
-   below; nothing here needs editing to change it. */
-:root{--bnr-pad-y:0.6rem;--bnr-pad-x:1.25rem;--bnr-font-size:0.875rem;--bnr-line-height:1.4;--bnr-rule:2px;--bnr-gap:0.625rem;--bnr-line:calc(var(--bnr-font-size)*var(--bnr-line-height));--bnr-hit:24px;--bnr-font:ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,"Helvetica Neue", Arial, sans-serif;--bnr-h:calc(var(--bnr-pad-y)*2 + var(--bnr-line) + var(--bnr-rule));--bnr-bg:var(--surface);--bnr-fg:#a32d2d;--bnr-accent:#d94a49;--bnr-fg-quiet:#b8615f;}
+   below; nothing here needs editing to change it.
+   --bnr-pad-y is the height knob: it sets the space above the text and the gap
+   between the text and the rule, so the banner is 36px at 0.45rem. Below about
+   0.4rem the dismiss control's focus ring starts to overlap the rule. */
+:root{--bnr-pad-y:0.45rem;--bnr-pad-x:1.25rem;--bnr-font-size:0.875rem;--bnr-line-height:1.4;--bnr-rule:2px;--bnr-gap:0.625rem;--bnr-line:calc(var(--bnr-font-size)*var(--bnr-line-height));--bnr-hit:24px;--bnr-font:ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,"Helvetica Neue", Arial, sans-serif;--bnr-h:calc(var(--bnr-pad-y)*2 + var(--bnr-line) + var(--bnr-rule));--bnr-bg:var(--surface);--bnr-fg:#a32d2d;--bnr-accent:#d94a49;--bnr-fg-quiet:#b8615f;}
 /* --bnr-bg follows the page background so the banner reads as part of the page, but only where that background is the light or dark one: on the GeoCities navy the reds would fail contrast, so any other theme keeps the banner on its own page colour. */
 :root[data-theme]:not([data-theme="light"]):not([data-theme="dark"]){--bnr-bg:#FFFFFF}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bnr-fg:#f0a09f;--bnr-accent:#c9504e;--bnr-fg-quiet:#a86d6c}
