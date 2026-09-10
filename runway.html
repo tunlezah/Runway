@@ -42,7 +42,9 @@ input:focus-visible,textarea:focus-visible{outline-offset:0}
 .site-banner{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:var(--bnr-gap);padding:var(--bnr-pad-y) var(--bnr-pad-x);background:var(--bnr-bg);color:var(--bnr-fg);border-bottom:var(--bnr-rule) solid var(--bnr-accent);font-size:var(--bnr-font-size);line-height:var(--bnr-line-height);font-family:var(--bnr-font)}
 .site-banner__mark{flex:none;width:8px;height:8px;border-radius:50%;background:var(--bnr-accent)}
 /* min-width:0 is what lets the ellipsis appear: without it the flex item refuses to shrink and the text wraps, changing the banner's height */
-.site-banner__message{flex:1 1 auto;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.site-banner__message{flex:1 1 auto;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;text-align:center}
+/* centred in the banner, not just in its own track: the dismiss control's footprint is mirrored on the far side of the message, so the text sits on the banner's true centre line with the × still hard right */
+.site-banner--dismissible .site-banner__message{margin-inline-start:calc(var(--bnr-hit) + var(--bnr-gap))}
 /* the 24px hit target is bled into the banner's own vertical padding by a negative margin: the row height stays --bnr-line, so the dismiss control cannot change the banner's height */
 .site-banner__dismiss{flex:none;display:inline-flex;align-items:center;justify-content:center;width:var(--bnr-hit);height:var(--bnr-hit);margin-block:calc((var(--bnr-line) - var(--bnr-hit))/2);padding:0;border-radius:var(--radius);color:var(--bnr-fg-quiet)}
 .site-banner__dismiss:hover{color:var(--bnr-fg)}
@@ -1553,7 +1555,7 @@ const config=raw=>{const c=raw&&typeof raw==="object"?raw:(BANNER&&typeof BANNER
 ;const node=()=>document.getElementById("siteBanner")
 ;const dismiss=()=>{const b=node();if(b)b.hidden=true;document.documentElement.removeAttribute("data-banner")}
 ;const mount=()=>{const b=node();if(!b)return;const c=config();const msg=b.querySelector(".site-banner__message");const btn=b.querySelector(".site-banner__dismiss")
-;if(msg)msg.textContent=c.message;if(btn){btn.hidden=!c.dismissible;if(!btn.dataset.wired){btn.dataset.wired="1";on(btn,"click",dismiss)}}
+;if(msg)msg.textContent=c.message;b.classList.toggle("site-banner--dismissible",c.dismissible);if(btn){btn.hidden=!c.dismissible;if(!btn.dataset.wired){btn.dataset.wired="1";on(btn,"click",dismiss)}}
 ;/* the text is in place before the banner is revealed, so role="status" announces the notice once rather than an empty region */b.hidden=!c.show
 ;document.documentElement.toggleAttribute("data-banner",c.show)};return{mount:mount,dismiss:dismiss,config:config}})();
 /* ================================================================ Entry wiring */const Entry=(()=>{const $=id=>document.getElementById(id);let chipsEl=null
